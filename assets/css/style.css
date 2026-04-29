@@ -362,14 +362,17 @@ section {
 .hero {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  padding-top: 130px; /* Increased to push content slightly lower */
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 100px; /* Safe space for the fixed header */
+  padding-bottom: 60px;
 }
 
 .hero-content {
   max-width: 900px;
   margin: 0 auto;
   text-align: center;
+  margin-top: 30px; /* Reduced to nudge text slightly higher for perfect balance */
 }
 
 .hero-greeting {

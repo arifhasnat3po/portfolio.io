@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (lineMat) {
       lineMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
-      lineMat.opacity = isLight ? 0.12 : 0.15;
+      lineMat.opacity = isLight ? 0.08 : 0.08; // Even less visible in dark mode
       lineMat.needsUpdate = true;
     }
 
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keep Points Material opacity in sync with theme updates
     if (pointsMat && pointsMat.uniforms) {
        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-       pointsMat.uniforms.globalOpacity.value = isLight ? 0.20 : 0.22;
+       pointsMat.uniforms.globalOpacity.value = isLight ? 0.15 : 0.15; // Even less visible in dark mode
        pointsMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
     }
 
