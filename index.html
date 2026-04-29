@@ -1,363 +1,233 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arif Hasnat | SEO & Data Analyst | Python Developer</title>
-    <meta name="description" content="Portfolio of Arif Hasnat, SEO & Data Analyst specializing in Python automation, machine learning, and technical SEO." />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arif Hasnat | SEO & Data Analyst | Python Automation Developer</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#0ea5e9', // Sky blue for a modern, trust-inspiring look
-              secondary: '#0f172a', // Deep slate for high contrast
-              'dark-bg': '#0b1121', // Rich dark background
-            },
-            fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
-            },
-            animation: {
-                'bounce-slow': 'bounce 3s infinite',
-            }
-          }
-        }
-      }
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Portfolio of Arif Hasnat, an SEO & Technical Content Writer, Data Analyst, Python Automation Developer, and Machine Learning researcher from Bangladesh with publications in cybersecurity, IoT, and smart industry systems.">
+    <meta name="keywords" content="Arif Hasnat, SEO Analyst, Data Analyst, Python Developer, Machine Learning, Cybersecurity, Bangladesh, Technical Content Writer">
+    <meta name="author" content="Arif Hasnat">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="Arif Hasnat | SEO & Data Analyst">
+    <meta property="og:description" content="Portfolio of Arif Hasnat, an SEO & Technical Content Writer, Data Analyst, Python Automation Developer, and Machine Learning researcher.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arifhasnat3po.github.io/portfolio.io/">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://arifhasnat3po.github.io/portfolio.io/">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Arif Hasnat",
+      "url": "https://arifhasnat3po.github.io/portfolio.io/",
+      "jobTitle": "SEO & Data Analyst",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Chattogram / Dhaka",
+        "addressCountry": "Bangladesh"
+      },
+      "sameAs": [
+        "https://github.com/arifhasnat3po",
+        "https://www.linkedin.com/in/arif-hasnat/"
+      ]
+    }
     </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 20px; }
-            .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(75, 85, 99, 0.5); }
-        }
-    </style>
 </head>
-<body class="antialiased bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-gray-100 transition-colors duration-300">
-    <div id="root"></div>
+<body>
+    <!-- Background Animated Mesh -->
+    <div class="bg-mesh">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <!-- Scroll Progress -->
+    <div class="scroll-progress-container">
+        <div class="scroll-progress-bar" id="scroll-progress"></div>
+    </div>
 
-        // --- ICONS (Inline SVGs for a single-file solution) ---
-        const Icon = ({ path, className = "w-5 h-5" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={path} /></svg>;
-        const MenuIcon = (p) => <Icon {...p} path="M4 6h16M4 12h16M4 18h16" />;
-        const XIcon = (p) => <Icon {...p} path="M18 6L6 18M6 6l12 12" />;
-        const HomeIcon = (p) => <Icon {...p} path="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />;
-        const UserIcon = (p) => <Icon {...p} path="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z" />;
-        const BriefcaseIcon = (p) => <Icon {...p} path="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z M3.3 7l8.7 5 8.7-5 M12 22v-10" />;
-        const ChipIcon = (p) => <Icon {...p} path="M2 9h3.5v6H2V9zm16.5 0H22v6h-3.5V9zM9 2v3.5h6V2H9zm0 16.5h6V22H9v-3.5zM6 6h12v12H6V6z" />;
-        const CodeIcon = (p) => <Icon {...p} path="M16 18l6-6-6-6 M8 6l-6 6 6 6" />;
-        const MailIcon = (p) => <Icon {...p} path="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" />;
-        const SunIcon = (p) => <Icon {...p} path="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42 M12 17a5 5 0 100-10 5 5 0 000 10z" />;
-        const MoonIcon = (p) => <Icon {...p} path="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />;
-        const DownloadIcon = (p) => <Icon {...p} path="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3" />;
-        const ExtLinkIcon = (p) => <Icon {...p} path="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6 M15 3h6v6 M10 14L21 3" />;
-        const GithubIcon = (p) => <Icon {...p} path="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 15.13V19" />;
-        const LinkedinIcon = (p) => <Icon {...p} path="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z M4 4a2 2 0 11-2-2 2 2 0 012 2z" />;
-        const GlobeIcon = (p) => <Icon {...p} path="M12 2a10 10 0 100 20 10 10 0 000-20z M2 12h20 M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />;
+    <!-- Navigation -->
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo">Arif <span class="gradient-text">Hasnat</span></a>
+            
+            <nav class="nav-links">
+                <a href="#about">About</a>
+                <a href="#education">Education</a>
+                <a href="#experience">Experience</a>
+                <a href="#publications">Publications</a>
+                <a href="#extracurricular">Extra-curricular</a>
+                <a href="#projects">Projects</a>
+                <a href="#certificates">Certificates</a>
+            </nav>
 
-        // --- ALL DATA FROM CV ---
-        const DATA = {
-            personal: {
-                name: "Arif Hasnat",
-                title: "SEO & Data Analyst | Python Developer",
-                email: "arifhasnat83@gmail.com",
-                location: "Dhaka, Bangladesh",
-                phone: "+880 1626 702431",
-                summary: "Data-driven professional with expertise bridging marketing and engineering. Currently an SEO & Data Analyst at Carbarn, leveraging Python to automate workflows and uncover actionable insights from large datasets. Experienced in machine learning, QA automation, and technical SEO.",
-                profiles: {
-                    github: "https://github.com/arifhasnat3po",
-                    linkedin: "https://www.linkedin.com/in/arif-hasnat/",
-                },
-                cvLink: "assets/Arif-Hasnat-CV.pdf"
-            },
-            experience: [
-                { company: "Carbarn", role: "SEO & Data Analyst", period: "Feb 2025 – March 2026", location: "Dhaka", description: [
-                    "Analyze website performance using Google Search Console and Sitechecker to improve ranking.",
-                    "Develop Python automation bots to streamline data processing and weekly reporting.",
-                    "Interpret large datasets to identify user behavior trends and optimization opportunities.",
-                    "Implement advanced on-page and technical SEO strategies."
-                ]},
-                { company: "Star Tech Ltd", role: "Executive (SEO Content)", period: "Jul 2024 – Sep 2024", location: "Dhaka", description: [
-                    "Created high-quality, optimized content strategies to drive organic traffic.",
-                    "Conducted in-depth keyword research and competitor analysis for a leading tech retailer."
-                ]},
-                { company: "a1qa", role: "QA Automation Engineer Intern", period: "Apr 2024 – May 2024", location: "Remote (Belarus)", description: [
-                    "Developed robust automation test scripts using WebdriverIO and JavaScript.",
-                    "Analyzed test results and maintained the automated testing environment."
-                ]},
-                { company: "IIUC", role: "Teaching Assistant", period: "Jan 2023 – Jan 2024", location: "Chattogram", description: [
-                    "Instructed students in Basic Electronics and Communication Engineering sessional courses."
-                ]}
-            ],
-            education: [
-                { degree: "B.Sc. in Computer & Communication Engineering", school: "International Islamic University Chittagong", period: "2019 – 2023", details: "CGPA: 3.793 / 4.00. Thesis: Enhancing Insider Malware Detection Accuracy with Machine Learning Algorithms." }
-            ],
-            skills: [
-                { category: "Development", items: ["Python (Django, Flask)", "Web Scraping", "Machine Learning", "JavaScript", "C Programming", "MATLAB"] },
-                { category: "Data & Database", items: ["Data Analysis", "SQL", "Pandas", "NumPy"] },
-                { category: "SEO & Tools", items: ["Technical SEO", "Google Search Console", "SEMRUSH", "Ahrefs", "Sitechecker"] },
-                { category: "Infrastructure", items: ["Linux", "Computer Networking (CCNA)", "Cyber Security"] }
-            ],
-            projects: [
-                { title: "Insider Malware Detection", desc: "ML model to detect insider threats with high accuracy based on thesis research.", tags: ["Python", "Scikit-learn", "ML"], link: "https://github.com/arifhasnat3po/Insider-Malware-Detection" },
-                { title: "Python Automation Suite", desc: "Collection of 100+ scripts for web scraping, data processing, and automation tasks.", tags: ["Python", "Selenium", "Automation"], link: "https://github.com/arifhasnat3po/Python100DaysBootcamp" },
-                { title: "Full-Stack Social App", desc: "MERN stack social media platform with real-time chat and user profiles.", tags: ["React", "Node.js", "MongoDB"], link: "https://github.com/arifhasnat3po/Social-Media-Web-Application" },
-                { title: "Cisco Networking Labs", desc: "Comprehensive repository of network simulations and configurations.", tags: ["Networking", "Packet Tracer", "CCNA"], link: "https://github.com/arifhasnat3po/CiscoPacketTracerLabs" },
-                { title: "Optical Communication", desc: "Simulations of optical communication systems using OptiSystem.", tags: ["OptiSystem", "Simulation", "Teleco"], link: "https://github.com/arifhasnat3po/OptiSystem" },
-                { title: "Cryptography Lab", desc: "Implementation of various cryptographic algorithms for security.", tags: ["Python", "Cryptography", "Security"], link: "https://github.com/arifhasnat3po/CryptoLab" }
-            ],
-            publications: [
-                { title: "Enhancing Insider Malware Detection Accuracy with Machine Learning Algorithms", journal: "MDPI Eng. Proc. 2023", link: "https://doi.org/10.3390/ecsa-10-16234" },
-                { title: "Design & Simulation of AI-enabled Digital Twin Model for Smart Industry 4.0", journal: "MDPI Eng. Proc. 2023", link: "https://doi.org/10.3390/ecsa-10-16235" },
-                { title: "Enhancing Workplace Efficiency: Intelligent Office Automation System Leveraging IoT", journal: "IEEE ICISET 2024", link: "https://doi.org/10.1109/ICISET62123.2024.10941548" }
-            ],
-            certifications: [
-                { name: "Google Technical Support Fundamentals", provider: "Coursera" },
-                { name: "Python for Everybody", provider: "University of Michigan (Coursera)" },
-                { name: "Practical Ethical Hacking", provider: "TCM Security (Udemy)" },
-                { name: "Cisco OS Basics & Networking", provider: "Cisco (Credly)" }
-            ]
-        };
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Dark Mode">
+                    <!-- Icon injected by JS -->
+                </button>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Mobile Menu">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+    </header>
 
-        // --- MAIN APP COMPONENT ---
-        function App() {
-            const [darkMode, setDarkMode] = useState(true);
-            const [menuOpen, setMenuOpen] = useState(false);
-            const [activeSection, setActiveSection] = useState('home');
-
-            useEffect(() => {
-                document.documentElement.classList.toggle('dark', darkMode);
-            }, [darkMode]);
-
-            // Scroll spy
-            useEffect(() => {
-                const handleScroll = () => {
-                    const sections = ['home', 'about', 'experience', 'projects', 'more'];
-                    const current = sections.find(id => {
-                        const el = document.getElementById(id);
-                        if (el) {
-                            const rect = el.getBoundingClientRect();
-                            return rect.top <= 150 && rect.bottom >= 150;
-                        }
-                        return false;
-                    });
-                    if (current) setActiveSection(current);
-                };
-                window.addEventListener('scroll', handleScroll);
-                return () => window.removeEventListener('scroll', handleScroll);
-            }, []);
-
-            const NavLink = ({ to, icon: IconComp, label }) => (
-                <a href={`#${to}`} onClick={() => setMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeSection === to ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'}`}>
-                    <IconComp className="w-5 h-5"/>
-                    <span className="font-medium">{label}</span>
-                </a>
-            );
-
-            return (
-                <div className="min-h-screen flex flex-col lg:flex-row">
-                    {/* MOBILE HEADER */}
-                    <header className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-secondary border-b dark:border-gray-800 sticky top-0 z-50">
-                        <span className="font-bold text-xl text-primary">{DATA.personal.name}</span>
-                        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                            {menuOpen ? <XIcon /> : <MenuIcon />}
-                        </button>
-                    </header>
-
-                    {/* SIDEBAR NAVIGATION */}
-                    <aside className={`fixed inset-y-0 left-0 w-72 bg-secondary z-50 transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col`}>
-                        <div className="p-6 flex flex-col items-center border-b border-gray-800">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-700 mb-4">
-                                <img src="assets/img/profile-img.jpg" alt={DATA.personal.name} className="w-full h-full object-cover" onError={(e) => e.target.src='https://ui-avatars.com/api/?name=Arif+Hasnat&background=0ea5e9&color=fff'}/>
-                            </div>
-                            <h1 className="text-white font-bold text-xl">{DATA.personal.name}</h1>
-                            <p className="text-gray-400 text-sm text-center mt-1">{DATA.personal.title}</p>
-                            <div className="flex space-x-3 mt-4">
-                                <a href={DATA.personal.profiles.github} target="_blank" className="text-gray-400 hover:text-white transition"><GithubIcon className="w-5 h-5"/></a>
-                                <a href={DATA.personal.profiles.linkedin} target="_blank" className="text-gray-400 hover:text-white transition"><LinkedinIcon className="w-5 h-5"/></a>
-                                <a href={DATA.personal.profiles.website} target="_blank" className="text-gray-400 hover:text-white transition"><GlobeIcon className="w-5 h-5"/></a>
-                            </div>
-                        </div>
-                        <nav className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
-                            <NavLink to="home" icon={HomeIcon} label="Home" />
-                            <NavLink to="about" icon={UserIcon} label="About & Skills" />
-                            <NavLink to="experience" icon={BriefcaseIcon} label="Experience" />
-                            <NavLink to="projects" icon={CodeIcon} label="Projects" />
-                            <NavLink to="more" icon={ChipIcon} label="Publications & Certs" />
-                        </nav>
-                        <div className="p-4 border-t border-gray-800">
-                            <button onClick={() => setDarkMode(!darkMode)} className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md transition">
-                                {darkMode ? <SunIcon className="w-5 h-5"/> : <MoonIcon className="w-5 h-5"/>}
-                                <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
-                            </button>
-                        </div>
-                    </aside>
-
-                    {/* MAIN CONTENT AREA */}
-                    <main className="flex-1 lg:ml-72">
-                        {/* HERO SECTION */}
-                        <section id="home" className="min-h-screen flex items-center justify-center px-6 py-20 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-cover bg-center z-0 opacity-10 dark:opacity-20" style={{backgroundImage: "url('assets/img/hero-bg.jpg')"}}></div>
-                            <div className="bg-gradient-to-b from-transparent to-gray-50 dark:to-dark-bg absolute inset-0 z-0"></div>
-                            <div className="max-w-3xl text-center relative z-10">
-                                <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
-                                    Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">{DATA.personal.name}</span>
-                                </h1>
-                                <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 font-light leading-relaxed">
-                                    {DATA.personal.summary}
-                                </p>
-                                <div className="flex flex-wrap justify-center gap-4">
-                                    <a href="#projects" className="px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-blue-600 transition shadow-lg hover:shadow-primary/50">View My Work</a>
-                                    <a href={DATA.personal.cvLink} className="px-8 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-full border border-gray-200 dark:border-gray-700 hover:border-primary transition flex items-center gap-2">
-                                        <DownloadIcon className="w-5 h-5"/> Download CV
-                                    </a>
-                                </div>
-                            </div>
-                            <a href="#about" className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-primary animate-bounce-slow"><Icon path="M19 14l-7 7m0 0l-7-7m7 7V3" className="w-8 h-8" /></a>
-                        </section>
-
-                        {/* ABOUT & SKILLS */}
-                        <section id="about" className="py-20 px-6 md:px-12 lg:px-20 bg-white dark:bg-gray-900/50">
-                            <div className="max-w-6xl mx-auto">
-                                <h2 className="text-3xl font-bold mb-8 flex items-center"><UserIcon className="w-8 h-8 mr-3 text-primary"/>About Me</h2>
-                                <div className="grid md:grid-cols-3 gap-12">
-                                    <div className="md:col-span-1 space-y-6 text-gray-600 dark:text-gray-400">
-                                        <p><strong className="text-gray-900 dark:text-white">Location:</strong> {DATA.personal.location}</p>
-                                        <p><strong className="text-gray-900 dark:text-white">Email:</strong> <a href={`mailto:${DATA.personal.email}`} className="hover:text-primary">{DATA.personal.email}</a></p>
-                                        <p><strong className="text-gray-900 dark:text-white">Phone:</strong> {DATA.personal.phone}</p>
-                                        <p><strong className="text-gray-900 dark:text-white">Education:</strong> {DATA.education[0].degree}</p>
-                                    </div>
-                                    <div className="md:col-span-2 grid sm:grid-cols-2 gap-6">
-                                        {DATA.skills.map((skillGroup, idx) => (
-                                            <div key={idx} className="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
-                                                <h3 className="font-bold text-lg mb-3 text-primary">{skillGroup.category}</h3>
-                                                <ul className="space-y-2">
-                                                    {skillGroup.items.map(skill => (
-                                                        <li key={skill} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                                                            <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>{skill}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* EXPERIENCE & EDUCATION */}
-                        <section id="experience" className="py-20 px-6 md:px-12 lg:px-20 bg-gray-50 dark:bg-dark-bg">
-                            <div className="max-w-4xl mx-auto">
-                                <h2 className="text-3xl font-bold mb-12 flex items-center"><BriefcaseIcon className="w-8 h-8 mr-3 text-primary"/>Professional Experience</h2>
-                                <div className="space-y-12 relative before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:bg-gray-200 dark:before:bg-gray-800">
-                                    {DATA.experience.map((job, idx) => (
-                                        <div key={idx} className="relative pl-12">
-                                            <div className="absolute left-0 top-1.5 ml-[11px] w-4 h-4 rounded-full bg-primary border-4 border-white dark:border-dark-bg"></div>
-                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{job.role}</h3>
-                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-primary font-medium mt-1 mb-3">
-                                                <span>{job.company}</span>
-                                                <span>•</span>
-                                                <span>{job.period}</span>
-                                                <span>•</span>
-                                                <span>{job.location}</span>
-                                            </div>
-                                            <ul className="list-disc list-outside ml-5 space-y-2 text-gray-600 dark:text-gray-400">
-                                                {job.description.map((desc, i) => <li key={i}>{desc}</li>)}
-                                            </ul>
-                                        </div>
-                                    ))}
-                                </div>
-                                
-                                <h2 className="text-3xl font-bold mb-8 mt-20 flex items-center"><Icon path="M12 14l9-5-9-5-9 5 9 5z" className="w-8 h-8 mr-3 text-primary"/>Education</h2>
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                    <h3 className="text-xl font-bold">{DATA.education[0].degree}</h3>
-                                    <p className="text-primary font-medium">{DATA.education[0].school} | {DATA.education[0].period}</p>
-                                    <p className="mt-2 text-gray-600 dark:text-gray-400">{DATA.education[0].details}</p>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* PROJECTS */}
-                        <section id="projects" className="py-20 px-6 md:px-12 lg:px-20 bg-white dark:bg-gray-900/50">
-                            <div className="max-w-6xl mx-auto">
-                                <h2 className="text-3xl font-bold mb-12 flex items-center"><CodeIcon className="w-8 h-8 mr-3 text-primary"/>Featured Projects</h2>
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {DATA.projects.map((project, idx) => (
-                                        <div key={idx} className="group bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all flex flex-col">
-                                            <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors">{project.title}</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 flex-grow">{project.desc}</p>
-                                            <div className="flex flex-wrap gap-2 mb-4">
-                                                {project.tags.map(tag => (
-                                                    <span key={tag} className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-md">{tag}</span>
-                                                ))}
-                                            </div>
-                                            <a href={project.link} target="_blank" className="inline-flex items-center text-sm font-semibold text-primary hover:underline">
-                                                <GithubIcon className="w-4 h-4 mr-1.5"/> View Source
-                                            </a>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* PUBLICATIONS & CERTIFICATIONS */}
-                        <section id="more" className="py-20 px-6 md:px-12 lg:px-20 bg-gray-50 dark:bg-dark-bg">
-                            <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16">
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-6 flex items-center"><Icon path="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" className="w-6 h-6 mr-3 text-primary"/>Publications</h2>
-                                    <div className="space-y-4">
-                                        {DATA.publications.map((pub, idx) => (
-                                            <a key={idx} href={pub.link} target="_blank" className="block p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-primary dark:hover:border-primary transition group">
-                                                <h4 className="font-semibold group-hover:text-primary transition-colors">{pub.title}</h4>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{pub.journal}</p>
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-6 flex items-center"><Icon path="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" className="w-6 h-6 mr-3 text-primary"/>Certifications</h2>
-                                    <div className="grid sm:grid-cols-2 gap-4">
-                                        {DATA.certifications.map((cert, idx) => (
-                                            <div key={idx} className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
-                                                <h4 className="font-semibold text-sm">{cert.name}</h4>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{cert.provider}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* FOOTER */}
-                        <footer className="py-8 text-center text-gray-500 dark:text-gray-400 text-sm border-t dark:border-gray-800">
-                            <p>© {new Date().getFullYear()} {DATA.personal.name}. All rights reserved.</p>
-                            <div className="flex justify-center space-x-4 mt-4">
-                                <a href={DATA.personal.profiles.github} className="hover:text-primary transition"><GithubIcon className="w-5 h-5"/></a>
-                                <a href={DATA.personal.profiles.linkedin} className="hover:text-primary transition"><LinkedinIcon className="w-5 h-5"/></a>
-                                <a href={`mailto:${DATA.personal.email}`} className="hover:text-primary transition"><MailIcon className="w-5 h-5"/></a>
-                            </div>
-                        </footer>
-                    </main>
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero">
+            <div class="container">
+                <div class="hero-content reveal">
+                    <h1 id="hero-title">Hi, I'm <br><span class="gradient-text" id="hero-name">Arif Hasnat</span></h1>
+                    <p id="hero-headline" style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);"></p>
+                    <p id="hero-subheading" class="hero-subheading"></p>
+                    
+                    <div class="hero-buttons">
+                        <a href="#projects" class="btn btn-primary">Explore My Work</a>
+                        <a id="hero-cv-btn" href="#" target="_blank" class="btn btn-outline">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> 
+                            Download Resumé
+                        </a>
+                    </div>
+                    
+                    <div class="social-icons">
+                        <a id="github-link" href="#" target="_blank" aria-label="GitHub"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 15.13V19"></path></svg></a>
+                        <a id="linkedin-link" href="#" target="_blank" aria-label="LinkedIn"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+                    </div>
                 </div>
-            );
-        }
+            </div>
+        </section>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+        <!-- About & Metrics Section -->
+        <section id="about">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">About & Skills</span></h2>
+                
+                <div class="glass reveal" style="padding: 2.5rem; margin-bottom: 4rem;">
+                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 1.5rem;">Professional Overview</h3>
+                    <p id="about-text" class="about-text"></p>
+                    <div id="metrics-grid" class="metrics-grid mt-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+
+                <div id="skills-grid" class="grid-3 reveal">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">Education</span></h2>
+                <div class="timeline" id="education-timeline">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">Career Timeline</span></h2>
+                <div class="timeline" id="experience-timeline">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Publications Section -->
+        <section id="publications">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">Research Publications</span></h2>
+                <div class="grid-2" id="publications-grid">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Extra-curricular Section -->
+        <section id="extracurricular">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">Extra-curricular</span></h2>
+                <div class="timeline" id="extracurricular-timeline">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">Featured Projects</span></h2>
+                <div class="filter-container reveal">
+                    <input type="text" id="project-search" class="search-input" placeholder="Search projects by keyword, tech, or title...">
+                </div>
+                <div class="grid-3" id="projects-grid">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Certificates Section -->
+        <section id="certificates">
+            <div class="container">
+                <h2 class="section-title reveal"><span class="gradient-text">Certificates & Achievements</span></h2>
+                <div class="grid-3" id="certificates-grid">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" style="padding-bottom: 6rem;">
+            <div class="container">
+                <div class="glass reveal" style="max-width: 800px; margin: 0 auto; padding: 4rem; text-align: center;">
+                    <h2 class="gradient-text" style="font-size: 3rem; margin-bottom: 1rem;">Let's Connect</h2>
+                    <p class="about-text" style="max-width: 500px; margin: 0 auto 3rem;">I'm open to discussing new opportunities, SEO architectures, automation pipelines, and machine learning research.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+                        <a id="contact-email" href="" class="btn btn-primary" style="width: 100%; max-width: 300px;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            <span id="contact-email-text">Email Me</span>
+                        </a>
+                        <a id="contact-phone" href="" class="btn btn-outline" style="width: 100%; max-width: 300px;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                            <span id="contact-phone-text">Call Me</span>
+                        </a>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); margin-top: 1rem;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span id="contact-location"></span>
+                        </div>
+                        <iframe class="map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d199869.71586758105!2d91.65422219200046!3d22.357312058379097!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30acd8a64095dfd3%3A0x5015cc5bcb6905d9!2sChattogram!5e1!3m2!1sen!2sbd!4v1777494903239!5m2!1sen!2sbd" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; <span id="footer-year"></span> <span id="footer-name" class="gradient-text" style="font-weight: 600;"></span>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <button id="back-to-top" class="back-to-top" aria-label="Back to Top">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/entangled.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>
