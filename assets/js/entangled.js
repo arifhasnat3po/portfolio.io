@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Clear container
   container.innerHTML = '';
 
-  let scene, camera, renderer, timelineGroup, lineMat, pointsMat;
+  let scene, camera, renderer, timelineGroup, starGroup, blackHoleGroup, lineMat, pointsMat, starMat;
   let time = 0;
 
   // Mouse interaction
@@ -67,8 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (lineMat) {
       lineMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
-      lineMat.opacity = isLight ? 0.15 : 0.25;
+      lineMat.opacity = isLight ? 0.12 : 0.15;
       lineMat.needsUpdate = true;
+    }
+
+    if (starMat) {
+      starMat.color.setHex(isLight ? 0x64748b : 0xffffff);
+      starMat.opacity = isLight ? 0.2 : 0.6;
+      starMat.needsUpdate = true;
     }
   }
 
@@ -252,6 +258,98 @@ document.addEventListener('DOMContentLoaded', () => {
     timelineGroup.add(points);
 
     scene.add(timelineGroup);
+
+    // Create Cosmic Starfield
+    if (starGroup) {
+      scene.remove(starGroup);
+    }
+    starGroup = new THREE.Group();
+    const numStars = 1500;
+    const starPos = new Float32Array(numStars * 3);
+    const starCol = new Float32Array(numStars * 3);
+    
+    for(let i = 0; i < numStars; i++) {
+        // Spread stars widely across a massive sphere
+        const r = 40 + Math.random() * 80;
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+        starPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        starPos[i*3+2] = r * Math.cos(phi) - 20; // push slightly back
+        
+        // Varying brightness: 20% bright stars, 80% fainter stars
+        const brightness = Math.random() > 0.8 ? 1.0 : (0.2 + Math.random() * 0.4);
+        starCol[i*3] = brightness;
+        starCol[i*3+1] = brightness;
+        starCol[i*3+2] = brightness;
+    }
+    
+    const starGeom = new THREE.BufferGeometry();
+    starGeom.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    starGeom.setAttribute('color', new THREE.BufferAttribute(starCol, 3));
+    
+    starMat = new THREE.PointsMaterial({
+        vertexColors: true,
+        size: 0.25,
+        transparent: true,
+        opacity: 0.8,
+        sizeAttenuation: true,
+        blending: THREE.AdditiveBlending
+    });
+    
+    const stars = new THREE.Points(starGeom, starMat);
+    starGroup.add(stars);
+    scene.add(starGroup);
+
+    // Create Distant Glowing Black Hole
+    if (blackHoleGroup) {
+      scene.remove(blackHoleGroup);
+    }
+    blackHoleGroup = new THREE.Group();
+    
+    // Base position in the distance
+    const bhX = 22;
+    const bhY = 12;
+    const bhZ = -55; // Pushed even further back
+    blackHoleGroup.position.set(bhX, bhY, bhZ);
+    blackHoleGroup.scale.set(0.3, 0.3, 0.3); // Made way smaller
+
+    // Event Horizon (Pitch Black Sphere)
+    const bhGeom = new THREE.SphereGeometry(3.5, 32, 32);
+    const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const blackHole = new THREE.Mesh(bhGeom, bhMat);
+    blackHoleGroup.add(blackHole);
+
+    // Outer Accretion Disk (Cyan Glow)
+    const diskGeom = new THREE.RingGeometry(4.2, 9, 64);
+    const diskMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00f0ff,
+        transparent: true, 
+        opacity: 0.4, 
+        side: THREE.DoubleSide, 
+        blending: THREE.AdditiveBlending 
+    });
+    const disk = new THREE.Mesh(diskGeom, diskMat);
+    disk.rotation.x = Math.PI / 2.2;
+    disk.rotation.y = Math.PI / 8;
+    blackHoleGroup.add(disk);
+
+    // Inner Hot Accretion Disk (Purple Glow)
+    const diskGeom2 = new THREE.RingGeometry(3.6, 5.5, 64);
+    const diskMat2 = new THREE.MeshBasicMaterial({ 
+        color: 0x7c3aed, 
+        transparent: true, 
+        opacity: 0.7, 
+        side: THREE.DoubleSide, 
+        blending: THREE.AdditiveBlending 
+    });
+    const disk2 = new THREE.Mesh(diskGeom2, diskMat2);
+    disk2.rotation.x = Math.PI / 2.2;
+    disk2.rotation.y = Math.PI / 8;
+    blackHoleGroup.add(disk2);
+
+    scene.add(blackHoleGroup);
   }
 
   function onWindowResize() {
@@ -282,11 +380,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const scale = 1.0 + Math.sin(time) * 0.015;
       timelineGroup.scale.set(scale, 1.0, scale);
     }
+
+    if (starGroup) {
+      // Slowly rotate the galaxy
+      starGroup.rotation.y += 0.0003;
+      
+      // Parallax tracking for stars (slower than tree to create 3D depth)
+      starGroup.rotation.y += (targetX * 0.5 - starGroup.rotation.y) * 0.02;
+      starGroup.rotation.x += (targetY * 0.5 - starGroup.rotation.x) * 0.02;
+    }
+
+    if (blackHoleGroup) {
+      // Swirling accretion disk
+      blackHoleGroup.children[1].rotation.z -= 0.003; // Outer disk spins
+      blackHoleGroup.children[2].rotation.z -= 0.007; // Inner disk spins faster
+      
+      // Slow wandering movement across the background
+      const currentX = Math.sin(time * 0.15) * 80; // Moves widely from left to right (-80 to 80)
+      const currentY = 12 + Math.cos(time * 0.2) * 15; // Floats up and down gently
+      
+      // Distant Parallax tracking combined with massive cosmic orbit
+      blackHoleGroup.position.x = currentX + (targetX * 1.5);
+      blackHoleGroup.position.y = currentY + (targetY * 1.5);
+    }
     
     // Keep Points Material opacity in sync with theme updates
     if (pointsMat && pointsMat.uniforms) {
        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-       pointsMat.uniforms.globalOpacity.value = isLight ? 0.25 : 0.35;
+       pointsMat.uniforms.globalOpacity.value = isLight ? 0.20 : 0.22;
        pointsMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
     }
 
