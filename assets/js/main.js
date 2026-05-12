@@ -115,6 +115,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // 6. Fetch Recent Blogs
+    const blogGrid = document.getElementById('recent-blogs-grid');
+    if (blogGrid) {
+        fetch('/blog/api/recent?limit=3')
+            .then(res => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            })
+            .then(posts => {
+                if (posts && posts.length > 0) {
+                    blogGrid.innerHTML = posts.map(post => `
+                        <div class="project-item reveal active">
+                            <a href="/blog/${post.slug}" style="text-decoration: none;" class="project-card glass">
+                                <span class="tag" style="margin-bottom: 1rem; display: inline-block;">${post.category}</span>
+                                <h3 class="gradient-text">${post.title}</h3>
+                                <p style="margin-bottom: 1rem; color: var(--text-muted);">${post.excerpt}</p>
+                                <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: auto; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                                    <span>${post.date}</span>
+                                    <span>${post.read_time} min read</span>
+                                </div>
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    blogGrid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No articles published yet.</p>';
+                }
+            })
+            .catch(err => {
+                console.error("Error fetching recent blogs:", err);
+                blogGrid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">Failed to load recent articles.</p>';
+            });
+    }
 });
 
 function populatePortfolio(data) {
@@ -122,7 +155,13 @@ function populatePortfolio(data) {
     document.getElementById('hero-name').textContent = data.personalInfo.name;
     document.getElementById('hero-headline').textContent = data.personalInfo.heroHeadline;
     document.getElementById('hero-subheading').textContent = data.personalInfo.heroSubheading;
-    document.getElementById('hero-cv-btn').href = data.personalInfo.cvFile;
+    const cvBtn = document.getElementById('hero-cv-btn');
+    if (data.personalInfo.cvFile) {
+        cvBtn.href = data.personalInfo.cvFile.startsWith('/') ? data.personalInfo.cvFile : '/' + data.personalInfo.cvFile;
+        cvBtn.style.display = 'inline-flex';
+    } else {
+        cvBtn.style.display = 'none';
+    }
     
     // Socials
     document.getElementById('github-link').href = data.personalInfo.socials.github;

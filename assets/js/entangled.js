@@ -1,9 +1,12 @@
 // Loki Multiverse Timeline Tree (Yggdrasil)
 // Featuring glowing temporal threads and energy nodes
 
-document.addEventListener('DOMContentLoaded', () => {
+function initEntangled() {
   const container = document.querySelector('.bg-mesh');
-  if (!container || typeof THREE === 'undefined') return;
+  if (!container || typeof THREE === 'undefined') {
+      if (typeof THREE === 'undefined') console.error("THREE is undefined, cannot load tree");
+      return;
+  }
   
   // Clear container
   container.innerHTML = '';
@@ -302,53 +305,82 @@ document.addEventListener('DOMContentLoaded', () => {
     starGroup.add(stars);
     scene.add(starGroup);
 
-    // Create Distant Glowing Black Hole
+    // Create Distant Glowing Black Hole (Interstellar Gargantua Style)
     if (blackHoleGroup) {
       scene.remove(blackHoleGroup);
     }
     blackHoleGroup = new THREE.Group();
     
-    // Base position in the distance
-    const bhX = 22;
+    // Base position
+    const bhX = 20;
     const bhY = 12;
-    const bhZ = -55; // Pushed even further back
+    const bhZ = -50; // Pushed further back for a majestic distant look
     blackHoleGroup.position.set(bhX, bhY, bhZ);
-    blackHoleGroup.scale.set(0.3, 0.3, 0.3); // Made way smaller
+    blackHoleGroup.scale.set(0.35, 0.35, 0.35); // Scaled down
 
-    // Event Horizon (Pitch Black Sphere)
-    const bhGeom = new THREE.SphereGeometry(3.5, 32, 32);
+    // 1. The Event Horizon (Pitch Black Sphere)
+    const bhGeom = new THREE.SphereGeometry(3.5, 64, 64);
     const bhMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const blackHole = new THREE.Mesh(bhGeom, bhMat);
+    blackHole.renderOrder = 2; // Write to depth buffer so it blocks the back of the disk
     blackHoleGroup.add(blackHole);
 
-    // Outer Accretion Disk (Cyan Glow)
-    const diskGeom = new THREE.RingGeometry(4.2, 9, 64);
-    const diskMat = new THREE.MeshBasicMaterial({ 
-        color: 0x00f0ff,
-        transparent: true, 
-        opacity: 0.4, 
-        side: THREE.DoubleSide, 
-        blending: THREE.AdditiveBlending 
+    // 2. The Lensing Halo (Photon Ring that wraps around)
+    const haloGroup = new THREE.Group();
+    
+    // Intense bright inner ring
+    const haloInnerGeom = new THREE.RingGeometry(3.45, 3.8, 128);
+    const haloInnerMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.9, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
     });
-    const disk = new THREE.Mesh(diskGeom, diskMat);
-    disk.rotation.x = Math.PI / 2.2;
-    disk.rotation.y = Math.PI / 8;
-    blackHoleGroup.add(disk);
+    haloGroup.add(new THREE.Mesh(haloInnerGeom, haloInnerMat));
 
-    // Inner Hot Accretion Disk (Purple Glow)
-    const diskGeom2 = new THREE.RingGeometry(3.6, 5.5, 64);
-    const diskMat2 = new THREE.MeshBasicMaterial({ 
-        color: 0x7c3aed, 
-        transparent: true, 
-        opacity: 0.7, 
-        side: THREE.DoubleSide, 
-        blending: THREE.AdditiveBlending 
+    // Soft purple outer glow
+    const haloOuterGeom = new THREE.RingGeometry(3.5, 4.8, 128);
+    const haloOuterMat = new THREE.MeshBasicMaterial({
+        color: 0x7c3aed, transparent: true, opacity: 0.6, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
     });
-    const disk2 = new THREE.Mesh(diskGeom2, diskMat2);
-    disk2.rotation.x = Math.PI / 2.2;
-    disk2.rotation.y = Math.PI / 8;
-    blackHoleGroup.add(disk2);
+    haloGroup.add(new THREE.Mesh(haloOuterGeom, haloOuterMat));
 
+    // Outer cyan falloff
+    const haloCyanGeom = new THREE.RingGeometry(4.2, 5.8, 128);
+    const haloCyanMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff, transparent: true, opacity: 0.25, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    haloGroup.add(new THREE.Mesh(haloCyanGeom, haloCyanMat));
+
+    // Face the halo to camera
+    haloGroup.rotation.y = -0.35; // Slight tilt towards center
+    haloGroup.rotation.x = -0.15;
+    blackHoleGroup.add(haloGroup);
+
+    // 3. The Main Horizontal Accretion Disk
+    const diskGroup = new THREE.Group();
+
+    // Solid base glow rings
+    const diskBaseGeom1 = new THREE.RingGeometry(3.6, 4.2, 128);
+    const diskBaseMat1 = new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.9, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    diskGroup.add(new THREE.Mesh(diskBaseGeom1, diskBaseMat1));
+
+    const diskBaseGeom2 = new THREE.RingGeometry(3.9, 7.5, 128);
+    const diskBaseMat2 = new THREE.MeshBasicMaterial({
+        color: 0x7c3aed, transparent: true, opacity: 0.65, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    diskGroup.add(new THREE.Mesh(diskBaseGeom2, diskBaseMat2));
+
+    const diskBaseGeom3 = new THREE.RingGeometry(6.5, 11.0, 128);
+    const diskBaseMat3 = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    diskGroup.add(new THREE.Mesh(diskBaseGeom3, diskBaseMat3));
+
+    // Tilt the disk heavily to match the Gargantua look (almost edge-on)
+    diskGroup.rotation.x = Math.PI / 2.15;
+    diskGroup.rotation.y = Math.PI / 10;
+
+    blackHoleGroup.add(diskGroup);
     scene.add(blackHoleGroup);
   }
 
@@ -391,9 +423,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (blackHoleGroup) {
-      // Swirling accretion disk
-      blackHoleGroup.children[1].rotation.z -= 0.003; // Outer disk spins
-      blackHoleGroup.children[2].rotation.z -= 0.007; // Inner disk spins faster
+      // Swirling accretion disk and halo
+      if (blackHoleGroup.children.length > 2) {
+          const haloGroup = blackHoleGroup.children[1];
+          const diskGroup = blackHoleGroup.children[2];
+          
+          // Spin the lensing halo slowly
+          haloGroup.rotation.z -= 0.002;
+          
+          // Spin the entire flat accretion disk rapidly
+          diskGroup.rotation.z -= 0.005;
+          
+          // Add a tiny wobble to the disk to make it look alive and chaotic
+          diskGroup.rotation.x += Math.sin(time * 2.0) * 0.0005;
+          diskGroup.rotation.y += Math.cos(time * 1.5) * 0.0005;
+      }
       
       // Slow wandering movement across the background
       const currentX = Math.sin(time * 0.15) * 80; // Moves widely from left to right (-80 to 80)
@@ -415,4 +459,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   init();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEntangled);
+} else {
+    // Check periodically in case THREE loads slightly after DOMContentLoaded
+    const checkThree = setInterval(() => {
+        if (typeof THREE !== 'undefined' && document.querySelector('.bg-mesh')) {
+            clearInterval(checkThree);
+            initEntangled();
+        }
+    }, 100);
+    // Timeout after 5 seconds to stop checking
+    setTimeout(() => clearInterval(checkThree), 5000);
+}

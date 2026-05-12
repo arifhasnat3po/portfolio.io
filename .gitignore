@@ -1,0 +1,15 @@
+# Test / debug scripts (not for production)
+test_*.py
+test_*.html
+test_*.json
+
+# Uploaded files
+assets/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

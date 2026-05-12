@@ -57,7 +57,7 @@
     <!-- Navigation -->
     <header>
         <div class="container nav-container">
-            <a href="#" class="logo">Arif <span class="gradient-text">Hasnat</span></a>
+            <a href="/" class="logo">Arif <span class="gradient-text">Hasnat</span></a>
             
             <nav class="nav-links">
                 <a href="#about">About</a>
@@ -67,6 +67,7 @@
                 <a href="#extracurricular">Extra-curricular</a>
                 <a href="#projects">Projects</a>
                 <a href="#certificates">Certificates</a>
+                <a href="/blog/">Blog</a>
             </nav>
 
             <div style="display: flex; gap: 1rem; align-items: center;">
@@ -187,6 +188,19 @@
             </div>
         </section>
 
+        <!-- Blog Section -->
+        <section id="blog-section">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem;">
+                    <h2 class="section-title reveal" style="margin-bottom: 0;"><span class="gradient-text">Latest Articles</span></h2>
+                    <a href="/blog/" class="btn btn-outline reveal" style="padding: 0.5rem 1rem; border-radius: 8px;">View All Posts</a>
+                </div>
+                <div class="grid-3" id="recent-blogs-grid">
+                    <!-- Injected via API in main.js -->
+                </div>
+            </div>
+        </section>
+
         <!-- Contact Section -->
         <section id="contact" style="padding-bottom: 6rem;">
             <div class="container">
@@ -225,8 +239,11 @@
     </button>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="assets/js/data.js"></script>
+    <script src="assets/js/three.min.js"></script>
+    <script>
+        // Force reload of data.js to prevent caching issues
+        document.write('<script src="assets/js/data.js?t=' + new Date().getTime() + '"><\/script>');
+    </script>
     <script src="assets/js/entangled.js"></script>
     <script src="assets/js/main.js"></script>
 </body>

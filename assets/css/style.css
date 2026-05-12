@@ -1,17 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;700;800;900&display=swap');
 
 :root {
   /* Ultra Premium Dark Theme */
   --bg-base: #030712;
   --bg-surface: #0f172a;
   --text-main: #ffffff;
-  --text-muted: #cbd5e1;
+  --text-muted: #e2e8f0; /* Brighter for readability */
   
   --primary: #00f0ff;
   --primary-hover: #38bdf8;
   --secondary: #7c3aed;
   
-  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg: rgba(15, 23, 42, 0.6); /* Slightly more opaque */
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.12);
   
@@ -27,13 +27,13 @@
   --bg-base: #f8fafc;
   --bg-surface: #ffffff;
   --text-main: #0f172a;
-  --text-muted: #475569;
+  --text-muted: #334155; /* Darker for readability */
   
   --primary: #0284c7;
   --primary-hover: #0369a1;
   --secondary: #6d28d9;
   
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(0, 0, 0, 0.05);
   --glass-highlight: rgba(255, 255, 255, 1);
   
@@ -51,15 +51,19 @@
 
 html {
   scroll-behavior: smooth;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
 }
 
 body {
   background-color: var(--bg-base);
   color: var(--text-main);
-  line-height: 1.7;
+  line-height: 1.6;
+  font-size: 1.05rem;
   overflow-x: hidden;
   transition: background-color 0.5s ease, color 0.5s ease;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 /* Custom Scrollbar */
@@ -79,8 +83,16 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
-  line-height: 1.1;
+  line-height: 1.2;
   color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+/* Unified font style with high weight for prominence */
+.gradient-text {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-style: normal;
 }
 
 a {
@@ -107,12 +119,12 @@ a {
 }
 
 .section-title {
-  font-size: clamp(2rem, 6vw, 3rem);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
   font-weight: 800;
   margin-bottom: 4rem;
   text-align: center;
   position: relative;
-  letter-spacing: -1px;
+  letter-spacing: -0.03em;
 }
 
 .section-title::before {
@@ -203,9 +215,10 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 2rem;
+  padding: 0.8rem 2rem;
   border-radius: 9999px;
   font-weight: 600;
+  font-family: 'Outfit', sans-serif;
   font-size: 1rem;
   cursor: pointer;
   transition: var(--transition);
@@ -277,7 +290,7 @@ header {
   font-family: 'Outfit', sans-serif;
   font-size: 1.75rem;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -0.04em;
 }
 
 .nav-links {
@@ -291,6 +304,7 @@ header {
 
 .nav-links a {
   font-size: 0.95rem;
+  font-family: 'Outfit', sans-serif;
   font-weight: 500;
   color: var(--text-muted);
   position: relative;
@@ -390,8 +404,9 @@ section {
   font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 900;
   line-height: 1.1;
-  letter-spacing: -2px;
+  letter-spacing: -0.04em;
   margin-bottom: 1.5rem;
+  font-family: 'Outfit', sans-serif;
 }
 
 .hero-subheading {
@@ -646,6 +661,7 @@ section {
   color: var(--text-muted);
   margin-bottom: 2rem;
   flex-grow: 1;
+  font-size: 1.05rem;
 }
 .tags {
   display: flex;
@@ -669,14 +685,19 @@ section {
   margin-top: auto;
 }
 .card-links a {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 1.1rem;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
 }
 .card-links a:hover {
-  color: var(--primary);
+  color: var(--secondary);
+  text-decoration-thickness: 2px;
 }
 
 /* Footer */
