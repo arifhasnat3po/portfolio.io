@@ -216,7 +216,7 @@
     const type = orbitButton.dataset.cameo;
     if (!['dragon', 'falcon', 'ironman'].includes(type)) return;
     dialog.close();
-    document.dispatchEvent(new CustomEvent('portfolio:cameo', { detail: { type } }));
+    document.dispatchEvent(new CustomEvent('portfolio:cameo', { detail: { type, opener } }));
   });
   moreButton.addEventListener('click', () => {
     expanded = !expanded;

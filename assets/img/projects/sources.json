@@ -30,5 +30,29 @@
     "source": "User-owned project archive, shared for the portfolio",
     "kind": "Original Zapier draft workflow canvas",
     "review": "Canvas contains workflow steps and the portfolio owner's name; no credentials or customer records. Draft state is retained and identified in the caption."
+  },
+  "bitflows-ai-lead-agent.png": {
+    "source": "Screenshot supplied directly by Arif Hasnat for this portfolio update",
+    "kind": "Bit Flows AI lead-agent canvas with hot, normal, and cold branches",
+    "width": 1600,
+    "height": 996,
+    "sha256": "b9b822a7975decae4e4825505a9be0a8581fea64e04253f2fac9a9621b325e40",
+    "review": "Original screenshot retained without alterations. Visible canvas labels and connections were used for the description; no credentials, customer records, or private contact details are visible."
+  },
+  "n8n-bant-qualification.png": {
+    "source": "Screenshot supplied directly by Arif Hasnat for this portfolio update",
+    "kind": "n8n BANT lead-qualification and multi-channel follow-up canvas; original template setup view",
+    "width": 1917,
+    "height": 997,
+    "sha256": "d5a04dcc9d273d4ec0e09fa6636ba18171c8ac9ea66bf47a48972beba8488c96",
+    "review": "Original screenshot retained without alterations. Visible canvas labels and connections were used for the description; no credentials, customer records, or private contact details are visible."
+  },
+  "zapier-unified-lead-capture.png": {
+    "source": "Screenshot supplied directly by Arif Hasnat for this portfolio update",
+    "kind": "Zapier Unified Lead Capture canvas with advertising, website, and other sources connected to HubSpot",
+    "width": 1912,
+    "height": 1071,
+    "sha256": "99fa506bda079b5f91deb3d150cde00257e841f8d0d4f48518e10a67f59df570",
+    "review": "Original screenshot retained without alterations. Visible canvas labels and connections were used for the description; no credentials, customer records, or private contact details are visible."
   }
 }

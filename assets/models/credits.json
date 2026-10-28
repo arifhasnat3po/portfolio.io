@@ -1,0 +1,46 @@
+{
+  "licenseNotice": "Model artwork is licensed separately from the website. Attribution licenses do not imply endorsement by the creators or franchise owners.",
+  "models": [
+    {
+      "id": "ironman",
+      "file": "ironman-mk7.glb",
+      "title": "Iron Man MK7",
+      "author": "CHANG747",
+      "authorUrl": "https://sketchfab.com/CHANGP453",
+      "source": "https://sketchfab.com/3d-models/iron-man-mk7-ad4776eea8184283a3e49cf5487df754",
+      "downloadSource": "https://github.com/tilakpatell/tilakpatell.com/blob/main/public/models/sketchfab/avengers/ironman.glb",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "changes": "Web-optimized GLB distributed by Tilak Patel; displayed with portfolio lighting and rigid-body transforms. Mesh and textures are unchanged by this portfolio.",
+      "animation": "No skeletal animation clips. Rigid-body motion only.",
+      "bytes": 452820,
+      "triangles": 7734,
+      "note": "This compact model is a different asset from the user's Benjamin Borromeo high-poly reference."
+    },
+    {
+      "id": "falcon",
+      "file": "millennium-falcon.glb",
+      "title": "Millennium Falcon",
+      "author": "Johnson Martin",
+      "authorUrl": "https://sketchfab.com/Johnson-Martin",
+      "source": "https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1",
+      "downloadSource": "https://github.com/Flightradar24/fr24-3d-models/blob/master/models/millennium_falcon.gltf",
+      "attributionEvidence": "https://github.com/Flightradar24/fr24-3d-models#license",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "changes": "Flightradar24's adapted glTF 1 mesh converted to glTF 2 GLB. Original geometry and normals retained with lossless meshoptimizer compression. Five diffuse gray materials converted to PBR metal/roughness materials; no texture maps in the source distribution.",
+      "animation": "No skeletal animation clips. Rigid-body flight transforms only.",
+      "bytes": 12598668,
+      "triangles": 575233
+    }
+  ],
+  "reference": {
+    "title": "Iron Man Mark-7(Subsurf)",
+    "author": "benjamin.borromeo",
+    "source": "https://sketchfab.com/3d-models/iron-man-mark-7subsurf-a13c067e70814dc7b2ebc3f0ace10961",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "localFile": null,
+    "note": "Official model download requires authenticated Sketchfab access. Not downloaded; available through the official embedded viewer."
+  }
+}

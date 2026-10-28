@@ -115,7 +115,17 @@ function checkSyntax(file) {
 
 for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
-for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'gym/sw.js']) checkSyntax(file);
+for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'gym/sw.js']) checkSyntax(file);
+try {
+  const credits=JSON.parse(read('assets/models/credits.json'));
+  for(const model of credits.models){
+    localReference(`assets/models/${model.file}`,'index.html');
+    if(fs.statSync(path.join(root,'assets/models',model.file)).size!==model.bytes)fail(`Model size does not match manifest: ${model.file}`);
+    if(!model.author||!model.source||!model.licenseUrl)fail(`Incomplete model attribution: ${model.file}`);
+  }
+  const imports=['assets/js/cameo-3d.js',...fs.readdirSync(path.join(root,'assets/vendor/cameo-three')).filter(f=>f.endsWith('.js')).map(f=>`assets/vendor/cameo-three/${f}`)];
+  for(const file of imports)for(const match of read(file).matchAll(/from\s+['"](\.[^'"]+)['"]/g))localReference(match[1],file);
+}catch(error){fail(`3D asset integrity: ${error.message}`);}
 
 if (failures.length) {
   console.error(`Release check failed (${failures.length}):\n${failures.map(message => `- ${message}`).join('\n')}`);

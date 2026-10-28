@@ -118,6 +118,7 @@
     const template = document.getElementById(`project-detail-${button.dataset.project}`);
     if (!template) return;
     document.querySelector('#project-dialog-content').replaceChildren(template.content.cloneNode(true));
+    document.querySelector('#project-dialog').classList.toggle('has-gallery',!!document.querySelector('#project-dialog-content .project-image-gallery'));
     showDialog(document.querySelector('#project-dialog'), button);
   }));
   let printState = null;

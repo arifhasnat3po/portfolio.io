@@ -501,44 +501,68 @@ const portfolioData = {
       "id": "bitflows",
       "title": "The Bit Flows Project",
       "eyebrow": "WORKFLOW AUTOMATION",
-      "description": "From incoming data to the next useful action. WordPress workflows for lead qualification, CRM updates, AI-assisted reviews, and everyday operations.",
+      "description": "AI-assisted lead qualification with connected tools, conditional routing, and human review, alongside WordPress workflows for everyday operations.",
       "tags": [
         "Bit Flows",
         "WordPress",
         "AI Agents",
         "Webhooks"
       ],
-      "image": "assets/img/projects/bitflows-workflow.png",
-      "imageAlt": "Original Bit Flows canvas routing a WooCommerce order through conditions to Google Sheets and HubSpot",
-      "imageCaption": "My Bit Flows workflow · WooCommerce, HubSpot & Google Sheets",
-      "details": "A collection of data and workflow management projects built around Bit Flows. Examples include AI lead scoring, customer-email drafts for human approval, WooCommerce order review, and HR candidate screening with a human decision. The pictured workflow recreates a WooCommerce-to-HubSpot and Google Sheets process using conditions and a router in Bit Flows.",
+      "image": "assets/img/projects/bitflows-ai-lead-agent.png",
+      "imageAlt": "Bit Flows canvas connecting a Bit Form submission and CRM eligibility filter to an AI Agent with OpenAI, memory, Gmail, Telegram and Bit CRM tools, then hot, normal and cold branches",
+      "imageCaption": "Bit Flows canvas · AI lead qualification & human review",
+      "details": "A collection of data and workflow management projects built around Bit Flows. Examples include AI lead scoring, customer-email drafts for human approval, WooCommerce order review, and HR candidate screening with a human decision. The featured canvas starts with a Bit Form submission and a CRM eligibility filter, then connects an AI Agent to an OpenAI chat model, simple memory, and Gmail, Telegram, and Bit CRM tools. Hot leads route to Gmail, normal leads pass through Gmail human review before an email action, and cold leads route to Google Sheets. The earlier WooCommerce-to-HubSpot and Google Sheets migration example is retained in the gallery.",
       "steps": [
-        "Receive a trigger",
-        "Collect context",
-        "Review and route",
-        "Take the next action"
+        "Capture a Bit Form submission",
+        "Check CRM eligibility",
+        "Evaluate with an AI agent and tools",
+        "Route hot, normal, and cold leads"
+      ],
+      "imageGallery": [
+        {
+          "src": "assets/img/projects/bitflows-ai-lead-agent.png",
+          "alt": "Bit Flows canvas connecting a Bit Form submission and CRM eligibility filter to an AI Agent with OpenAI, memory, Gmail, Telegram and Bit CRM tools, then hot, normal and cold branches",
+          "caption": "Bit Flows canvas · AI lead qualification & human review"
+        },
+        {
+          "src": "assets/img/projects/bitflows-workflow.png",
+          "alt": "Original Bit Flows canvas routing a WooCommerce order through conditions to Google Sheets and HubSpot",
+          "caption": "Earlier Bit Flows case study · WooCommerce, HubSpot & Google Sheets"
+        }
       ]
     },
     {
       "id": "automations",
       "title": "n8n & Zapier Automations",
       "eyebrow": "CONNECTED SYSTEMS",
-      "description": "Advanced workflow automation connecting APIs, moving data between tools, and giving repetitive tasks a reliable path from trigger to outcome.",
+      "description": "Lead qualification and follow-up across n8n and Zapier, with AI scoring, branching paths, and CRM connections.",
       "tags": [
         "n8n",
         "Zapier",
         "APIs",
         "Automation"
       ],
-      "image": "assets/img/projects/zapier-workflow.png",
-      "imageAlt": "Original Zapier draft canvas with WooCommerce, a filter, HubSpot contact updates, and a Google Sheets row action",
-      "imageCaption": "Zapier workflow draft · WooCommerce → HubSpot → Google Sheets",
-      "details": "Workflow automation across n8n and Zapier, bringing services together through API integrations, triggers, conditional routing, and coordinated actions. The pictured Zapier draft connects WooCommerce orders to a filter, HubSpot contact updates, and a Google Sheets row. I documented this workflow and its Bit Flows counterpart as a migration case study.",
+      "image": "assets/img/projects/n8n-bant-qualification.png",
+      "imageAlt": "n8n BANT lead-qualification canvas with a lead form, AI scoring, JSON parsing and a switch routing hot leads to calendar booking, mid leads to WhatsApp and cold leads to email",
+      "imageCaption": "n8n canvas · BANT qualification & multi-channel follow-up",
+      "details": "The featured n8n canvas maps BANT lead qualification from a contact form through AI scoring and JSON parsing into three follow-up paths: calendar booking for hot leads, WhatsApp for mid leads, and website or email follow-up for cold leads. The second screenshot shows a Zapier Unified Lead Capture canvas connecting advertising, website, and other lead sources to a central HubSpot process. Sources shown include Meta, Google Ads, TikTok, LinkedIn, Webflow, G2, and forms. An earlier WooCommerce-to-HubSpot and Google Sheets draft, with its Bit Flows counterpart, remains part of my documented migration case study.",
       "steps": [
-        "Trigger",
-        "Transform data",
-        "Apply conditions",
-        "Connect APIs"
+        "Capture leads from multiple sources",
+        "Score and structure lead data",
+        "Route follow-up by qualification",
+        "Connect CRM and communication tools"
+      ],
+      "imageGallery": [
+        {
+          "src": "assets/img/projects/n8n-bant-qualification.png",
+          "alt": "n8n BANT lead-qualification canvas with a lead form, AI scoring, JSON parsing and a switch routing hot leads to calendar booking, mid leads to WhatsApp and cold leads to email",
+          "caption": "n8n canvas · BANT qualification & multi-channel follow-up"
+        },
+        {
+          "src": "assets/img/projects/zapier-unified-lead-capture.png",
+          "alt": "Zapier Unified Lead Capture canvas linking advertising platforms, Webflow, G2 and forms to a central HubSpot process",
+          "caption": "Zapier canvas · Unified lead capture into HubSpot"
+        }
       ]
     },
     {

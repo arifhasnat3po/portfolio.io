@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-motion="on">
+<html lang="en" data-motion="on" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,6 +23,9 @@
   <link rel="stylesheet" href="assets/css/cinema.css">
   <link rel="stylesheet" href="assets/css/cameos.css">
   <link rel="stylesheet" href="assets/css/routine.css">
+  <link rel="stylesheet" href="assets/css/model-gallery.css">
+  <link rel="stylesheet" href="assets/css/themes.css">
+  <script src="assets/js/theme.js"></script>
   <script type="application/ld+json">{{SCHEMA}}</script>
   <script src="assets/js/three.min.js" defer></script>
   <script src="assets/js/main.js" defer></script>
@@ -31,6 +34,7 @@
   <script src="assets/js/cinema.js" defer></script>
   <script src="assets/js/contact.js" defer></script>
   <script src="assets/js/routine.js" defer></script>
+  <script src="assets/js/model-gallery.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -42,7 +46,7 @@
     <div class="container nav-shell">
       <a class="brand" href="#home" aria-label="Arif Hasnat home"><span class="brand-symbol">a<span>h</span><i></i></span><span>ARIF HASNAT<small>A PERSONAL OBSERVATORY</small></span></a>
       <nav id="primary-nav" aria-label="Main navigation"><a href="#projects">Work</a><a href="#expertise">Practice</a><a href="#about">About</a><a href="#watchlist">Cinema</a><a href="#routine">My routine</a></nav>
-      <div class="nav-tools"><button class="motion-toggle" aria-pressed="false" aria-label="Pause ambient animation"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9 8v8m6-8v8"/></svg><span class="motion-label">Motion on</span></button><a class="nav-contact" href="#contact">Say hello <span aria-hidden="true">↗</span></a><button class="menu-toggle icon-button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation"><span></span><span></span></button></div>
+      <div class="nav-tools"><button class="theme-toggle" type="button" aria-pressed="false" aria-label="Light mode" title="Switch to light mode"><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/></svg><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg><span class="theme-label">Light mode</span></button><button class="motion-toggle" aria-pressed="false" aria-label="Pause ambient animation"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M9 8v8m6-8v8"/></svg><span class="motion-label">Motion on</span></button><a class="nav-contact" href="#contact">Say hello <span aria-hidden="true">↗</span></a><button class="menu-toggle icon-button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation"><span></span><span></span></button></div>
     </div>
   </header>
   <main id="main">
@@ -59,7 +63,7 @@
         </div>
         <div class="scene-annotations">
           <span class="horizon-coordinate"><span class="annotation-cross" aria-hidden="true">+</span>01 — EVENT HORIZON<br><small>LOOK A LITTLE LONGER.</small></span>
-          <button class="tree-coordinate" data-easter-egg="tree" aria-label="Investigate the timeline tree"><svg viewBox="0 0 36 42" aria-hidden="true"><path d="M18 40V18M18 27 6 16M18 23l12-13M18 18 10 7M18 18l5-12M6 16 3 5M6 16l5-3M30 10l2-7M18 36 5 39m13-3 12 4"/></svg><span>02 — THE TIMELINE TREE<small>Every branch goes somewhere.</small></span></button>
+          <button class="tree-coordinate" data-easter-egg="tree" aria-label="Send a pulse through the timeline tree"><svg viewBox="0 0 36 42" aria-hidden="true"><path d="M18 40V18M18 27 6 16M18 23l12-13M18 18 10 7M18 18l5-12M6 16 3 5M6 16l5-3M30 10l2-7M18 36 5 39m13-3 12 4"/></svg><span>02 — THE TIMELINE TREE<small>Touch the stars. Wake a timeline.</small></span></button>
         </div>
         <div class="hero-bottom"><a href="#projects" class="scroll-note"><span class="scroll-line" aria-hidden="true"></span>SCROLL TO DISCOVER</a><button class="video-trigger" data-open-video><span class="play-icon" aria-hidden="true">▶</span><span>From my workbench<small>PIXELPAIR · A SHORT WALKTHROUGH</small></span><span aria-hidden="true">↗</span></button></div>
       </div>

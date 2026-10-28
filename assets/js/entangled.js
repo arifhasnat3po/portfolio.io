@@ -1,4 +1,4 @@
-/* Yggdrasil / the observatory. Local Three.js; no textures or network requests. */
+/* Original temporal loom, restored from b8d539f and batched for the observatory. */
 (() => {
   'use strict';
   function initEntangled() {
@@ -8,16 +8,20 @@
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const small = innerWidth < 760;
     const dpr = Math.min(devicePixelRatio || 1, small ? 1.25 : 1.65);
-    const STAR_COUNT = small ? 1080 : 3000, PARTICLE_COUNT = small ? 260 : 760;
+    const STAR_COUNT = small ? 1080 : 3000, THREAD_COUNT = 300, POINTS_PER_THREAD = 80;
     let seed = 58021;
     const random = () => { seed = seed * 16807 % 2147483647; return (seed - 1) / 2147483646; };
     let renderer, scene, camera, tree, hole, starUniforms, treeUniforms, holeUniforms, galaxyUniforms;
     let frame = 0, time = 0, travel = 0, last = 0, lastDraw = 0, drawDelta = 0;
     let pointerX = 0, pointerY = 0, parallaxX = 0, parallaxY = 0;
+    let pointerUntil = -1, pointerStrength = 0, pulseStart = -10, lightTheme = false;
     let jump = 0, jumpEnd = 0, boost = 0, boostEnd = 0;
     let viewWidth = 40, viewHeight = 28, disposed = false, scrollProgress = 0, mobile = small;
-    const branches = [];
-    let treeBounds = {centerX:0,centerY:0,width:25,height:22};
+    const threads = [], themedMaterials = [];
+    const palette = [[0,240/255,1],[124/255,58/255,237/255],[59/255,130/255,246/255],[1,204/255,0]];
+    const paletteHex = ['#00f0ff','#7c3aed','#3b82f6','#ffcc00'];
+    const lightPalette = ['#006e7a','#592696','#27549d','#8d6200'];
+    let treeBounds = {centerX:0,centerY:0,width:32,height:28};
     const active = () => !disposed && !document.hidden && !reduced.matches && root.dataset.motion !== 'off';
 
     function fallback() {
@@ -27,16 +31,18 @@
       const sky = document.createElement('div'); sky.className = 'cosmos-fallback';
       const blackHole = document.createElement('i'); blackHole.className = 'cosmos-fallback-hole'; sky.appendChild(blackHole);
       const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
-      svg.setAttribute('viewBox', '-13 -12 26 25'); svg.setAttribute('class', 'cosmos-fallback-tree'); svg.setAttribute('aria-hidden', 'true');
-      branches.forEach(curve => {
-        const p=document.createElementNS(ns,'path');
-        p.setAttribute('d',`M ${curve.a[0]} ${-curve.a[1]} C ${curve.b[0]} ${-curve.b[1]},${curve.c[0]} ${-curve.c[1]},${curve.d[0]} ${-curve.d[1]}`);
-        p.setAttribute('fill','none');p.setAttribute('stroke','#a9d5ab');p.setAttribute('stroke-width',String(Math.max(.025,curve.width*.42)));
-        p.setAttribute('stroke-opacity',curve.trunk?'.8':'.5');svg.appendChild(p);
+      svg.setAttribute('viewBox', '-18 -15 36 30'); svg.setAttribute('class', 'cosmos-fallback-tree'); svg.setAttribute('aria-hidden', 'true');
+      threads.filter((_,index)=>index%5===0).forEach(thread => {
+        const p=document.createElementNS(ns,'polyline');
+        p.setAttribute('points',thread.points.map(point=>`${point[0]},${-point[1]}`).join(' '));
+        p.setAttribute('fill','none');p.dataset.color=String(thread.colorIndex);p.setAttribute('stroke-width','.045');
+        p.setAttribute('stroke-opacity','.65');svg.appendChild(p);
       });
       sky.appendChild(svg); host.appendChild(sky);
+      const recolor=()=>svg.querySelectorAll('polyline').forEach(p=>p.setAttribute('stroke',(root.dataset.theme==='light'?lightPalette:paletteHex)[Number(p.dataset.color)]));
+      recolor();document.addEventListener('portfolio:themechange',recolor);
     }
-    makeBranches();
+    makeTimeline();
     if (typeof THREE === 'undefined') { fallback(); return; }
     try {
       renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !small, powerPreference: 'low-power' });
@@ -63,28 +69,49 @@
         for (let j = 0; j < 3; j++) streakPos[s + j] = streakPos[s + j + 3] = pos[p + j];
         edges[i * 2 + 1] = 1;
       }
-      starUniforms = { uTime: { value: 0 }, uTravel: { value: 0 }, uJump: { value: 0 }, uDpr: { value: dpr } };
+      starUniforms = {
+        uTime:{value:0},uTravel:{value:0},uJump:{value:0},uDpr:{value:dpr},uLight:{value:0},
+        uAspect:{value:innerWidth/innerHeight},uPointer:{value:new THREE.Vector2()},uStrength:{value:0},
+        uPulse:{value:10},uPulseCenter:{value:new THREE.Vector2()}
+      };
       const stars = new THREE.Points(geometry(pos, colors, sizes, phases), new THREE.ShaderMaterial({
         uniforms: starUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
         vertexShader: `attribute vec3 color; attribute float pointSize; attribute float phase;
-          uniform float uTime,uTravel,uDpr; varying vec3 vColor; varying float vAlpha;
+          uniform float uTime,uTravel,uDpr,uLight,uAspect,uStrength,uPulse;uniform vec2 uPointer,uPulseCenter;varying vec3 vColor;varying float vAlpha;
           void main(){vec3 p=position;p.z=-55.0+mod(p.z+uTravel,90.0);
             p.x+=sin(uTime*.045+phase)*.7;p.y+=cos(uTime*.035+phase)*.35;
             vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
-            gl_PointSize=clamp(pointSize*uDpr*(32.0/-mv.z),1.8,7.0*uDpr);
-            vColor=color;vAlpha=(.85+.15*sin(uTime*.7+phase))*smoothstep(3.0,9.0,-mv.z);}`,
+            vec2 aspect=vec2(uAspect,1.0),ndc=gl_Position.xy/gl_Position.w,delta=(ndc-uPointer)*aspect;
+            float distance=length(delta),near=1.0-smoothstep(.0,.32,distance);
+            vec2 away=delta/(distance+.0001);ndc+=away/aspect*near*uStrength*.12;
+            float ring=exp(-pow((length((ndc-uPulseCenter)*aspect)-(.025+uPulse*.42))*34.0,2.0))*max(0.0,1.0-uPulse/1.5);
+            gl_Position.xy=ndc*gl_Position.w;
+            gl_PointSize=clamp(pointSize*uDpr*(32.0/-mv.z)*(1.0+near*uStrength*.7+ring*1.4),1.8,10.0*uDpr);
+            vColor=mix(color,vec3(.10,.19,.23)*(.65+color.r*.35),uLight);
+            vAlpha=(.85+.15*sin(uTime*.7+phase))*(1.0+ring*.8)*smoothstep(3.0,9.0,-mv.z);}`,
         fragmentShader: `varying vec3 vColor;varying float vAlpha;void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;float glow=exp(-d*d*32.0)+pow(1.0-d*2.0,2.0)*.35;gl_FragColor=vec4(vColor,glow*vAlpha);}`
       }));
-      stars.frustumCulled = false; scene.add(stars);
+      stars.frustumCulled = false; scene.add(stars);themedMaterials.push(stars.material);
       const streaks = geometry(streakPos); streaks.setAttribute('edge', new THREE.BufferAttribute(edges, 1));
       const trails = new THREE.LineSegments(streaks, new THREE.ShaderMaterial({
         uniforms: starUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
         vertexShader: `attribute float edge;uniform float uTravel,uJump;varying float vAlpha;
           void main(){vec3 p=position;p.z=-55.0+mod(p.z+uTravel,90.0)-edge*uJump*17.0;
             gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);vAlpha=uJump*(1.0-edge*.85);}`,
-        fragmentShader: `varying float vAlpha;void main(){gl_FragColor=vec4(.85,.94,.83,vAlpha*.55);}`
+        fragmentShader: `uniform float uLight;varying float vAlpha;void main(){gl_FragColor=vec4(mix(vec3(.85,.94,.83),vec3(.10,.19,.23),uLight),vAlpha*.55);}`
       }));
-      trails.frustumCulled = false; scene.add(trails);
+      trails.frustumCulled = false; scene.add(trails);themedMaterials.push(trails.material);
+      // A brief constellation makes taps apparent even between distant stars.
+      // Its geometry is shared and static; only the pulse uniforms change.
+      const nodes=[[-.12,-.06],[-.045,.09],[.04,.025],[.14,.11],[.19,-.045],[.055,-.12]],links=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,2],[5,0]],linePositions=[];
+      links.forEach(link=>link.forEach(index=>linePositions.push(...nodes[index],0)));
+      const constellation=new THREE.LineSegments(geometry(new Float32Array(linePositions)),new THREE.ShaderMaterial({
+        uniforms:starUniforms,transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
+        vertexShader:`uniform float uAspect,uPulse;uniform vec2 uPulseCenter;void main(){float size=1.0+min(uPulse,1.5)*.22;
+          gl_Position=vec4(uPulseCenter+position.xy*vec2(1.0/uAspect,1.0)*size,0.0,1.0);}`,
+        fragmentShader:`uniform float uLight,uPulse;void main(){float fade=max(0.0,1.0-uPulse/1.5);
+          gl_FragColor=vec4(mix(vec3(.32,.86,1.0),vec3(.06,.28,.40),uLight),fade*.7);}`
+      }));constellation.frustumCulled=false;constellation.renderOrder=6;scene.add(constellation);themedMaterials.push(constellation.material);
     }
     function createGalaxies() {
       const positions=[],centers=[],sizes=[],phases=[];
@@ -95,86 +122,89 @@
       g.setAttribute('center',new THREE.BufferAttribute(new Float32Array(centers),2));
       g.setAttribute('extent',new THREE.BufferAttribute(new Float32Array(sizes),1));
       g.setAttribute('phase',new THREE.BufferAttribute(new Float32Array(phases),1));
-      galaxyUniforms={uTime:{value:0},uAspect:{value:innerWidth/innerHeight},uMobile:{value:small?1:0}};
+      galaxyUniforms={uTime:{value:0},uAspect:{value:innerWidth/innerHeight},uMobile:{value:small?1:0},uLight:{value:0}};
       const galaxies=new THREE.Mesh(g,new THREE.ShaderMaterial({
         uniforms:galaxyUniforms,transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
         vertexShader:`attribute vec2 center;attribute float extent,phase;uniform float uAspect,uMobile;varying vec2 vUv;varying float vPhase;
           void main(){vUv=position.xy;vPhase=phase;vec2 c=vec2(center.x*2.0-1.0,1.0-center.y*2.0);float scale=mix(1.0,.57,uMobile);gl_Position=vec4(c+position.xy*extent*scale*vec2(1.0/uAspect,1.0),.98,1.0);}`,
-        fragmentShader:`uniform float uTime;varying vec2 vUv;varying float vPhase;
+        fragmentShader:`uniform float uTime,uLight;varying vec2 vUv;varying float vPhase;
           float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
           void main(){float rot=vPhase+.12*sin(uTime*.045);vec2 p=mat2(cos(rot),-sin(rot),sin(rot),cos(rot))*vUv;p.y*=1.9;
             float r=length(p),a=atan(p.y,p.x);float spiral=pow(.5+.5*cos(a*2.0+log(r+.09)*5.6-uTime*.13+vPhase),7.0);
             float disk=exp(-r*3.9)*(.16+spiral*.85),core=exp(-r*r*85.0)*.82,grain=.6+.4*hash(floor(p*140.0));
             float light=(disk*grain+core)*(1.0-smoothstep(.65,1.0,length(vUv)))*(.9+.1*sin(uTime*.7+vPhase));
-            vec3 dust=mix(vec3(.48,.66,.57),vec3(.85,.75,.52),.5+.5*sin(vPhase));vec3 color=mix(dust,vec3(.96,.90,.72),core);gl_FragColor=vec4(color,light*.78);}`
-      }));galaxies.frustumCulled=false;galaxies.renderOrder=1;scene.add(galaxies);
+            vec3 dust=mix(vec3(.48,.66,.57),vec3(.85,.75,.52),.5+.5*sin(vPhase));vec3 color=mix(dust,vec3(.96,.90,.72),core);
+            color=mix(color,color*.26+vec3(.04,.07,.09),uLight);gl_FragColor=vec4(color,light*.78);}`
+      }));galaxies.frustumCulled=false;galaxies.renderOrder=1;scene.add(galaxies);themedMaterials.push(galaxies.material);
     }
-    function curvePoint(curve,t) {
-      const u=1-t;
-      return [0,1,2].map(i=>u*u*u*curve.a[i]+3*u*u*t*curve.b[i]+3*u*t*t*curve.c[i]+t*t*t*curve.d[i]);
-    }
-    function makeBranches() {
-      const trunk={a:[0,-3.9,0],b:[-1.2,-1.6,.25],c:[1.25,.7,-.15],d:[-.15,2.65,0],width:.66,phase:.5,trunk:true};
-      branches.push(trunk);
-      function fork(start,angle,length,depth,width,isRoot=false) {
-        const end=[start[0]+Math.cos(angle)*length,start[1]+Math.sin(angle)*length,start[2]+(random()-.5)*length*.32];
-        const curve={a:start,b:[start[0]+Math.cos(angle+.2)*length*.34,start[1]+Math.sin(angle+.2)*length*.34,start[2]],
-          c:[end[0]-Math.cos(angle-.2)*length*.27,end[1]-Math.sin(angle-.2)*length*.27+(isRoot?-.22:.22),end[2]],d:end,width,phase:random()*6.283,trunk:false};
-        branches.push(curve);
-        if(!depth)return;
-        const split=.26+random()*.23;
-        fork(end,angle+split,length*(.62+random()*.10),depth-1,width*.59,isRoot);
-        fork(end,angle-split*.90,length*(.60+random()*.13),depth-1,width*.56,isRoot);
-      }
-      [[.43,164,4.45],[.62,142,4.1],[.80,119,4.0],[1,102,3.7],[1,77,3.9],[.83,55,4.15],[.60,32,4.5],[.38,12,4.25]].forEach(([t,deg,length])=>fork(curvePoint(trunk,t),deg*Math.PI/180,length,3,.32));
-      [-170,-148,-126,-103,-77,-53,-31,-10].forEach((deg,i)=>fork([Math.sin(i)*.17,-3.6,0],deg*Math.PI/180,3.2+(i%3)*.35,2,.30,true));
-    }
-    const bendShader=`vec3 bend(vec3 p){float h=smoothstep(-3.8,9.0,p.y);p.x+=sin(uTime*.47+p.y*.23)*h*.14;p.z+=cos(uTime*.36+p.y*.19)*h*.11;return p;}`;
-    function createTree() {
-      tree=new THREE.Group();const positions=[],colors=[],phases=[],flows=[];
-      branches.forEach(curve=>{
-        const strands=curve.trunk?(small?22:38):Math.max(2,Math.round(curve.width*(small?29:43))),steps=curve.trunk?36:18;
-        for(let strand=0;strand<strands;strand++){
-          const phase=strand/strands*6.283+curve.phase,silver=strand%6===0,shade=.66+random()*.34;
-          const color=silver?[.75*shade,.85*shade,.68*shade]:[.31*shade,.69*shade,.40*shade];let previous=null;
-          for(let j=0;j<=steps;j++){
-            const t=j/steps,p=curvePoint(curve,t),near=curvePoint(curve,Math.min(1,t+.01));
-            const dx=near[0]-p[0],dy=near[1]-p[1],norm=Math.hypot(dx,dy)||1,turn=phase+t*(curve.trunk?9:2.5),width=curve.width*(1-t*.67);
-            const ripple=Math.sin(t*12+phase)*width*.12;
-            p[0]+=(-dy/norm)*Math.cos(turn)*width+ripple;p[1]+=(dx/norm)*Math.cos(turn)*width;p[2]+=Math.sin(turn)*width;
-            if(previous){positions.push(...previous,...p);colors.push(...color,...color);phases.push(curve.phase,curve.phase);flows.push((j-1)/steps,t);}
-            previous=p;
+    function makeTimeline() {
+      // The original 300 × 80 loom algorithm, including its stray threads and palette.
+      // A stable random seed keeps the same silhouette after every reload.
+      for(let i=0;i<THREAD_COUNT;i++) {
+        const isStray=random()>.85,baseAngle=i/THREAD_COUNT*Math.PI*2;
+        const spreadAngle=baseAngle+(random()-.5)*5,spreadRadius=6+random()*10;
+        const roll=random(),colorIndex=roll<.45?0:roll<.85?1:roll<.95?2:3;
+        const points=[],sizes=[];
+        for(let j=0;j<POINTS_PER_THREAD;j++) {
+          const y=-14+j/(POINTS_PER_THREAD-1)*28,absY=Math.abs(y);
+          let radius,angle;
+          if(isStray) {radius=3+random()*3;angle=baseAngle+y*.15;}
+          else if(absY<1.8) {radius=.1+random()*.3;angle=baseAngle+y*1.5;}
+          else {
+            const t=Math.min((absY-1.8)/12.2,1),curve=t*t*(3-2*t);
+            radius=.4+curve*spreadRadius;
+            angle=(baseAngle+y*1.5)*(1-curve)+(spreadAngle+y*.2)*curve;
           }
+          radius+=(random()-.5)*.15;
+          points.push([Math.cos(angle)*radius,y,Math.sin(angle)*radius]);
+          sizes.push(random()>.95?.8:.15);
         }
+        threads.push({points,sizes,colorIndex});
+      }
+    }
+    const bendShader=`vec3 bend(vec3 p){float crown=pow(abs(p.y)/14.0,1.25);
+      p.x+=(uPointer.x*.85+sin(uTime*.38+p.y*.21)*.08)*crown;
+      p.z+=uPointer.y*crown*.55;return p;}`;
+    function createTree() {
+      tree=new THREE.Group();
+      const positions=[],colors=[],phases=[],flows=[],points=[],pointColors=[],pointSizes=[],pointPhases=[],pointFlows=[];
+      threads.forEach((thread,index)=>{
+        const color=palette[thread.colorIndex],phase=index/THREAD_COUNT*Math.PI*2;
+        thread.points.forEach((point,j)=>{
+          const flow=j/(POINTS_PER_THREAD-1);
+          points.push(...point);pointColors.push(...color);pointSizes.push(thread.sizes[j]);pointPhases.push(phase);pointFlows.push(flow);
+          if(j) {
+            positions.push(...thread.points[j-1],...point);colors.push(...color,...color);
+            phases.push(phase,phase);flows.push((j-1)/(POINTS_PER_THREAD-1),flow);
+          }
+        });
       });
-      treeUniforms={uTime:{value:0},uOpacity:{value:small?.48:.84},uBoost:{value:0},uDpr:{value:dpr}};
+      treeUniforms={uTime:{value:0},uOpacity:{value:.78},uBoost:{value:0},uDpr:{value:dpr},uLight:{value:0},uPointer:{value:new THREE.Vector2()},uPulse:starUniforms.uPulse};
       const g=geometry(new Float32Array(positions),new Float32Array(colors),null,new Float32Array(phases));
-      g.setAttribute('flow',new THREE.BufferAttribute(new Float32Array(flows),1));
-      g.computeBoundingBox();
+      g.setAttribute('flow',new THREE.BufferAttribute(new Float32Array(flows),1));g.computeBoundingBox();
       const bounds=g.boundingBox;
       treeBounds={centerX:(bounds.min.x+bounds.max.x)/2,centerY:(bounds.min.y+bounds.max.y)/2,width:bounds.max.x-bounds.min.x,height:bounds.max.y-bounds.min.y};
       const lines=new THREE.LineSegments(g,new THREE.ShaderMaterial({
         uniforms:treeUniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-        vertexShader:`attribute vec3 color;attribute float phase,flow;uniform float uTime;varying vec3 vColor;varying float vFlow;${bendShader}
-          void main(){vColor=color;vFlow=pow(.5+.5*sin(flow*8.0-uTime*2.1+phase),12.0);gl_Position=projectionMatrix*modelViewMatrix*vec4(bend(position),1.0);}`,
-        fragmentShader:`uniform float uOpacity,uBoost;varying vec3 vColor;varying float vFlow;void main(){gl_FragColor=vec4(vColor*(.8+vFlow*.9),uOpacity*(.38+vFlow*.60)+uBoost*.22);}`
-      }));lines.frustumCulled=false;tree.add(lines);
-      const pos=[],a=[],b=[],c=[],d=[],phase=[],speed=[],size=[];
-      for(let i=0;i<PARTICLE_COUNT;i++){
-        const branch=branches[Math.floor(random()*branches.length)];pos.push(0,0,0);a.push(...branch.a);b.push(...branch.b);c.push(...branch.c);d.push(...branch.d);
-        phase.push(random());speed.push(.06+random()*.12);size.push(1.8+Math.pow(random(),3)*3.2);
-      }
-      const pg=geometry(new Float32Array(pos),null,new Float32Array(size),new Float32Array(phase));
-      [['curveA',a],['curveB',b],['curveC',c],['curveD',d]].forEach(([name,values])=>pg.setAttribute(name,new THREE.BufferAttribute(new Float32Array(values),3)));
-      pg.setAttribute('speed',new THREE.BufferAttribute(new Float32Array(speed),1));
-      const particles=new THREE.Points(pg,new THREE.ShaderMaterial({
+        vertexShader:`attribute vec3 color;attribute float phase,flow;uniform float uTime,uLight,uPulse;uniform vec2 uPointer;varying vec3 vColor;varying float vFlow,vPulse;${bendShader}
+          void main(){vColor=mix(color,color*.32+vec3(.015,.025,.045),uLight);vFlow=pow(.5+.5*sin(flow*12.0-uTime*1.8+phase),14.0);
+            vPulse=exp(-pow((abs(position.y)/14.0-uPulse*.85)*7.0,2.0))*max(0.0,1.0-uPulse/1.5);
+            gl_Position=projectionMatrix*modelViewMatrix*vec4(bend(position),1.0);}`,
+        fragmentShader:`uniform float uOpacity,uBoost;varying vec3 vColor;varying float vFlow,vPulse;
+          void main(){gl_FragColor=vec4(vColor*(1.0+vFlow*.25),uOpacity*(.12+vFlow*.11+vPulse*.36)+uBoost*.065);}`
+      }));lines.frustumCulled=false;tree.add(lines);themedMaterials.push(lines.material);
+      const pg=geometry(new Float32Array(points),new Float32Array(pointColors),new Float32Array(pointSizes),new Float32Array(pointPhases));
+      pg.setAttribute('flow',new THREE.BufferAttribute(new Float32Array(pointFlows),1));
+      const energy=new THREE.Points(pg,new THREE.ShaderMaterial({
         uniforms:treeUniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-        vertexShader:`attribute vec3 curveA,curveB,curveC,curveD;attribute float phase,speed,pointSize;uniform float uTime,uDpr,uBoost,uOpacity;varying float vAlpha;varying vec3 vColor;${bendShader}
-          void main(){float t=fract(phase+uTime*speed),u=1.0-t;vec3 p=u*u*u*curveA+3.0*u*u*t*curveB+3.0*u*t*t*curveC+t*t*t*curveD;
-            p.z+=sin(phase*72.0+uTime)*.10;vec4 mv=modelViewMatrix*vec4(bend(p),1.0);gl_Position=projectionMatrix*mv;gl_PointSize=pointSize*uDpr*(42.0/-mv.z)*(1.0+uBoost*.5);
-            vAlpha=sin(t*3.14159)*uOpacity;vColor=mix(vec3(.47,.88,.55),vec3(.95,.98,.80),phase);}`,
-        fragmentShader:`varying float vAlpha;varying vec3 vColor;void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;gl_FragColor=vec4(vColor,(exp(-r*r*7.0)+pow(1.0-r,3.0)*.4)*vAlpha);}`
-      }));particles.frustumCulled=false;tree.add(particles);scene.add(tree);
+        vertexShader:`attribute vec3 color;attribute float pointSize,phase,flow;uniform float uTime,uDpr,uBoost,uOpacity,uLight,uPulse;uniform vec2 uPointer;varying float vAlpha;varying vec3 vColor;${bendShader}
+          void main(){float wave=pow(.5+.5*sin(flow*12.0-uTime*1.8+phase),14.0);
+            float pulse=exp(-pow((abs(position.y)/14.0-uPulse*.85)*7.0,2.0))*max(0.0,1.0-uPulse/1.5);
+            vec4 mv=modelViewMatrix*vec4(bend(position),1.0);gl_Position=projectionMatrix*mv;
+            gl_PointSize=clamp(pointSize*uDpr*(126.0/-mv.z)*(1.0+wave*.5+pulse+uBoost*.3),.7,7.0*uDpr);
+            vAlpha=(.15+wave*.18+pulse*.55+uBoost*.12)*uOpacity;vColor=mix(color,color*.32+vec3(.015,.025,.045),uLight);}`,
+        fragmentShader:`varying float vAlpha;varying vec3 vColor;void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;gl_FragColor=vec4(vColor,(1.0-r)*vAlpha);}`
+      }));energy.frustumCulled=false;tree.add(energy);themedMaterials.push(energy.material);scene.add(tree);
     }
     function createBlackHole() {
       holeUniforms={uTime:{value:0},uOpacity:{value:1}};
@@ -207,21 +237,25 @@
     function resize() {
       if(disposed)return;mobile=innerWidth<760;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);
       viewHeight=2*Math.tan(46*Math.PI/360)*camera.position.z;viewWidth=viewHeight*camera.aspect;
-      // Fit the measured crown-to-root extent, leaving room for depth and bending.
-      const treeScale=mobile?viewHeight*.40/(treeBounds.height*1.10):Math.min(viewHeight*.44/(treeBounds.height*1.10),viewWidth*.43/(treeBounds.width*1.10));
-      tree.position.set(viewWidth*(mobile?.46:.24)-treeBounds.centerX*treeScale,-viewHeight*.17-treeBounds.centerY*treeScale,0);tree.scale.setScalar(treeScale);
-      const holeWidth=mobile?viewWidth*.63:Math.min(viewWidth*.43,viewHeight*.73);
-      hole.scale.setScalar(holeWidth/32);hole.position.set(viewWidth*(mobile?.40:.26),viewHeight*.25,0);
-      galaxyUniforms.uAspect.value=camera.aspect;galaxyUniforms.uMobile.value=mobile?1:0;paint(0);
+      // Fit the whole three-dimensional loom, with space for its parallax tilt.
+      const treeScale=mobile?Math.min(viewHeight*.43/(treeBounds.height*1.22),viewWidth*.78/(treeBounds.width*1.22)):
+        Math.min(viewHeight*.50/(treeBounds.height*1.22),viewWidth*.44/(treeBounds.width*1.22));
+      tree.position.set(viewWidth*(mobile?.08:.24)-treeBounds.centerX*treeScale,-viewHeight*.17-treeBounds.centerY*treeScale,0);tree.scale.setScalar(treeScale);
+      const holeWidth=mobile?viewWidth*.72:Math.min(viewWidth*.40,viewHeight*.65);
+      hole.scale.setScalar(holeWidth/32);hole.position.set(viewWidth*(mobile?.12:.26),viewHeight*.28,0);
+      starUniforms.uAspect.value=camera.aspect;galaxyUniforms.uAspect.value=camera.aspect;galaxyUniforms.uMobile.value=mobile?1:0;paint(0);
     }
     function paint(dt) {
-      parallaxX+=(pointerX-parallaxX)*Math.min(1,dt*2.5);parallaxY+=(pointerY-parallaxY)*Math.min(1,dt*2.5);
+      parallaxX+=(pointerX-parallaxX)*Math.min(1,dt*5);parallaxY+=(pointerY-parallaxY)*Math.min(1,dt*5);
+      pointerStrength+=((time<pointerUntil?1:0)-pointerStrength)*Math.min(1,dt*7);
       jump+=((time<jumpEnd?1:0)-jump)*Math.min(1,dt*(time<jumpEnd?2.6:1.5));boost+=((time<boostEnd?1:0)-boost)*Math.min(1,dt*1.5);
       travel+=dt*(.9+jump*36);starUniforms.uTime.value=time;starUniforms.uTravel.value=travel;starUniforms.uJump.value=jump;
-      treeUniforms.uTime.value=time;treeUniforms.uBoost.value=boost;treeUniforms.uOpacity.value=((mobile?.43:.84)+boost*.22)*(1-scrollProgress*.60);
-      tree.rotation.y=Math.sin(time*.14)*.07+parallaxX*.045;tree.rotation.z=Math.sin(time*.19)*.008;tree.rotation.x=parallaxY*.025;
+      starUniforms.uPointer.value.set(pointerX,-pointerY);starUniforms.uStrength.value=pointerStrength;starUniforms.uPulse.value=time-pulseStart;
+      treeUniforms.uTime.value=time;treeUniforms.uBoost.value=boost;treeUniforms.uPointer.value.set(parallaxX,parallaxY);
+      treeUniforms.uOpacity.value=((lightTheme?.95:mobile?.75:.84)+boost*.18)*(1-scrollProgress*.30);
+      tree.rotation.y=Math.sin(time*.14)*.025+parallaxX*.38;tree.rotation.z=Math.sin(time*.19)*.008;tree.rotation.x=parallaxY*.21;
       holeUniforms.uTime.value=time;holeUniforms.uOpacity.value=(mobile?.62:.98)*(1-scrollProgress*.60);hole.rotation.z=.10+Math.sin(time*.12)*.012;
-      hole.position.x=viewWidth*(mobile?.40:.26)+parallaxX*.12;hole.position.y=viewHeight*.25-parallaxY*.10;
+      hole.position.x=viewWidth*(mobile?.12:.26)+parallaxX*.12;hole.position.y=viewHeight*.28-parallaxY*.10;
       galaxyUniforms.uTime.value=time;camera.position.x=parallaxX*.22;camera.position.y=-parallaxY*.15;renderer.render(scene,camera);
     }
     function loop(now) {
@@ -233,18 +267,45 @@
     function syncMotion() {
       if(frame)cancelAnimationFrame(frame);frame=0;last=0;drawDelta=0;host.dataset.moving=String(active());
       if(active())frame=requestAnimationFrame(loop);
-      else if(!disposed){jump=0;boost=0;jumpEnd=0;boostEnd=0;paint(0);}
+      else if(!disposed){jump=0;boost=0;jumpEnd=0;boostEnd=0;pointerStrength=0;pointerUntil=-1;pulseStart=time-10;paint(0);}
     }
-    try {createStars();createGalaxies();createTree();createBlackHole();resize();}
+    function syncTheme() {
+      if(disposed)return;
+      lightTheme=root.dataset.theme==='light';
+      starUniforms.uLight.value=treeUniforms.uLight.value=galaxyUniforms.uLight.value=lightTheme?1:0;
+      const blending=lightTheme?THREE.NormalBlending:THREE.AdditiveBlending;
+      themedMaterials.forEach(material=>{if(material.blending!==blending){material.blending=blending;material.needsUpdate=true;}});
+      if(!active())paint(0);
+    }
+    function pulse(x,y) {
+      pulseStart=time;starUniforms.uPulseCenter.value.set(x,y);boostEnd=Math.max(boostEnd,time+1.8);
+    }
+    function trackPointer(x,y,tap=false) {
+      if(!active())return;
+      pointerX=Math.max(-1,Math.min(1,x/innerWidth*2-1));pointerY=Math.max(-1,Math.min(1,y/innerHeight*2-1));
+      pointerUntil=time+.9;
+      if(tap)pulse(pointerX,-pointerY);
+    }
+    try {createStars();createGalaxies();createTree();createBlackHole();syncTheme();resize();}
     catch(_){renderer.dispose();disposed=true;fallback();return;}
-    host.dataset.cosmos='webgl';host.dataset.starCount=String(STAR_COUNT);host.dataset.branchCount=String(branches.length);host.dataset.particleCount=String(PARTICLE_COUNT);host.dataset.galaxyCount='5';
+    host.dataset.cosmos='webgl';host.dataset.starCount=String(STAR_COUNT);host.dataset.threadCount=String(THREAD_COUNT);host.dataset.branchCount=String(THREAD_COUNT);
+    host.dataset.particleCount=String(THREAD_COUNT*POINTS_PER_THREAD);host.dataset.galaxyCount='5';host.dataset.treeStyle='original-temporal-loom';
     window.addEventListener('resize',resize,{passive:true});
-    window.addEventListener('pointermove',event=>{if(!active()||event.pointerType==='touch')return;pointerX=event.clientX/innerWidth*2-1;pointerY=event.clientY/innerHeight*2-1;},{passive:true});
+    window.addEventListener('pointermove',event=>{if(event.isPrimary!==false)trackPointer(event.clientX,event.clientY);},{passive:true});
+    window.addEventListener('pointerdown',event=>{if(event.isPrimary!==false)trackPointer(event.clientX,event.clientY,true);},{passive:true});
+    // Browsers cancel pointer streams when native touch scrolling starts. Passive
+    // touchmove keeps the background responsive without capturing or blocking it.
+    window.addEventListener('touchmove',event=>{if(event.touches.length===1)trackPointer(event.touches[0].clientX,event.touches[0].clientY);},{passive:true});
+    if(!('PointerEvent' in window))window.addEventListener('touchstart',event=>{if(event.touches.length===1)trackPointer(event.touches[0].clientX,event.touches[0].clientY,true);},{passive:true});
     window.addEventListener('scroll',()=>{scrollProgress=Math.min(1,scrollY/Math.max(1,innerHeight*1.8));},{passive:true});
-    document.addEventListener('visibilitychange',syncMotion);document.addEventListener('portfolio:motionchange',syncMotion);reduced.addEventListener('change',syncMotion);
-    new MutationObserver(syncMotion).observe(root,{attributes:true,attributeFilter:['data-motion']});
+    document.addEventListener('visibilitychange',syncMotion);document.addEventListener('portfolio:motionchange',syncMotion);document.addEventListener('portfolio:themechange',syncTheme);
+    if(reduced.addEventListener)reduced.addEventListener('change',syncMotion);else reduced.addListener(syncMotion);
+    new MutationObserver(mutations=>{
+      if(mutations.some(m=>m.attributeName==='data-theme'))syncTheme();
+      if(mutations.some(m=>m.attributeName==='data-motion'))syncMotion();
+    }).observe(root,{attributes:true,attributeFilter:['data-motion','data-theme']});
     document.addEventListener('cosmos:jump',()=>{if(active())jumpEnd=time+2.8;});
-    document.addEventListener('cosmos:tree',()=>{if(active())boostEnd=time+6;});
+    document.addEventListener('cosmos:tree',()=>{if(active()){pulse(mobile?.16:.48,-.34);boostEnd=time+6;}});
     renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();disposed=true;fallback();});
     syncMotion();
   }

@@ -1,0 +1,227 @@
+/* Load after the component styles. Artwork keeps its original colors in both themes. */
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:44px;min-height:44px;padding:8px 0;border:0;background:transparent;color:var(--muted);font:400 10px/1.5 var(--font-mono);white-space:nowrap}
+.theme-toggle:hover{color:var(--text)}
+.theme-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.theme-toggle svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .theme-icon-moon{display:none}
+html[data-theme=light] .theme-toggle .theme-icon-sun{display:none}
+html[data-theme=light] .theme-toggle .theme-icon-moon{display:block}
+html:not([data-theme=light]){--bg:#101915;--surface:#18231c;--text:#f0eee5;--muted:#b3bcb2;--dim:#93a18c;--accent:#b9e8bb;--gold:#dfbe89;--line:rgba(205,221,201,.24)}
+html[data-theme=light]{color-scheme:light;--bg:#f3f0e7;--surface:#fcfaf4;--text:#182a21;--muted:#526253;--dim:#5e6b5c;--accent:#235c42;--gold:#805823;--line:rgba(45,71,48,.22);--primary:var(--accent)}
+
+@media screen{
+  /* A modest charcoal lift keeps the night sky while revealing quieter details. */
+  html:not([data-theme=light]) .cosmic-veil{background:linear-gradient(90deg,#10191588,#10191518 51%,transparent 75%)}
+  html:not([data-theme=light]) .section{background:linear-gradient(90deg,#0c120fd9,#0c120f91)}
+  html:not([data-theme=light]) .expertise-section{background:linear-gradient(115deg,#172319db,#101a139e)}
+  html:not([data-theme=light]) .about-section{background:linear-gradient(90deg,#0c120fc4,#0c120fe0)}
+  html:not([data-theme=light]) .journey-section{background:#111b14c9}
+  html:not([data-theme=light]) .research-section{background:#0c120fc4}
+  html:not([data-theme=light]) .notes-section{background:#141e16c9}
+  html:not([data-theme=light]) .contact-section{background:linear-gradient(90deg,#0c120fc9,#0c120f80)}
+  html:not([data-theme=light]) .orbit-band{background:#152017d9}
+  html:not([data-theme=light]) .site-footer{background:#0c120fda}
+  html:not([data-theme=light]) .hero-role{color:#e0e4d8}
+  html:not([data-theme=light]) :is(.location-label,.scroll-note,.horizon-coordinate small,.tree-coordinate small,.project-eyebrow>span:last-child,.tags span,.archive-icon,.practice-number,.practice-tab-copy small,.practice-tab-arrow,.toolkit-number,.portrait-mark,.experience-date,.experience-location,.education-card>.mono,.publication-publisher,.certificate-provider,.community-grid .mono,.site-footer>.container){color:#a0b197}
+  html:not([data-theme=light]) .practice-tab-copy strong{color:#b8c5b0}
+  html:not([data-theme=light]) .practice-tab.is-active strong{color:var(--accent)}
+  html:not([data-theme=light]) .button-outline{background:#172219a3}
+  html:not([data-theme=light]) .contact-form input,
+  html:not([data-theme=light]) .contact-form textarea{background:#111c15cc;border-color:#9eaf8d66}
+  html:not([data-theme=light]) .contact-form input::placeholder,
+  html:not([data-theme=light]) .contact-form textarea::placeholder{color:#9daa95;opacity:1}
+  html:not([data-theme=light]) :is(.video-dialog,.project-dialog){background:#172117}
+  html:not([data-theme=light]) .cinema-section{background:linear-gradient(180deg,#0c120f91,#101910e8 18%,#101910eb 85%,#0c120f91)}
+  html:not([data-theme=light]) #cinema-root{--cinema-muted:#acb7a5;--cinema-line:#eee9df38}
+  html:not([data-theme=light]) :is(.cinema-contact-label>span:first-child>span,.cinema-contact-label>span:last-child,.cinema-card-arrow,.cinema-filters button span){color:#a0b197}
+  html:not([data-theme=light]) .cinema-filters button[aria-pressed=true] span{color:var(--cinema-green)}
+  html:not([data-theme=light]) .cinema-dialog{background:#121b13}
+  html:not([data-theme=light]) .cameo-discovery{background:#111a14}
+  html:not([data-theme=light]) .cameo-discovery-card{background:#1a251b80}
+  html:not([data-theme=light]) .routine-section{background:linear-gradient(115deg,#152019e3,#111b14c4)}
+
+  html[data-theme=light] body{background:var(--bg);color:var(--text)}
+  html[data-theme=light] ::selection{background:#c6ddc8;color:#182a21}
+  html[data-theme=light] :is(input,textarea){color:var(--text)}
+  html[data-theme=light] .bg-mesh{background:radial-gradient(ellipse at 75% 48%,#d5e3d455,transparent 65%),var(--bg)}
+  html[data-theme=light] .cosmic-veil{background:linear-gradient(90deg,#f3f0e799,#f3f0e71a 57%,transparent)}
+  html[data-theme=light] .site-header{border-color:var(--line);background:#f3f0e738}
+  html[data-theme=light] .site-header nav a{color:#425544}
+  html[data-theme=light] .site-header nav a:hover{color:var(--accent)}
+  html[data-theme=light] .nav-contact{border-color:#7e8e77}
+  html[data-theme=light] :is(.hero-edition,.hero-role,.unknown-link,.social-link,.location-label,.scroll-note,.tree-coordinate,.horizon-coordinate){color:var(--muted)}
+  html[data-theme=light] .hero-role{color:#314835}
+  html[data-theme=light] :is(.hero h1 em,.section-heading h2 em,.about-copy h2 em,.notes-row h2 em,.contact-section h2 em){color:#355c42}
+  html[data-theme=light] .status-dot{box-shadow:0 0 12px #235c4233}
+  html[data-theme=light] .button-primary{background:var(--accent);color:#fffdf7;border-color:var(--accent)}
+  html[data-theme=light] .button-primary:hover{background:#183e2e;border-color:#183e2e}
+  html[data-theme=light] .button-outline{background:#fcfaf4a8;color:var(--text);border-color:#81917d}
+  html[data-theme=light] .button-outline:hover{background:#e6eddf;border-color:var(--accent)}
+  html[data-theme=light] :is(.unknown-link:hover,.social-link:hover,.tree-coordinate:hover){color:var(--accent)}
+  html[data-theme=light] :is(.unknown-orbit,.unknown-orbit::before){border-color:#607b61}
+  html[data-theme=light] .scroll-line{background:#607b61}
+  html[data-theme=light] .scroll-line::after{border-color:#607b61}
+  html[data-theme=light] .play-icon{border-color:#8a9b82}
+  html[data-theme=light] .tree-coordinate{background:#f3f0e7b8}
+  html[data-theme=light] .tree-coordinate svg{stroke:#3e7049}
+  html[data-theme=light] :is(.tree-coordinate small,.horizon-coordinate small){color:#526653}
+  html[data-theme=light] .orbit-band{background:#e8ecdfc9}
+  html[data-theme=light] .orbit-band p span{color:#75866c}
+
+  /* Translucent paper surfaces retain a glimpse of the observatory beneath. */
+  html[data-theme=light] .section{background:linear-gradient(90deg,#f3f0e7f0,#f3f0e7bc)}
+  html[data-theme=light] .expertise-section{background:linear-gradient(115deg,#e6ecdfed,#edf0e6d1)}
+  html[data-theme=light] .about-section{background:linear-gradient(90deg,#f3f0e7cc,#f3f0e7eb)}
+  html[data-theme=light] .journey-section{background:#e9eddfdb}
+  html[data-theme=light] .research-section{background:#f3f0e7d9}
+  html[data-theme=light] .notes-section{background:#e7ecdfdb}
+  html[data-theme=light] .contact-section{background:linear-gradient(90deg,#f3f0e7e8,#f3f0e7ad)}
+  html[data-theme=light] .site-footer{background:#e8ecdfda}
+  html[data-theme=light] .site-footer>.container{color:var(--muted)}
+  html[data-theme=light] .footer-name{color:var(--accent)}
+
+  /* Project captions and diagrams; raster project images are never inverted. */
+  html[data-theme=light] :is(.project-eyebrow,.project-eyebrow>span:last-child,.tags span,.art-corner,.archive-icon,.archive-card>a){color:#486342}
+  html[data-theme=light] .tags span{border-color:#6c866447}
+  html[data-theme=light] .project-links>a,
+  html[data-theme=light] .project-links>button{border-color:#7d8d74}
+  html[data-theme=light] .project-search input::placeholder{color:var(--muted);opacity:1}
+  html[data-theme=light] .project-art{border-color:var(--line);background:#e7ebdf}
+  html[data-theme=light] .art-grid{background-image:linear-gradient(#2f593c0b 1px,transparent 1px),linear-gradient(90deg,#2f593c0b 1px,transparent 1px)}
+  html[data-theme=light] .pixel-art{background:radial-gradient(ellipse at 50% 5%,#c9ddbd88,transparent 65%),#e9eddf}
+  html[data-theme=light] .pixel-art>strong>span{color:#53674c}
+  html[data-theme=light] .platform-row span{color:#46613d;border-color:#879b754a}
+  html[data-theme=light] .flow-art{background:radial-gradient(ellipse at 60% 50%,#d7dfbf88,transparent 65%),#e9edde}
+  html[data-theme=light] .flow-path>span,
+  html[data-theme=light] .flow-path>div>span{background:#f7f8ef;border-color:#80936866;color:#3d5634}
+  html[data-theme=light] .flow-path .flow-brain{background:#e3edcf;border-color:#718a50;color:#2d4928;box-shadow:0 10px 28px #38552a10}
+  html[data-theme=light] .flow-path>i{color:#5e7646}
+  html[data-theme=light] .automation-art{background:radial-gradient(ellipse,#e5d2b655,transparent 72%),#ede7da}
+  html[data-theme=light] .automation-orbit,
+  html[data-theme=light] .automation-orbit::before{border-color:#80582340}
+  html[data-theme=light] .automation-node{background:#fcf6e9;border-color:#a68f6d66;box-shadow:0 12px 28px #7859231a}
+  html[data-theme=light] .automation-node.n8n{color:#9b4040}
+  html[data-theme=light] .automation-node.api{color:#6c5538}
+  html[data-theme=light] .automation-node.zapier{color:#a34d19}
+  html[data-theme=light] .social-art{background:#e4e9de}
+  html[data-theme=light] .content-sheets>span{box-shadow:0 12px 28px #273b2429}
+  html[data-theme=light] .gym-art{background:radial-gradient(ellipse at 50% 40%,#d0df8c44,transparent 70%),#e9eddf}
+  html[data-theme=light] .gym-preview{color:#eef0df;box-shadow:0 16px 30px #25382226}
+  html[data-theme=light] .project-art.has-original{background:radial-gradient(ellipse,#edf1e8,transparent 70%),#e6ebdf}
+  html[data-theme=light] .project-art.has-original .art-corner{background:#f8f8eff0;color:#3e5838;border:1px solid #7c92764d}
+  html[data-theme=light] .project-art.original-pixelpair,
+  html[data-theme=light] .project-art.original-streamvision,
+  html[data-theme=light] .project-art.original-social-app{background:#fff}
+  html[data-theme=light] .project-art.original-bitflows{background:#eff3f6}
+  html[data-theme=light] .project-art.original-automations{background:#f7f5f1}
+  html[data-theme=light] .project-image{filter:none}
+  html[data-theme=light] .content-work{border-color:#708b62}
+
+  /* Expertise, biography, experience and the complete retained archive. */
+  html[data-theme=light] :is(.practice-number,.practice-tab-copy strong,.practice-tab-copy small,.practice-tab-arrow,.practice-kicker,.toolkit-number){color:#526b49}
+  html[data-theme=light] .practice-tab.is-active{background:linear-gradient(90deg,#2d694914,transparent);border-bottom-color:#3f785c8c}
+  html[data-theme=light] .practice-tab.is-active strong{color:var(--accent);text-shadow:none}
+  html[data-theme=light] .practice-tab.is-active :is(.practice-number,.practice-tab-arrow){color:var(--accent)}
+  html[data-theme=light] .practice-panels::before{color:#235c420c}
+  html[data-theme=light] .practice-panel>p:not(.practice-kicker){color:var(--muted)}
+  html[data-theme=light] .portrait img{filter:none}
+  html[data-theme=light] .portrait::after{background:transparent}
+  html[data-theme=light] .portrait-mark{color:#4c6941}
+  html[data-theme=light] .about-copy>.about-lead{color:#304c34!important}
+  html[data-theme=light] .about-identity{color:#3d623f!important;border-color:#758d6c}
+  html[data-theme=light] .metrics-grid strong{color:#325b3b}
+  html[data-theme=light] :is(.experience-date,.company,.experience-detail,.experience-location,.education-card>.mono,.education-card p,.publication-publisher,.certificate-provider,.certificate-links a,.community-grid .mono,.community-grid strong){color:#4e6547}
+  html[data-theme=light] :is(.education-symbol,.publication-number>span){color:#486d3f}
+  html[data-theme=light] .education-description{color:var(--muted)!important}
+  html[data-theme=light] :is(.end-secret,.end-secret span,.contact-meta){color:#4c6941}
+  html[data-theme=light] .email-link{border-color:#69815a80}
+
+  /* Forms stay on paper, with visible field boundaries and native light controls. */
+  html[data-theme=light] .contact-form label{color:#3d5e3b}
+  html[data-theme=light] .contact-form input,
+  html[data-theme=light] .contact-form textarea{background:#fffcf2d9;border-color:#788d71;color:var(--text)}
+  html[data-theme=light] .contact-form input::placeholder,
+  html[data-theme=light] .contact-form textarea::placeholder{color:#5c6c55;opacity:1}
+  html[data-theme=light] .contact-form input:focus-visible,
+  html[data-theme=light] .contact-form textarea:focus-visible{outline-color:var(--accent);border-color:var(--accent)}
+  html[data-theme=light] .contact-form input:-webkit-autofill{box-shadow:0 0 0 1000px #eef3e5 inset;-webkit-text-fill-color:var(--text)}
+  html[data-theme=light] .contact-form-status{color:#345f39}
+  html[data-theme=light] .contact-form-status[data-state=error]{color:#8a3028}
+  html[data-theme=light] .contact-privacy{color:var(--muted)!important}
+  html[data-theme=light] .noscript-note{background:#e0e9d7;color:var(--text)}
+
+  /* Dialog chrome changes theme; video and photo viewports remain neutral. */
+  html[data-theme=light] dialog{background:var(--surface);color:var(--text);border-color:#80947766;box-shadow:0 30px 120px #273d3a3d}
+  html[data-theme=light] dialog::backdrop{background:#25322a80;backdrop-filter:blur(12px)}
+  html[data-theme=light] :is(.project-dialog p,.project-steps){color:var(--muted)}
+  html[data-theme=light] .project-detail-image{background:#e9ece8}
+
+  /* Cinematic imagery retains a dark photo overlay; the surrounding gallery is light. */
+  html[data-theme=light] #cinema-root,
+  html[data-theme=light] .cinema-dialog{--cinema-ivory:#182a21;--cinema-muted:#526253;--cinema-green:#235c42;--cinema-amber:#805823;--cinema-line:rgba(45,71,48,.22)}
+  html[data-theme=light] .cinema-section{background:linear-gradient(180deg,#f3f0e7b8,#eeeee3ed 18%,#eeeee3f5 85%,#f3f0e7c9)}
+  html[data-theme=light] .cinema-intro>p{color:var(--muted)}
+  html[data-theme=light] .cinema-spotlight{--cinema-ivory:#eee9df;--cinema-muted:#b5beb0;--cinema-green:#c5efc5;--cinema-amber:#e2bd82;background:#141a13;box-shadow:0 16px 42px #263b2924}
+  html[data-theme=light] .cinema-spotlight-image{filter:none}
+  html[data-theme=light] .cinema-spotlight-top{color:#f1f0e9}
+  html[data-theme=light] .cinema-spotlight-note small{color:#c1c9b8}
+  html[data-theme=light] .cinema-filters button span{color:#586e4c}
+  html[data-theme=light] .cinema-filters button[aria-pressed=true] span{color:var(--accent)}
+  html[data-theme=light] :is(.cinema-contact-label,.cinema-contact-label>span:first-child>span,.cinema-contact-label>span:last-child,.cinema-card-arrow){color:#53694a}
+  html[data-theme=light] .cinema-poster{background:#e0e5d8;border-color:#71856a66}
+  html[data-theme=light] .cinema-poster::after{border-color:#fff8}
+  html[data-theme=light] .cinema-poster>img,
+  html[data-theme=light] .cinema-card:hover .cinema-poster>img,
+  html[data-theme=light] .cinema-card:focus-visible .cinema-poster>img{filter:none}
+  html[data-theme=light] .cinema-expand{color:#f8f7ef;background:#182a21bd;border-color:#f8f7ef99}
+  html[data-theme=light] .cinema-card:hover .cinema-poster,
+  html[data-theme=light] .cinema-card:focus-visible .cinema-poster{border-color:#285f45;box-shadow:0 12px 30px #29433129,0 0 0 1px #285f4529}
+  html[data-theme=light] .cinema-more{border-color:#45705180}
+  html[data-theme=light] .cinema-dialog{background:var(--surface);border-color:#8e8d6c66;box-shadow:0 24px 100px #23362866}
+  html[data-theme=light] .cinema-screen{background:#172019}
+  html[data-theme=light] .cinema-screen>button{background:#fcfaf4ed;color:#182a21;border-color:#fcfaf4}
+  html[data-theme=light] .cinema-screen>button:hover{color:#235c42;border-color:#b8edbc}
+  html[data-theme=light] .cinema-thumbnails button{border-color:#788c6e80}
+  html[data-theme=light] .cinema-thumbnails button[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  html[data-theme=light] .cinema-viewer-actions{background:#235c4207}
+
+  /* Discovery is a cabinet of small, unchanged illustrations on warm paper. */
+  html[data-theme=light] .cameo-discovery{color:var(--text);background:#f8f6ec;border-color:#7d937144;box-shadow:0 30px 120px #2537224d}
+  html[data-theme=light] .cameo-discovery-inner{background:radial-gradient(ellipse at 8% 10%,#d6e5c93d,transparent 65%)}
+  html[data-theme=light] :is(.cameo-kicker,#cameo-discovery-description,.cameo-discovery-hint,.cameo-motion-note){color:#52634e}
+  html[data-theme=light] .cameo-dialog-close{color:#274b34;border-color:#6d8b624d}
+  html[data-theme=light] .cameo-dialog-close:hover{background:#dfead4;border-color:#5d7c4f}
+  html[data-theme=light] .cameo-discovery h2 em{color:#436d43}
+  html[data-theme=light] .cameo-discovery-card{color:var(--text);border-color:#78966a45;background:#edf0e4b3}
+  html[data-theme=light] .cameo-discovery-card:hover{border-color:#547c47a6;background:#e5edda}
+  html[data-theme=light] .cameo-preview{background:radial-gradient(ellipse at 50% 70%,#c8d8b650,transparent 68%)}
+  html[data-theme=light] .cameo-preview::before{background-image:radial-gradient(1px 1px at 13% 21%,#516a4b66,transparent),radial-gradient(1px 1px at 75% 69%,#516a4b55,transparent),radial-gradient(1px 1px at 64% 14%,#516a4b44,transparent)}
+  html[data-theme=light] .cameo-preview .cameo-illustration{opacity:1}
+  html[data-theme=light] .cameo-discovery-label{border-color:#78966a38}
+  html[data-theme=light] :is(.cameo-discovery-label small,.cameo-discovery-label>span,.cameo-discovery-label strong>span){color:#4d6845}
+  html[data-theme=light] .cameo-discovery-label strong{color:#213e28}
+  html[data-theme=light] .cameo-discovery-card.is-discovered .cameo-discovery-label small::after,
+  html[data-theme=light] .cameo-discovery-count{color:#346039}
+  html[data-theme=light] .cameo-motion-note{border-color:#78966a38}
+  html[data-theme=light] .cameo-console{background:linear-gradient(90deg,#f3f0e7f5,#f3f0e7d9 70%,transparent);color:var(--text);border-color:#4f825d66}
+  html[data-theme=light] .cameo-console-dot{background:#2c6745;box-shadow:0 0 10px #97c8ab70}
+  html[data-theme=light] .cameo-console[data-kind=dragon]{border-color:#9b683780}
+  html[data-theme=light] .cameo-console[data-kind=dragon] .cameo-console-dot{background:#875e2c;box-shadow:0 0 12px #d2a46c44}
+  html[data-theme=light] :is(.cameo-console-sender,.cameo-console-text){color:#52634e}
+  html[data-theme=light] .cameo-console-title{color:#203d29}
+
+  html[data-theme=light] .routine-section{background:linear-gradient(115deg,#e9eddfed,#f0f1e7d9)}
+  html[data-theme=light] .routine-tab[aria-selected=true]{background:linear-gradient(0deg,#235c420a,transparent)}
+  html[data-theme=light] .routine-weight{stroke:#416a48}
+  html[data-theme=light] .routine-weight :is(rect,path[fill]){fill:#e2ead6}
+  html[data-theme=light] .routine-spark{stroke:var(--gold)}
+  html[data-theme=light] .routine-orbit circle[fill]{fill:var(--gold)}
+}
+
+@media screen and (max-width:1100px){.theme-label{display:none}}
+@media screen and (max-width:600px){
+  .theme-toggle{padding-inline:4px;min-width:44px}
+  html[data-theme=light] .site-header nav{background:#f4f3eaf5;border-color:var(--line)}
+  html[data-theme=light] .cosmic-veil{background:linear-gradient(90deg,#f3f0e7d1,#f3f0e780 58%,#f3f0e71a)}
+}
+@media print{.theme-toggle{display:none!important}}
