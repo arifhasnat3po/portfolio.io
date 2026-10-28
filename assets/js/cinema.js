@@ -1,0 +1,222 @@
+/* Personal watchlist: supplied images, progressive gallery, accessible scene viewer. */
+(() => {
+  'use strict';
+
+  const root = document.getElementById('cinema-root');
+  if (!root) return;
+
+  const base = 'assets/img/watchlist/';
+  const frame = (file, width, height, alt) => ({ src: `${base}${file}.webp`, width, height, alt });
+  const titles = [
+    { title: 'Star Wars', kind: 'film', genre: 'A galaxy far, far away', accent: '#e8c67a', wide: true, frames: [frame('star-wars', 1440, 810, 'Star Wars saga collage with spacecraft and lightsabers')] },
+    { title: 'Iron Man', kind: 'film', genre: 'Marvel universe', accent: '#ff926e', position: '58% 45%', frames: [frame('iron-man', 1391, 700, 'Iron Man testing a glowing repulsor'), frame('iron-man-jericho', 857, 358, 'Iron Man film scene in front of a mountain range')] },
+    { title: 'House of the Dragon', kind: 'series', genre: 'Fire & blood', accent: '#e8967b', position: '70% 50%', frames: [frame('house-of-the-dragon', 1440, 960, 'House of the Dragon scene beside Caraxes'), frame('house-of-the-dragon-throne', 1440, 810, 'House of the Dragon scene with a sword and dragon banners')] },
+    { title: 'Friends', kind: 'series', genre: 'Central Perk', accent: '#f5ce92', frames: [frame('friends', 739, 415, 'Friends ensemble portrait'), frame('friends-central-perk', 900, 587, 'Friends gathered in Central Perk')] },
+    { title: 'Spider-Man: No Way Home', kind: 'film', genre: 'Across the multiverse', accent: '#f29999', frames: [frame('spider-man', 596, 335, 'Three Spider-Man suits in an action scene'), frame('spider-man-point', 1200, 676, 'Three Spider-Man characters pointing at each other')] },
+    { title: 'Loki', kind: 'series', genre: 'For all time. Always.', accent: '#9dcea2', position: '65% 50%', frames: [frame('loki', 1440, 810, 'Loki and Sylvie sitting in a green landscape')] },
+    { title: 'Black Sails', kind: 'series', genre: 'Adventure on the high seas', accent: '#80c7ce', frames: [frame('black-sails', 1440, 960, 'Black Sails crew aboard a sailing ship')] },
+    { title: 'The Avengers', kind: 'film', genre: 'Earth’s mightiest heroes', accent: '#86b6e5', frames: [frame('avengers', 1200, 675, 'The Avengers assembled together')] },
+    { title: 'Game of Thrones', kind: 'series', genre: 'The world of Westeros', accent: '#9cbdd1', frames: [frame('game-of-thrones', 596, 335, 'Game of Thrones battlefield with cavalry approaching')] },
+    { title: 'Harry Potter', kind: 'film', genre: 'The wizarding world', accent: '#e1be80', frames: [frame('harry-potter', 783, 391, 'Harry Potter trio in Hogwarts robes')] },
+    { title: 'Stranger Things', kind: 'series', genre: 'Welcome to Hawkins', accent: '#ea9c9c', frames: [frame('stranger-things', 739, 415, 'Stranger Things group gathered around a table')] },
+    { title: 'Breaking Bad', kind: 'series', genre: 'Albuquerque stories', accent: '#c4d58b', frames: [frame('breaking-bad', 595, 336, 'Breaking Bad characters seated in the desert')] },
+    { title: 'The Office', kind: 'series', genre: 'Life at Dunder Mifflin', accent: '#83d3ed', frames: [frame('the-office', 678, 452, 'The Office cast around a desk')] },
+    { title: 'The Big Bang Theory', kind: 'series', genre: 'Science meets sitcom', accent: '#e5b2ad', frames: [frame('the-big-bang-theory', 1440, 811, 'The Big Bang Theory group sharing a meal')] },
+    { title: 'The Last of Us', kind: 'series', genre: 'Endure & survive', accent: '#bac8a1', position: '56% 40%', frames: [frame('the-last-of-us', 1440, 1080, 'The Last of Us characters in an overgrown city')] },
+    { title: 'The Witcher', kind: 'series', genre: 'Tales of the Continent', accent: '#9bcfc8', frames: [frame('the-witcher', 1440, 810, 'The Witcher scene with a white-haired swordsman')] }
+  ];
+
+  const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  const expand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
+  const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const initialCount = 7;
+  let filter = 'all';
+  let expanded = false;
+  let opener = null;
+  let viewerFrames = [];
+  let viewerIndex = 0;
+  let pageOverflow = '';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const motionAllowed = () => !reduceMotion.matches && document.documentElement.dataset.motion !== 'off';
+
+  root.innerHTML = `
+    <div class="cinema-heading">
+      <div><p class="cinema-eyebrow"><span aria-hidden="true">✦</span> OFF THE CLOCK / WATCHLIST</p>
+      <h2>A few favorite<br><span>universes.</span></h2></div>
+      <div class="cinema-intro"><p>Beyond the work, there’s always another world to get lost in. A collection of movies, shows, and favorite frames.</p>
+      <span class="cinema-index">16 TITLES <i aria-hidden="true"></i> 20 FRAMES</span></div>
+    </div>
+    <div class="cinema-toolbar">
+      <div class="cinema-filters" role="group" aria-label="Filter watchlist">
+        <button type="button" data-cinema-filter="all" aria-pressed="true">All universes <span>16</span></button>
+        <button type="button" data-cinema-filter="film" aria-pressed="false">Films <span>5</span></button>
+        <button type="button" data-cinema-filter="series" aria-pressed="false">Series <span>11</span></button>
+      </div>
+      <span class="cinema-hint">HOVER TO EXPLORE <span aria-hidden="true">↗</span> CLICK TO STEP INSIDE</span>
+    </div>
+    <div class="cinema-grid" id="cinema-grid"></div>
+    <div class="cinema-gallery-footer"><p id="cinema-status" role="status" aria-live="polite"></p><button class="cinema-more" type="button" aria-controls="cinema-grid" aria-expanded="false">Explore all universes ${arrow}</button></div>
+    <dialog class="cinema-dialog" aria-labelledby="cinema-viewer-title" aria-describedby="cinema-viewer-description">
+      <div class="cinema-viewer">
+        <div class="cinema-viewer-top"><span class="cinema-eyebrow">THE WATCHLIST / SCENE VIEWER</span><button type="button" class="cinema-close" aria-label="Close scene viewer" autofocus>×</button></div>
+        <div class="cinema-screen"><img class="cinema-viewer-image" alt="" width="1440" height="810"><button class="cinema-prev" type="button" aria-label="Previous image">${arrow}</button><button class="cinema-next" type="button" aria-label="Next image">${arrow}</button></div>
+        <div class="cinema-viewer-footer"><div><p class="cinema-viewer-category"></p><h3 id="cinema-viewer-title"></h3><p id="cinema-viewer-description"></p></div><div class="cinema-frame-tools"><span class="cinema-frame-count" aria-live="polite"></span><div class="cinema-thumbnails" role="group" aria-label="Scenes from this title"></div></div></div>
+      </div>
+    </dialog>`;
+
+  const grid = root.querySelector('.cinema-grid');
+  const status = root.querySelector('#cinema-status');
+  const moreButton = root.querySelector('.cinema-more');
+  const dialog = root.querySelector('.cinema-dialog');
+  const image = root.querySelector('.cinema-viewer-image');
+  const thumbnails = root.querySelector('.cinema-thumbnails');
+  let tiltCleanups = [];
+
+  function visibleTitles() { return titles.filter(title => filter === 'all' || title.kind === filter); }
+
+  function renderGallery() {
+    tiltCleanups.forEach(cleanup => cleanup());
+    tiltCleanups = [];
+    const matching = visibleTitles();
+    const displayed = expanded ? matching : matching.slice(0, initialCount);
+    grid.innerHTML = displayed.map(title => {
+      const image = title.frames[0];
+      const index = titles.indexOf(title);
+      return `<div class="cinema-slot${title.wide ? ' cinema-slot-wide' : ''}">
+        <button type="button" class="cinema-card" data-cinema-title="${index}" style="--cinema-accent:${title.accent};--cinema-position:${title.position || 'center'}" aria-label="View ${escapeHTML(title.title)}, ${title.frames.length} ${title.frames.length === 1 ? 'image' : 'images'}">
+          <span class="cinema-poster"><img src="${image.src}" width="${image.width}" height="${image.height}" alt="${escapeHTML(image.alt)}" loading="lazy" decoding="async"><span class="cinema-shade"></span></span>
+          <span class="cinema-glare" aria-hidden="true"></span>
+          <span class="cinema-card-top"><span class="cinema-kind">${title.kind === 'film' ? 'FILM' : 'SERIES'}</span><span class="cinema-expand" aria-hidden="true">${expand}</span></span>
+          <span class="cinema-card-copy"><span class="cinema-genre">${escapeHTML(title.genre)}</span><span class="cinema-title">${escapeHTML(title.title)}</span><span class="cinema-card-bottom"><span>STEP INSIDE</span><span>${title.frames.length > 1 ? `${title.frames.length} FRAMES` : '01 FRAME'} ${arrow}</span></span></span>
+        </button></div>`;
+    }).join('');
+    status.textContent = `Showing ${displayed.length} of ${matching.length} titles`;
+    moreButton.hidden = matching.length <= initialCount;
+    moreButton.setAttribute('aria-expanded', String(expanded));
+    moreButton.innerHTML = `${expanded ? 'Show fewer universes' : `Explore ${matching.length - displayed.length} more universes`} ${arrow}`;
+    grid.querySelectorAll('.cinema-card').forEach(card => {
+      card.addEventListener('click', () => openViewer(Number(card.dataset.cinemaTitle), card));
+      installTilt(card);
+    });
+  }
+
+  function installTilt(card) {
+    let raf = 0;
+    let cursor = null;
+    const reset = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      cursor = null;
+      card.classList.remove('cinema-is-tilting');
+      card.style.removeProperty('--cinema-rx');
+      card.style.removeProperty('--cinema-ry');
+      card.style.removeProperty('--cinema-gx');
+      card.style.removeProperty('--cinema-gy');
+    };
+    const update = () => {
+      raf = 0;
+      if (!cursor || !motionAllowed() || !finePointer.matches) { reset(); return; }
+      const bounds = card.parentElement.getBoundingClientRect();
+      const x = Math.min(1, Math.max(0, (cursor.x - bounds.left) / bounds.width));
+      const y = Math.min(1, Math.max(0, (cursor.y - bounds.top) / bounds.height));
+      card.classList.add('cinema-is-tilting');
+      card.style.setProperty('--cinema-rx', `${(0.5 - y) * 12}deg`);
+      card.style.setProperty('--cinema-ry', `${(x - 0.5) * 14}deg`);
+      card.style.setProperty('--cinema-gx', `${x * 100}%`);
+      card.style.setProperty('--cinema-gy', `${y * 100}%`);
+    };
+    const move = event => {
+      if (event.pointerType === 'touch' || !motionAllowed() || !finePointer.matches) return;
+      cursor = { x: event.clientX, y: event.clientY };
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    card.addEventListener('pointermove', move, { passive: true });
+    card.addEventListener('pointerleave', reset);
+    card.addEventListener('pointercancel', reset);
+    card.addEventListener('blur', reset);
+    tiltCleanups.push(() => {
+      reset();
+      card.removeEventListener('pointermove', move);
+      card.removeEventListener('pointerleave', reset);
+      card.removeEventListener('pointercancel', reset);
+      card.removeEventListener('blur', reset);
+    });
+  }
+
+  function resetAllTilt() {
+    // Keep listeners installed when motion preferences change at runtime.
+    grid.querySelectorAll('.cinema-card').forEach(card => {
+      card.classList.remove('cinema-is-tilting');
+      ['--cinema-rx', '--cinema-ry', '--cinema-gx', '--cinema-gy'].forEach(property => card.style.removeProperty(property));
+    });
+  }
+
+  function openViewer(titleIndex, button) {
+    opener = button;
+    viewerFrames = visibleTitles().flatMap(title => title.frames.map((scene, sceneIndex) => ({ title, scene, sceneIndex })));
+    viewerIndex = viewerFrames.findIndex(item => item.title === titles[titleIndex]);
+    if (viewerIndex < 0) return;
+    updateViewer();
+    pageOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    root.querySelector('.cinema-close').focus();
+  }
+
+  function updateViewer() {
+    const current = viewerFrames[viewerIndex];
+    const { title, scene, sceneIndex } = current;
+    dialog.style.setProperty('--cinema-accent', title.accent);
+    image.src = scene.src;
+    image.alt = scene.alt;
+    image.width = scene.width;
+    image.height = scene.height;
+    root.querySelector('#cinema-viewer-title').textContent = title.title;
+    root.querySelector('.cinema-viewer-category').textContent = `${title.kind === 'film' ? 'FILM' : 'SERIES'} / ${title.genre}`;
+    root.querySelector('#cinema-viewer-description').textContent = `Scene ${sceneIndex + 1} of ${title.frames.length}. Use the arrow buttons or left and right keys to explore the collection.`;
+    root.querySelector('.cinema-frame-count').textContent = `${String(viewerIndex + 1).padStart(2, '0')} / ${String(viewerFrames.length).padStart(2, '0')} FRAMES`;
+    thumbnails.innerHTML = title.frames.map((scene, index) => `<button type="button" aria-label="View scene ${index + 1} from ${escapeHTML(title.title)}" aria-pressed="${index === sceneIndex}" data-scene="${index}"><img src="${scene.src}" alt="" width="80" height="48"></button>`).join('');
+    thumbnails.hidden = title.frames.length < 2;
+    thumbnails.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
+      viewerIndex = viewerFrames.findIndex(item => item.title === title && item.sceneIndex === Number(button.dataset.scene));
+      updateViewer();
+      thumbnails.querySelector(`[data-scene="${button.dataset.scene}"]`)?.focus();
+    }));
+  }
+
+  function stepViewer(direction) {
+    viewerIndex = (viewerIndex + direction + viewerFrames.length) % viewerFrames.length;
+    updateViewer();
+  }
+
+  root.querySelectorAll('[data-cinema-filter]').forEach(button => button.addEventListener('click', () => {
+    filter = button.dataset.cinemaFilter;
+    expanded = false;
+    root.querySelectorAll('[data-cinema-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    renderGallery();
+  }));
+  moreButton.addEventListener('click', () => {
+    expanded = !expanded;
+    renderGallery();
+    if (!expanded) root.querySelector('.cinema-toolbar').scrollIntoView({ behavior: motionAllowed() ? 'smooth' : 'auto', block: 'start' });
+  });
+  root.querySelector('.cinema-close').addEventListener('click', () => dialog.close());
+  root.querySelector('.cinema-prev').addEventListener('click', () => stepViewer(-1));
+  root.querySelector('.cinema-next').addEventListener('click', () => stepViewer(1));
+  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener('keydown', event => {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      stepViewer(event.key === 'ArrowLeft' ? -1 : 1);
+    }
+  });
+  dialog.addEventListener('close', () => {
+    document.body.style.overflow = pageOverflow;
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
+  });
+  reduceMotion.addEventListener('change', resetAllTilt);
+  document.addEventListener('portfolio:motionchange', resetAllTilt);
+  window.addEventListener('portfolio:motionchange', resetAllTilt);
+  renderGallery();
+})();

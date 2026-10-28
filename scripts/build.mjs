@@ -1,0 +1,50 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const raw = fs.readFileSync(path.join(root, 'assets/js/data.js'), 'utf8');
+const data = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
+const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const icon = (body) => `<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+const arrow = icon('<path d="M6 18 18 6M6 6h12v12"/>');
+const github = icon('<path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 6v-3.6c0-1 .1-1.4-.5-2.1 3.3-.4 6.5-1.6 6.5-7A5.5 5.5 0 0 0 19.5 5c.2-1 .2-2.3-.2-3.2-1.8-.2-3.7 1.2-4.3 1.7a15 15 0 0 0-6 0C8.4 3 6.5 1.6 4.7 1.8c-.4.9-.4 2.2-.2 3.2A5.5 5.5 0 0 0 3 9.3c0 5.4 3.2 6.6 6.5 7-.6.7-.5 1.4-.5 2.1V22"/>');
+const linkedin = icon('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7.5 10v7M7.5 7v.1M11 17v-7m0 3a3 3 0 0 1 6 0v4"/>');
+const youtube = icon('<rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/>');
+const link = (url, text, cls = '') => `<a class="${cls}" href="${esc(url)}"${url.startsWith('http') ? ' target="_blank" rel="noopener noreferrer"' : ''}>${text}</a>`;
+const tags = items => `<div class="tags">${items.map(t => `<span>${esc(t)}</span>`).join('')}</div>`;
+const existingFile = file => !!file && fs.existsSync(path.join(root, file.replace(/^\//, '')));
+const socials = `${link(data.personalInfo.socials.github, `${github}<span class="sr-only">GitHub</span>`, 'social-link')}${link(data.personalInfo.socials.linkedin, `${linkedin}<span class="sr-only">LinkedIn</span>`, 'social-link')}${link(data.personalInfo.socials.youtube, `${youtube}<span class="sr-only">YouTube</span>`, 'social-link')}`;
+
+function art(id) {
+  const preview = 'aria-hidden="true"';
+  if (id === 'pixelpair') return `<div class="project-art pixel-art" ${preview}><span class="art-grid"></span><div class="pixel-symbol"><i></i><i></i><i></i><i></i></div><strong>PixelPair<span>One connected tracking stack.</span></strong><div class="platform-row"><span>Meta</span><span>GA4</span><span>GTM</span><span>TikTok</span></div><span class="art-corner">EVENTS, CONNECTED ↗</span></div>`;
+  if (id === 'bitflows') return `<div class="project-art flow-art" ${preview}><span class="art-grid"></span><div class="flow-path"><span>Trigger</span><i>→</i><span class="flow-brain">AI<br>Agent</span><i>→</i><div><span>Human review</span><span>Next action</span></div></div><span class="art-corner">CONTEXT → DECISION → ACTION</span></div>`;
+  if (id === 'automations') return `<div class="project-art automation-art" ${preview}><div class="automation-orbit"></div><span class="automation-node n8n">n8n</span><span class="automation-node api">API</span><span class="automation-node zapier">✳<small>zapier</small></span><span class="art-corner">LESS REPETITION. MORE CONNECTION.</span></div>`;
+  if (id === 'social') return `<div class="project-art social-art" ${preview}><span class="art-grid"></span><div class="content-sheets"><span><b>01</b>IDEA<i></i><i></i></span><span><b>02</b>DRAFT<i></i><i></i></span><span><b>03</b>CREATE<i></i><i></i></span></div><span class="art-corner">ONE IDEA. MANY POSSIBILITIES.</span></div>`;
+  return `<div class="project-art gym-art" ${preview}><div class="gym-preview"><span>GYM FIELD GUIDE <b>↗</b></span><strong>Move with<br>intention.</strong><div class="gym-preview-bottom"><span>03 DAYS</span><span>29 EXERCISES</span></div></div><span class="art-corner">LEARN · MOVE · RECOVER</span></div>`;
+}
+
+const replacements = {
+  SCHEMA: JSON.stringify({'@context':'https://schema.org','@type':'ProfilePage',mainEntity:{'@type':'Person',name:data.personalInfo.name,url:'https://arifhasnat.vercel.app/',image:'https://arifhasnat.vercel.app/assets/img/profile-img.jpg',jobTitle:'SEO & Technical Content Writer',sameAs:Object.values(data.personalInfo.socials),knowsAbout:['Technical SEO','Search Engine Optimization','Answer Engine Optimization','Generative Engine Optimization','Python','Workflow automation','Machine learning'],alumniOf:{'@type':'CollegeOrUniversity',name:data.education[0].institution}}}).replace(/</g,'\\u003c'),
+  SOCIALS:socials, LOCATION:esc(data.personalInfo.location), EMAIL:esc(data.personalInfo.email), PHONE:esc(data.personalInfo.phone), ARROW:arrow,
+  SEARCH_ICON:icon('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'),
+  CURRENT_FOCUS:esc(data.personalInfo.currentFocus), ABOUT:esc(data.personalInfo.about),
+  CURRENT_SKILLS:data.currentSkills.map((s,i)=>`<article class="focus-card" tabindex="0" style="--card-accent:${['#71e5df','#a2b7ff','#c8a7ff','#a9e7bb'][i]}"><div class="focus-top"><span class="focus-symbol" aria-hidden="true">${esc(s.symbol)}</span><span class="mono">0${i+1}</span></div><h3>${esc(s.name)}</h3>${s.expanded?`<span class="expanded-name">${esc(s.expanded)}</span>`:'<span class="expanded-name">Search Engine Optimization</span>'}<h4>${esc(s.short)}</h4><p>${esc(s.description)}</p>${tags(s.tags)}<div class="focus-glow" aria-hidden="true"></div></article>`).join(''),
+  SKILLS:data.skills.map((s,i)=>`<article class="toolkit-card"><span class="mono toolkit-number">${String(i+1).padStart(2,'0')} /</span><h3>${esc(s.category)}</h3><p>${esc(s.description)}</p>${tags(s.items)}</article>`).join(''),
+  FEATURED_PROJECTS:data.featuredProjects.map((p,i)=>`<article class="featured-project project-${esc(p.id)}">${art(p.id)}<div class="project-body"><div class="project-eyebrow"><span>${esc(p.eyebrow)}</span><span>0${i+1}</span></div><h3>${esc(p.title)}</h3><p>${esc(p.description)}</p>${tags(p.tags)}<div class="project-links">${p.live?link(p.live,`${esc(p.linkLabel)} ${arrow}`):`<button data-project="${esc(p.id)}">Explore the workflow ${arrow}</button>`}${p.github?link(p.github,`${github}<span class="sr-only">PixelPair source code on GitHub</span>`,'source-link'):p.live?`<button class="subtle-link" data-project="${esc(p.id)}">Project notes</button>`:''}</div></div><template id="project-detail-${esc(p.id)}"><div class="project-modal-icon">${['✳','⌘','↗','✦','◎'][i]}</div><h2 id="project-dialog-heading">${esc(p.title)}</h2><p>${esc(p.details)}</p>${tags(p.tags)}<ol class="project-steps">${p.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>${p.live?link(p.live,`${esc(p.linkLabel)} ${arrow}`,'button button-primary'):link(`mailto:${data.personalInfo.email}?subject=${encodeURIComponent('Tell me about '+p.title)}`,`Ask me about this project ${arrow}`,'button button-primary')}</template></article>`).join(''),
+  PROJECTS:data.projects.map(p=>`<article class="archive-card"><span class="archive-icon" aria-hidden="true">${p.tags.includes('Machine Learning')?'◈':p.tags.includes('Networking')?'⌁':'⌘'}</span><h4>${esc(p.title)}</h4><p>${esc(p.description)}</p>${tags(p.tags)}${p.title==='Insider Malware Detection'?link(data.publications[0].doi,`Read the research ${arrow}`):p.github?link(p.github,`View source ${arrow}`):''}</article>`).join(''),
+  METRICS:data.metrics.map(m=>`<div><strong>${esc(m.value)}</strong><span>${esc(m.label)}</span></div>`).join(''),
+  LANGUAGES:data.languages.map(l=>`<span>${esc(l.name)} <small>${esc(l.level)}</small></span>`).join(''),
+  EXPERIENCE:data.experiences.map((e,i)=>`<details class="experience-item"${i===0?' open':''}><summary><div class="experience-date"><span>${esc(e.period)}</span>${i===0?'<span class="current-label">CURRENT</span>':''}</div><div><h3>${esc(e.role)}</h3><span class="company">${esc(e.company)}</span></div><span class="details-sign" aria-hidden="true">+</span></summary><div class="experience-detail"><span class="experience-location">${esc(e.location)}</span><ul>${e.responsibilities.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div></details>`).join(''),
+  EDUCATION:data.education.map(e=>`<article class="education-card"><span class="education-symbol" aria-hidden="true">⌂</span><span class="mono">${esc(e.period)}</span><h3>${esc(e.degree)}</h3><p>${esc(e.institution)}</p><p class="education-description">${esc(e.description)}</p></article>`).join(''),
+  PUBLICATIONS:data.publications.map((p,i)=>`<article class="publication"><div class="publication-number"><span>0${i+1}</span><small>${esc(p.year)}</small></div><div><span class="publication-publisher">${esc(p.publisher)}</span><h3>${esc(p.title)}</h3><p>${esc(p.summary)}</p><span class="publication-authors">${esc(p.authors)}</span></div>${link(p.doi,`${arrow}<span class="sr-only">Read ${esc(p.title)}</span>`,'publication-link')}</article>`).join(''),
+  CERTIFICATES:data.certificates.map(c=>`<article class="certificate"><span class="certificate-provider">${esc(c.provider)}</span><h3>${esc(c.title)}</h3><span class="certificate-tag">${esc(c.tag)}${c.date?' · '+esc(c.date):''}</span><div class="certificate-links">${c.verifyLink?link(c.verifyLink,`Verify credential ${arrow}`):c.credential?`<span class="credential-id">${esc(c.credential)}</span>`:''}${existingFile(c.pdfFile)?link(c.pdfFile.replace(/^\//,''),'View certificate'):''}</div></article>`).join(''),
+  EXTRACURRICULAR:data.extracurricular.map(e=>`<article><span class="mono">${esc(e.period)}</span><h3>${esc(e.role)}</h3><strong>${esc(e.company)}</strong><p>${e.responsibilities.map(esc).join(' ')}</p></article>`).join(''),
+  ACHIEVEMENTS:data.achievements.map(a=>`<li>${esc(a)}</li>`).join('')
+};
+let html=fs.readFileSync(path.join(root,'src/index.template.html'),'utf8');
+html=html.replace(/\{\{([A-Z_]+)\}\}/g,(_,key)=>{if(!(key in replacements)) throw new Error('Missing replacement '+key);return replacements[key];});
+html=html.replace(/[\t ]+$/gm,'');
+fs.writeFileSync(path.join(root,'index.html'),html);
+console.log(`Built index.html: ${data.currentSkills.length} highlighted skills, ${data.skills.length} skill groups, ${data.featuredProjects.length+data.projects.length} projects, ${data.experiences.length} roles.`);

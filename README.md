@@ -1,58 +1,74 @@
-# Portfolio of Arif Hasnat
+# Arif Hasnat — Portfolio
 
-Welcome to my personal portfolio repository. This project is designed as an ultra-fast, premium, SEO-optimized static site hosted entirely for free on GitHub Pages.
+A space-themed static portfolio for Technical SEO, SEO, AEO, GEO, automation, WordPress development, and machine learning research.
 
-It features a modern glassmorphism design, dark/light mode toggle, dynamic scroll animations, and a centralized data architecture making it incredibly easy to update.
+Primary site: **https://arifhasnat.vercel.app/**
 
-## Tech Stack
-- **HTML5**: Semantic tags optimized for technical SEO and accessibility.
-- **CSS3 (Vanilla)**: Custom CSS variables, responsive grids, and lightweight keyframe animations. No bloated frameworks.
-- **JavaScript (Vanilla)**: Handles the dynamic injection of content from a single data source, dark mode persistence, and search filtering.
+Gym app: **https://arifhasnat.vercel.app/gym/**
 
-## How to Edit Content
-Editing this portfolio does **not** require touching the HTML or CSS.
+## Structure
 
-1. Open `assets/js/data.js`.
-2. This file contains a single Javascript object: `portfolioData`.
-3. Locate the section you want to update (e.g., `projects`, `experiences`, `certificates`).
-4. Modify the strings, arrays, or objects directly.
-5. Save the file. The website will automatically update to reflect the new data.
+- `assets/js/data.js` — professional profile, current expertise, original skills/history, projects, publications, and credentials.
+- `src/index.template.html` — page structure, metadata, hero copy, and section layout.
+- `scripts/build.mjs` — dependency-free Node script that generates the root `index.html`.
+- `scripts/check.mjs` — dependency-free release checks for generated pages, local assets, watchlist coverage, structured data, and JavaScript syntax.
+- `assets/css/style.css` — main visual system and desktop layout.
+- `assets/css/responsive.css` — responsive layout and printable résumé styles.
+- `assets/js/main.js` — navigation, motion controls, project filtering/details, video dialog, and printing.
+- `assets/js/cinema.js` and `assets/css/cinema.css` — watchlist gallery, pointer tilt, filters, and accessible scene viewer.
+- `assets/img/watchlist/` — 20 optimized supplied images; `manifest.json` records the source mapping.
+- `gym/` — the supplied standalone Gym Field Guide app, with local assets and a scoped offline service worker.
 
-### Example: Adding a New Project
-```javascript
-// Inside assets/js/data.js -> projects array
-{
-    title: "New Amazing Project",
-    description: "A short description of what this project does and why it's cool.",
-    tags: ["Python", "Machine Learning"],
-    github: "https://github.com/arifhasnat3po/new-project",
-    live: "https://new-project-demo.com",
-    featured: true // Set to false if it shouldn't have a star
-}
+The portfolio uses HTML, CSS, and vanilla JavaScript. Profile content is rendered into HTML at build time, so professional information remains readable without JavaScript. The gallery and interactive controls use JavaScript. The main page loads optional Google Fonts; the gym app bundles its fonts locally.
+
+## Edit content and build
+
+Use a current Node.js LTS release. There are no npm packages to install.
+
+1. Edit the relevant object or array in `assets/js/data.js`.
+2. For page structure or fixed section copy, edit `src/index.template.html`.
+3. Run:
+
+   ```sh
+   node scripts/build.mjs
+   ```
+
+4. Commit both the edited source files and the regenerated `index.html`.
+
+Do not edit the generated `index.html` directly: the next build replaces it. The object inside `data.js` is parsed as JSON, so keep quoted keys, double-quoted strings, and JSON-compatible values; do not add comments, trailing commas, or executable expressions inside the object.
+
+`currentSkills` controls the four highlighted expertise cards. `featuredProjects` controls the new showcase cards; `projects` retains the earlier work. Keep existing records when adding new information. A featured project without a public destination opens a local details dialog rather than a placeholder link. Never add private repository links as public demos.
+
+To edit the watchlist, update the title/frame metadata in `assets/js/cinema.js` and the matching images. Keep descriptive alternative text and accurate dimensions. Duplicate scenes are available in the scene viewer. The gallery respects reduced-motion preferences and the page's motion toggle.
+
+Certificate PDFs belong in `assets/pdf/`; point `pdfFile` at an existing file. The build only renders PDF links whose files exist. The résumé control opens the browser print dialog, where visitors can choose **Save as PDF**.
+
+## Preview locally
+
+Build first, then start a static server from the repository root:
+
+```sh
+node scripts/build.mjs
+python -m http.server 8766 --bind 127.0.0.1
 ```
 
-### Example: Updating PDFs
-If you want to add or change a PDF (like your CV or a certificate):
-1. Upload the PDF file to the `assets/pdf/` folder.
-2. In `data.js`, update the `pdfFile` property to exactly match the filename. For example: `assets/pdf/My_New_CV.pdf`.
+Open **http://127.0.0.1:8766/** and **http://127.0.0.1:8766/gym/**. Choose another port if 8766 is already in use. Stop the server with Ctrl+C when finished. HTTP localhost is needed to test the gym app's service worker; opening a `file://` URL does not exercise offline installation.
 
-## How to Run Locally
-Since this is a static site, you don't need NodeJS or build steps.
-1. Clone this repository.
-2. Open `index.html` in any web browser.
-3. *Note: If you want to use the Live Server extension in VS Code, that works perfectly too.*
+## Checks
 
-## How to Deploy to GitHub Pages
-This project is pre-configured to work flawlessly on GitHub Pages.
+```sh
+node scripts/build.mjs
+node scripts/check.mjs
+```
 
-1. Commit and push all changes to your `main` branch.
-2. Go to your repository **Settings** on GitHub.
-3. Click on **Pages** in the left sidebar.
-4. Under "Build and deployment", set the **Source** to `Deploy from a branch`.
-5. Under "Branch", select `main` and `/ (root)`, then click **Save**.
-6. Wait a few minutes. Your site will be live at `https://arifhasnat3po.github.io/portfolio.io/`.
+The release check reports unresolved template tokens, malformed JSON-LD, missing local `href`/`src` destinations, missing watchlist images, unsafe new-tab links, and JavaScript syntax errors. It exits with a nonzero status when a check fails.
 
-## Credits & Performance
-This site was built with a strict focus on a 100/100 Lighthouse score for Performance, SEO, and Accessibility.
+Before publishing, check desktop and mobile layouts, keyboard navigation, project search, project/video dialogs, watchlist filters and scene controls, reduced motion, printable résumé identity, and the gym app's exercise/set/rest controls. The YouTube player loads only after a visitor opens it; a direct YouTube link remains available if embedded playback is unavailable.
 
-*Created for Arif Hasnat.*
+## Deployment
+
+This repository contains a ready-to-serve static site at its root. Retain the existing Vercel project's repository connection and serving configuration. If configuring a build command, use `node scripts/build.mjs` and serve the repository root; no framework runtime or package installation is needed. Build and commit the generated HTML before pushing changes through the repository's normal review/deployment process.
+
+The canonical URL, Open Graph URL, `robots.txt`, and `sitemap.xml` use the primary Vercel domain. If the primary domain changes, update them together. Keep the gym route in the sitemap. Relative asset paths also support a subdirectory preview, but a secondary host should not replace the canonical domain accidentally.
+
+When updating the gym app's offline assets, review `gym/sw.js` and bump its version as appropriate. Its cache prefix and request handling are restricted to the gym app so it does not clear or intercept unrelated portfolio resources.

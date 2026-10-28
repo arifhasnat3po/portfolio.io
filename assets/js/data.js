@@ -10,13 +10,16 @@ const portfolioData = {
     "phone": "+8801626702431",
     "socials": {
       "github": "https://github.com/arifhasnat3po",
-      "linkedin": "https://www.linkedin.com/in/arif-hasnat/"
+      "linkedin": "https://www.linkedin.com/in/arif-hasnat/",
+      "youtube": "https://www.youtube.com/@arifhasnat2766"
     },
     "titles": [
       "SEO & Data Analyst",
       "Python Automation Developer",
       "Machine Learning Researcher"
-    ]
+    ],
+    "currentFocus": "I help people find the right answers, and build the systems that turn those answers into action. My current focus is Technical SEO, SEO, AEO, GEO, and practical AI-powered automation.",
+    "video": "https://www.youtube.com/watch?v=uRdT0o2IcUc"
   },
   "metrics": [
     {
@@ -92,11 +95,11 @@ const portfolioData = {
       "company": "International Islamic University Chittagong",
       "role": "Teaching Assistant",
       "period": "Jan 2023 - Jan 2024",
-      "location: ": "Chattogram, Bangladesh",
       "responsibilities": [
         "Courses: Basic Electronics Sessional & Basic Communication Engineering Sessional.",
         "Assisted in grading, lab supervision, and student mentoring."
-      ]
+      ],
+      "location": "Chattogram, Bangladesh"
     }
   ],
   "skills": [
@@ -165,6 +168,31 @@ const portfolioData = {
         "WebdriverIO",
         "JavaScript Testing",
         "E2E Testing"
+      ]
+    },
+    {
+      "category": "Content & Editorial",
+      "description": "Clear product education for people using SaaS and WordPress.",
+      "items": [
+        "Technical Content Writing",
+        "Copy Editing for SaaS & WordPress",
+        "Product Documentation",
+        "Content Strategy",
+        "Keyword Research"
+      ]
+    },
+    {
+      "category": "Automation & Payment Workflows",
+      "description": "Connecting tools, data, and human decisions into useful daily workflows.",
+      "items": [
+        "Bit Flows",
+        "n8n",
+        "Zapier",
+        "AI Agents",
+        "API Integration",
+        "Human-in-the-loop Workflows",
+        "Digital Payment Collection Workflows",
+        "PaymentForm.io"
       ]
     }
   ],
@@ -299,6 +327,15 @@ const portfolioData = {
       "tag": "Cybersecurity",
       "title": "Be A White Hat Hacker and Pen Tester",
       "verifyLink": "https://www.eduonix.com/certificate/416e857b08"
+    },
+    {
+      "title": "Practical Ethical Hacking - The Complete Course",
+      "provider": "Udemy",
+      "tag": "Cybersecurity",
+      "date": "January 2023",
+      "credential": "UC-2c85c3d2-f1c8-4b5f-a28d-428e8dc59917",
+      "verifyLink": "",
+      "pdfFile": ""
     }
   ],
   "achievements": [
@@ -343,6 +380,168 @@ const portfolioData = {
       "responsibilities": [
         "Managed the Chittagong District College Team for the ICT Olympiad."
       ]
+    }
+  ],
+  "currentSkills": [
+    {
+      "id": "technical-seo",
+      "name": "Technical SEO",
+      "short": "Build the foundation.",
+      "description": "Crawlability, indexing, Core Web Vitals, structured data, and site architecture. Making every page easier to discover and understand.",
+      "tags": [
+        "Site architecture",
+        "Schema",
+        "Core Web Vitals"
+      ],
+      "symbol": "⌘"
+    },
+    {
+      "id": "seo",
+      "name": "SEO",
+      "short": "Connect search to intent.",
+      "description": "Keyword research, semantic content, internal linking, and performance analysis. Useful content built around what people actually need.",
+      "tags": [
+        "Search intent",
+        "Content strategy",
+        "Analytics"
+      ],
+      "symbol": "↗"
+    },
+    {
+      "id": "aeo",
+      "name": "AEO",
+      "expanded": "Answer Engine Optimization",
+      "short": "Make answers clear.",
+      "description": "Answer-first content, clear entities, and well-structured explanations that help answer engines understand and surface useful information.",
+      "tags": [
+        "Answer-first content",
+        "Entities",
+        "Structure"
+      ],
+      "symbol": "✳"
+    },
+    {
+      "id": "geo",
+      "name": "GEO",
+      "expanded": "Generative Engine Optimization",
+      "short": "Be understood by AI.",
+      "description": "Clear, trustworthy content for AI-assisted discovery, supported by source quality, topic coverage, and consistent brand information.",
+      "tags": [
+        "AI discovery",
+        "Source clarity",
+        "Topic coverage"
+      ],
+      "symbol": "◎"
+    }
+  ],
+  "featuredProjects": [
+    {
+      "id": "pixelpair",
+      "title": "PixelPair",
+      "eyebrow": "WORDPRESS PLUGIN",
+      "description": "Marketing tracking, connected. My WordPress plugin brings Meta Pixel & CAPI, GA4, GTM, and TikTok together with consent-aware event tracking.",
+      "tags": [
+        "WordPress",
+        "Analytics",
+        "MCP",
+        "WooCommerce"
+      ],
+      "live": "https://wordpress.org/plugins/pixelpair/",
+      "linkLabel": "Explore the plugin",
+      "github": "https://github.com/arifhasnat3po/pixelpair-plugin",
+      "details": "PixelPair connects tracking tools to WordPress and supports WooCommerce and Easy Digital Downloads events. Consent controls work with common consent plugins. Its optional authenticated MCP server lets an AI assistant help manage tracking settings.",
+      "steps": [
+        "Connect tracking tools",
+        "Respect visitor consent",
+        "Track commerce events",
+        "Manage settings with MCP"
+      ]
+    },
+    {
+      "id": "bitflows",
+      "title": "The Bit Flows Project",
+      "eyebrow": "WORKFLOW AUTOMATION",
+      "description": "From incoming data to the next useful action. WordPress workflows for lead qualification, CRM updates, AI-assisted reviews, and everyday operations.",
+      "tags": [
+        "Bit Flows",
+        "WordPress",
+        "AI Agents",
+        "Webhooks"
+      ],
+      "details": "A collection of data and workflow management projects built around Bit Flows. Examples include AI lead scoring, customer-email drafts for human approval, and WooCommerce order review. The focus is connecting useful context to a clear next action.",
+      "steps": [
+        "Receive a trigger",
+        "Collect context",
+        "Review and route",
+        "Take the next action"
+      ]
+    },
+    {
+      "id": "automations",
+      "title": "n8n & Zapier Automations",
+      "eyebrow": "CONNECTED SYSTEMS",
+      "description": "Advanced workflow automation connecting APIs, moving data between tools, and giving repetitive tasks a reliable path from trigger to outcome.",
+      "tags": [
+        "n8n",
+        "Zapier",
+        "APIs",
+        "Automation"
+      ],
+      "details": "Workflow automation across n8n and Zapier, bringing services together through API integrations, triggers, conditional routing, and coordinated actions. Built around reducing repetitive handoffs between tools.",
+      "steps": [
+        "Trigger",
+        "Transform data",
+        "Apply conditions",
+        "Connect APIs"
+      ]
+    },
+    {
+      "id": "social",
+      "title": "AI Social Media Assembly Line",
+      "eyebrow": "CONTENT OPERATIONS",
+      "description": "A system for multi-channel content production: turn a content idea into channel-specific drafts through an organized AI-assisted workflow.",
+      "tags": [
+        "AI",
+        "Content Production",
+        "Multi-channel"
+      ],
+      "details": "An AI-assisted system for organizing multi-channel content production. The workflow connects content ideas, drafting, and channel-specific output in one repeatable process.",
+      "steps": [
+        "Content idea",
+        "AI-assisted draft",
+        "Channel adaptation",
+        "Ready for review"
+      ]
+    },
+    {
+      "id": "gym",
+      "title": "Interactive Gym Guide",
+      "eyebrow": "PERSONAL WEB APP",
+      "description": "My daily routine, made interactive. 29 animated exercise guides with machine setup, step-by-step cues, set tracking, and rest timers.",
+      "tags": [
+        "JavaScript",
+        "Canvas Animation",
+        "Offline App"
+      ],
+      "live": "gym/",
+      "linkLabel": "Open Gym Guide",
+      "details": "A three-day workout guide with 29 animated exercise demonstrations, setup instructions, set tracking, and automatic rest timers. It includes light and dark themes, local progress storage, and offline support.",
+      "steps": [
+        "Choose a workout day",
+        "Learn the movement",
+        "Track each set",
+        "Time your recovery"
+      ]
+    }
+  ],
+  "languages": [
+    {
+      "name": "Bengali",
+      "level": "Native or bilingual proficiency"
+    },
+    {
+      "name": "English",
+      "level": "Full professional proficiency"
     }
   ]
 };

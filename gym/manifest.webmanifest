@@ -1,0 +1,67 @@
+{
+  "name": "Gym Field Guide",
+  "short_name": "Gym Guide",
+  "description": "Your 3-day split, one animated exercise at a time, with a set tracker and rest timer.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF0EF",
+  "theme_color": "#EDF0EF",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Day 1: Legs + Shoulders",
+      "short_name": "Day 1",
+      "url": "./#/day/1",
+      "icons": [
+        {
+          "src": "icons/day1-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Day 2: Chest + Triceps",
+      "short_name": "Day 2",
+      "url": "./#/day/2",
+      "icons": [
+        {
+          "src": "icons/day2-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Day 3: Back + Biceps",
+      "short_name": "Day 3",
+      "url": "./#/day/3",
+      "icons": [
+        {
+          "src": "icons/day3-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
