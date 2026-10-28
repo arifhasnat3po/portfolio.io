@@ -1,0 +1,34 @@
+{
+  "pixelpair-icon.png": {
+    "sourceURL": "https://raw.githubusercontent.com/arifhasnat3po/pixelpair-plugin/main/.wordpress-org/icon-256x256.png",
+    "kind": "Original PixelPair plugin icon"
+  },
+  "pixelpair-overview.png": {
+    "sourceURL": "https://raw.githubusercontent.com/arifhasnat3po/pixelpair-plugin/main/docs/images/overview.png",
+    "kind": "Original PixelPair dashboard screenshot"
+  },
+  "pixelpair-banner.png": {
+    "sourceURL": "https://raw.githubusercontent.com/arifhasnat3po/pixelpair-plugin/main/.wordpress-org/banner-1544x500.png",
+    "kind": "Original PixelPair plugin banner"
+  },
+  "streamvision-repository.png": {
+    "sourceURL": "https://opengraph.githubassets.com/c48cf22c2305c2847a3331c63e5a9b4c9ab0afcdf7bfb8e85c28ef2bf5273fc6/arifhasnat3po/StreamVision",
+    "repositoryURL": "https://github.com/arifhasnat3po/StreamVision",
+    "kind": "GitHub repository preview, not an application screenshot"
+  },
+  "social-app-repository.png": {
+    "sourceURL": "https://opengraph.githubassets.com/fecee934c4510cb57fd6f72e285ef27642b0c5dbf6d19c111cf063523e976f8a/arifhasnat3po/Social-Media-Web-Application",
+    "repositoryURL": "https://github.com/arifhasnat3po/Social-Media-Web-Application",
+    "kind": "GitHub repository preview, not an application screenshot"
+  },
+  "bitflows-workflow.png": {
+    "source": "User-owned project archive, shared for the portfolio",
+    "kind": "Original Bit Flows workflow canvas",
+    "review": "Canvas contains workflow nodes and connections; no credentials, customer records or contact details."
+  },
+  "zapier-workflow.png": {
+    "source": "User-owned project archive, shared for the portfolio",
+    "kind": "Original Zapier draft workflow canvas",
+    "review": "Canvas contains workflow steps and the portfolio owner's name; no credentials or customer records. Draft state is retained and identified in the caption."
+  }
+}

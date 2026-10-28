@@ -47,17 +47,41 @@
   }
   window.addEventListener('scroll', () => { if (!progressFrame) progressFrame = requestAnimationFrame(updateProgress); }, { passive: true });
   updateProgress();
-  const hover = window.matchMedia('(hover: hover) and (pointer: fine)');
-  document.querySelectorAll('.focus-card').forEach(card => {
-    let frame = 0;
-    card.addEventListener('pointermove', e => {
-      if (!hover.matches || root.dataset.motion === 'off') return;
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left, y = e.clientY - rect.top;
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => { card.style.setProperty('--mouse-x', `${x}px`); card.style.setProperty('--mouse-y', `${y}px`); });
+  document.querySelectorAll('.practice-layout').forEach(layout => {
+    const tabs = [...layout.querySelectorAll('.practice-tab')];
+    const panels = [...layout.querySelectorAll('.practice-panel')];
+    if (!tabs.length || tabs.length !== panels.length) return;
+    let selected = 0;
+    function selectPractice(index, focus = false) {
+      selected = index;
+      tabs.forEach((tab, i) => {
+        const active = i === selected;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+        tab.classList.toggle('is-active', active);
+        panels[i].hidden = !active;
+        panels[i].classList.toggle('is-active', active);
+      });
+      if (focus) tabs[selected].focus();
+    }
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => selectPractice(i));
+      tab.addEventListener('keydown', event => {
+        let next;
+        if (event.key === 'ArrowDown') next = (i + 1) % tabs.length;
+        else if (event.key === 'ArrowUp') next = (i + tabs.length - 1) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        selectPractice(next, true);
+      });
     });
-    card.addEventListener('pointerleave', () => cancelAnimationFrame(frame));
+    // Every panel exists and is visible in the HTML; only enhanced tabs hide panels.
+    layout.dataset.enhanced = 'true';
+    selectPractice(0);
+    window.addEventListener('beforeprint', () => panels.forEach(panel => { panel.hidden = false; }));
+    window.addEventListener('afterprint', () => selectPractice(selected));
   });
   const search = document.querySelector('#project-search');
   const cards = [...document.querySelectorAll('.archive-card')];

@@ -115,7 +115,7 @@ function checkSyntax(file) {
 
 for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
-for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'gym/sw.js']) checkSyntax(file);
+for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'gym/sw.js']) checkSyntax(file);
 
 if (failures.length) {
   console.error(`Release check failed (${failures.length}):\n${failures.map(message => `- ${message}`).join('\n')}`);

@@ -1,0 +1,59 @@
+/* A small, useful window into the complete workout guide. */
+.routine-section{position:relative;padding:115px 0;border-top:1px solid var(--line);background:linear-gradient(115deg,rgba(9,17,12,.89),rgba(8,12,9,.69));scroll-margin-top:30px}
+.routine-shell{width:calc(100% - 112px);max-width:1320px;margin-inline:auto;display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:clamp(45px,7vw,108px);align-items:start}
+.routine-intro .eyebrow{font-size:11px}
+.routine-heading{font:400 clamp(48px,5.5vw,76px)/.98 var(--font-serif);letter-spacing:-.035em;margin:22px 0 23px}
+.routine-heading em{font-weight:400;color:var(--accent)}
+.routine-description{max-width:390px;color:var(--muted);font-size:15px;line-height:1.9}
+.routine-art{position:relative;max-width:340px;margin:32px 0 26px;color:var(--accent)}
+.routine-art svg{display:block;width:100%;height:auto;overflow:visible}
+.routine-orbit{transform-box:fill-box;transform-origin:center;animation:routine-orbit-turn 36s linear infinite}
+.routine-weight{transform-box:fill-box;transform-origin:center;animation:routine-weight-drift 6s ease-in-out infinite}
+.routine-spark{animation:routine-spark-pulse 4s ease-in-out infinite}
+.routine-art-caption{display:flex;gap:17px;align-items:center;color:var(--muted);font:400 11px/1.6 var(--font-mono);letter-spacing:.08em}
+.routine-art-caption::before{content:'';height:1px;width:29px;background:var(--gold)}
+.routine-guide-link{font-size:13px;gap:35px;margin-top:29px;min-height:50px}
+.routine-guide-link svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5}
+.routine-guide-note{max-width:370px;margin-top:16px;color:var(--muted);font-size:12px;line-height:1.8}
+.routine-notebook{border-top:1px solid var(--line);min-width:0}
+.routine-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line)}
+.routine-tab{position:relative;display:flex;flex-direction:column;gap:5px;text-align:left;padding:19px 13px 20px;background:transparent;min-height:93px;color:var(--muted);transition:color .2s,background .2s}
+.routine-tab:first-child{padding-left:0}
+.routine-tab::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.routine-tab[aria-selected=true]{color:var(--text);background:linear-gradient(0deg,rgba(184,237,188,.045),transparent)}
+.routine-tab[aria-selected=true]::after{transform:scaleX(1)}
+.routine-tab:hover{color:var(--accent)}
+.routine-tab-day{font:400 10px/1.6 var(--font-mono);letter-spacing:.13em;color:var(--muted)}
+.routine-tab-name{font:500 13px/1.6 var(--font-body)}
+.routine-panel{padding:29px 0 0;outline-offset:7px}
+.routine-panel+.routine-panel{margin-top:32px;border-top:1px solid var(--line)}
+.routine-ready .routine-panel+.routine-panel{margin-top:0;border-top:0}
+.routine-panel-header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:21px;border-bottom:1px solid var(--line)}
+.routine-panel-heading{font:400 clamp(28px,3vw,35px)/1.2 var(--font-serif);letter-spacing:-.02em}
+.routine-exercise-count{white-space:nowrap;color:var(--gold);font:400 11px/1.6 var(--font-mono)}
+.routine-exercises{list-style:none;margin:0;padding:0;counter-reset:routine-exercise}
+.routine-exercises-rest{counter-reset:routine-exercise 4}
+.routine-exercise{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:baseline;gap:16px;padding:17px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.7}
+.routine-exercise::before{counter-increment:routine-exercise;content:counter(routine-exercise,decimal-leading-zero);color:var(--dim);font:400 10px/1.7 var(--font-mono)}
+.routine-exercise-name{color:var(--text)}
+.routine-exercise-group{color:var(--muted);font:400 10px/1.7 var(--font-mono);text-align:right}
+.routine-more{margin:0}
+.routine-more summary{display:flex;align-items:center;justify-content:space-between;gap:14px;list-style:none;cursor:pointer;padding:17px 0;color:var(--accent);font:400 12px/1.8 var(--font-body);min-height:52px}
+.routine-more summary::-webkit-details-marker{display:none}
+.routine-more summary::after{content:'+';font:400 22px/1 var(--font-body);color:var(--muted)}
+.routine-more[open] summary::after{content:'−'}
+.routine-more-open-label{display:none}
+.routine-more[open] .routine-more-open-label{display:inline}
+.routine-more[open] .routine-more-closed-label{display:none}
+.routine-footnote{padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.9}
+.routine-footnote a{text-decoration:underline;text-decoration-color:var(--dim);text-underline-offset:4px}
+.routine-footnote a:hover{color:var(--accent)}
+@keyframes routine-orbit-turn{to{transform:rotate(360deg)}}
+@keyframes routine-weight-drift{0%,100%{transform:translateY(0) rotate(-15deg)}50%{transform:translateY(-4px) rotate(-12deg)}}
+@keyframes routine-spark-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+html[data-motion=off] .routine-orbit,html[data-motion=off] .routine-weight,html[data-motion=off] .routine-spark{animation:none!important}
+@media(prefers-reduced-motion:reduce){.routine-orbit,.routine-weight,.routine-spark{animation:none!important}.routine-tab,.routine-tab::after{transition:none}}
+@media(max-width:1000px){.routine-shell{gap:44px;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.routine-tab{padding-inline:9px}.routine-tab-name{font-size:12px}.routine-exercise{gap:10px}.routine-exercise-group{font-size:10px}}
+@media(max-width:759px){.routine-section{padding:75px 0}.routine-shell{width:calc(100% - 40px);grid-template-columns:1fr;gap:40px}.routine-heading{font-size:57px;max-width:400px}.routine-description{max-width:520px}.routine-art{display:none}.routine-guide-link{margin-top:23px}.routine-guide-note{max-width:100%}.routine-tab{padding:17px 10px;min-height:91px}.routine-tab-name{font-size:12px}.routine-panel{padding-top:25px}.routine-panel-heading{font-size:32px}.routine-exercise{grid-template-columns:23px minmax(0,1fr) auto;font-size:14px;gap:10px}.routine-exercise-group{font-size:10px}.routine-guide-link{width:auto}}
+@media(max-width:380px){.routine-heading{font-size:50px}.routine-tab-name{font-size:11px}.routine-exercise{grid-template-columns:22px minmax(0,1fr)}.routine-exercise-group{grid-column:2;text-align:left;margin-top:-9px}.routine-exercise-count{font-size:10px}.routine-panel-heading{font-size:29px}}
+@media print{.routine-section{padding:24px 0;background:none;break-inside:avoid}.routine-shell{display:block;width:100%}.routine-art,.routine-tabs,.routine-notebook,.routine-guide-note{display:none!important}.routine-heading{font-size:28px}.routine-description{max-width:none;color:#333}.routine-guide-link{border-color:#ccc;color:#111;margin-top:10px}.routine-guide-link::after{content:' — arifhasnat.vercel.app/gym/';font-size:10px}}

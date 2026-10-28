@@ -114,7 +114,11 @@ const portfolioData = {
         "HTML5",
         "CSS3",
         "SQL",
-        "MATLAB"
+        "MATLAB",
+        "Django",
+        "Flask",
+        "C++",
+        "Java"
       ]
     },
     {
@@ -128,7 +132,11 @@ const portfolioData = {
         "Pandas",
         "NumPy",
         "Machine Learning",
-        "Scikit-learn"
+        "Scikit-learn",
+        "Selenium",
+        "Beautiful Soup",
+        "Requests",
+        "Matplotlib"
       ]
     },
     {
@@ -143,7 +151,9 @@ const portfolioData = {
         "Schema Markup",
         "Internal Linking",
         "GSC & Analytics",
-        "SEMrush"
+        "SEMrush",
+        "Ahrefs",
+        "Sitechecker"
       ]
     },
     {
@@ -183,7 +193,7 @@ const portfolioData = {
     },
     {
       "category": "Automation & Payment Workflows",
-      "description": "Connecting tools, data, and human decisions into useful daily workflows.",
+      "description": "Connecting tools, data, and human decisions into useful daily workflows, with payment collection and setup guides for PaymentForm.io.",
       "items": [
         "Bit Flows",
         "n8n",
@@ -301,6 +311,22 @@ const portfolioData = {
       "github": "https://github.com/arifhasnat3po/CryptoLab",
       "live": "",
       "featured": false
+    },
+    {
+      "title": "Digital Signal Processing with MATLAB",
+      "description": "Coursework and practice exploring digital signal processing with MATLAB.",
+      "tags": ["MATLAB", "Digital Signal Processing", "Engineering"],
+      "github": "https://github.com/arifhasnat3po/Digital-Signal-Processing-Using-MATLAB-",
+      "live": "",
+      "featured": false
+    },
+    {
+      "title": "SQL Practice",
+      "description": "SQL learning and database query practice.",
+      "tags": ["SQL", "Databases"],
+      "github": "https://github.com/arifhasnat3po/SQL",
+      "live": "",
+      "featured": false
     }
   ],
   "certificates": [
@@ -334,7 +360,15 @@ const portfolioData = {
       "tag": "Cybersecurity",
       "date": "January 2023",
       "credential": "UC-2c85c3d2-f1c8-4b5f-a28d-428e8dc59917",
-      "verifyLink": "",
+      "verifyLink": "https://www.udemy.com/certificate/UC-2c85c3d2-f1c8-4b5f-a28d-428e8dc59917/",
+      "pdfFile": ""
+    },
+    {
+      "title": "Operating Systems Basics",
+      "provider": "Cisco",
+      "tag": "Operating Systems",
+      "date": "",
+      "verifyLink": "https://www.credly.com/badges/69ab4322-e363-473d-ac90-f0697413532c",
       "pdfFile": ""
     }
   ],
@@ -449,7 +483,13 @@ const portfolioData = {
       "live": "https://wordpress.org/plugins/pixelpair/",
       "linkLabel": "Explore the plugin",
       "github": "https://github.com/arifhasnat3po/pixelpair-plugin",
-      "details": "PixelPair connects tracking tools to WordPress and supports WooCommerce and Easy Digital Downloads events. Consent controls work with common consent plugins. Its optional authenticated MCP server lets an AI assistant help manage tracking settings.",
+      "sourceURL": "https://github.com/arifhasnat3po/pixelpair-plugin",
+      "period": "Oct 2026 – Present",
+      "image": "assets/img/projects/pixelpair-overview.png",
+      "imageAlt": "PixelPair's original WordPress dashboard with tracking connections and event controls",
+      "imageCaption": "Original PixelPair dashboard",
+      "icon": "assets/img/projects/pixelpair-icon.png",
+      "details": "My first independently built, free WordPress plugin connects tracking tools and supports WooCommerce and Easy Digital Downloads events. Consent controls integrate with Cookiebot, Complianz, and CookieYes. Role and IP exclusions and page-cache support help manage tracking behavior. Its optional authenticated MCP server lets an AI assistant help manage tracking settings.",
       "steps": [
         "Connect tracking tools",
         "Respect visitor consent",
@@ -468,7 +508,10 @@ const portfolioData = {
         "AI Agents",
         "Webhooks"
       ],
-      "details": "A collection of data and workflow management projects built around Bit Flows. Examples include AI lead scoring, customer-email drafts for human approval, and WooCommerce order review. The focus is connecting useful context to a clear next action.",
+      "image": "assets/img/projects/bitflows-workflow.png",
+      "imageAlt": "Original Bit Flows canvas routing a WooCommerce order through conditions to Google Sheets and HubSpot",
+      "imageCaption": "My Bit Flows workflow · WooCommerce, HubSpot & Google Sheets",
+      "details": "A collection of data and workflow management projects built around Bit Flows. Examples include AI lead scoring, customer-email drafts for human approval, WooCommerce order review, and HR candidate screening with a human decision. The pictured workflow recreates a WooCommerce-to-HubSpot and Google Sheets process using conditions and a router in Bit Flows.",
       "steps": [
         "Receive a trigger",
         "Collect context",
@@ -487,7 +530,10 @@ const portfolioData = {
         "APIs",
         "Automation"
       ],
-      "details": "Workflow automation across n8n and Zapier, bringing services together through API integrations, triggers, conditional routing, and coordinated actions. Built around reducing repetitive handoffs between tools.",
+      "image": "assets/img/projects/zapier-workflow.png",
+      "imageAlt": "Original Zapier draft canvas with WooCommerce, a filter, HubSpot contact updates, and a Google Sheets row action",
+      "imageCaption": "Zapier workflow draft · WooCommerce → HubSpot → Google Sheets",
+      "details": "Workflow automation across n8n and Zapier, bringing services together through API integrations, triggers, conditional routing, and coordinated actions. The pictured Zapier draft connects WooCommerce orders to a filter, HubSpot contact updates, and a Google Sheets row. I documented this workflow and its Bit Flows counterpart as a migration case study.",
       "steps": [
         "Trigger",
         "Transform data",
@@ -505,7 +551,7 @@ const portfolioData = {
         "Content Production",
         "Multi-channel"
       ],
-      "details": "An AI-assisted system for organizing multi-channel content production. The workflow connects content ideas, drafting, and channel-specific output in one repeatable process.",
+      "details": "An AI-assisted system for organizing multi-channel content production. My documented workflows turn WordPress posts into platform-specific captions, route content by category, and send it to Bit Social or a webhook. Related approval flows put a human review before sharing, with Google Sheets records and editor notifications.",
       "steps": [
         "Content idea",
         "AI-assisted draft",
@@ -532,6 +578,42 @@ const portfolioData = {
         "Track each set",
         "Time your recovery"
       ]
+    },
+    {
+      "id": "streamvision",
+      "title": "StreamVision",
+      "eyebrow": "REACT & TYPESCRIPT",
+      "description": "A responsive M3U playlist player. Import a playlist, browse its channels, and choose a stream from a simple viewing interface.",
+      "tags": ["React", "TypeScript", "Vite", "M3U"],
+      "github": "https://github.com/arifhasnat3po/StreamVision",
+      "sourceURL": "https://github.com/arifhasnat3po/StreamVision",
+      "image": "assets/img/projects/streamvision-repository.png",
+      "imageAlt": "Official GitHub repository preview for arifhasnat3po/StreamVision",
+      "imageCaption": "Public GitHub repository",
+      "details": "A React and TypeScript project for importing M3U or M3U8 playlists and selecting channels. It parses the uploaded playlist, displays channel names, groups and logos, and provides a responsive sidebar and video player. The public repository contains the implementation; playback depends on the streams in the supplied playlist.",
+      "steps": ["Import a playlist", "Browse its channels", "Choose a stream", "Watch in the player"]
+    },
+    {
+      "id": "social-app",
+      "title": "Full-Stack Social App",
+      "eyebrow": "MERN WEB APPLICATION",
+      "description": "A social platform with user accounts, profiles, image posts, captions, tags, comments, and likes, built with the MERN stack.",
+      "tags": ["React", "Node.js", "Express", "MongoDB"],
+      "github": "https://github.com/arifhasnat3po/Social-Media-Web-Application",
+      "sourceURL": "https://github.com/arifhasnat3po/Social-Media-Web-Application",
+      "image": "assets/img/projects/social-app-repository.png",
+      "imageAlt": "Official GitHub repository preview for arifhasnat3po/Social-Media-Web-Application",
+      "imageCaption": "Public GitHub repository",
+      "details": "A full-stack social media application with account registration and login, editable profiles, posts with images, captions and tags, and interactions through comments and likes. React powers the interface, with Node.js, Express and MongoDB on the backend.",
+      "steps": ["Create an account", "Build a profile", "Share an image post", "Comment and connect"]
+    }
+  ],
+  "contentWork": [
+    {
+      "title": "SEO & Content for PaymentForm.io",
+      "description": "Keyword and content planning, blog posts, landing pages, help guides, competitor research, and technical SEO improvements for a payment collection product.",
+      "details": "My work includes setup guides for Stripe, PayPal, and Razorpay, alongside content that helps people understand and use payment collection workflows.",
+      "tags": ["Technical Content Writing", "SEO", "Stripe", "PayPal", "Razorpay"]
     }
   ],
   "languages": [

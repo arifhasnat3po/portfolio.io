@@ -1,6 +1,6 @@
 # Arif Hasnat — Portfolio
 
-A space-themed static portfolio for Technical SEO, SEO, AEO, GEO, automation, WordPress development, and machine learning research.
+A moving space observatory and static portfolio for Technical SEO, SEO, AEO, GEO, automation, WordPress development, and machine learning research.
 
 Primary site: **https://arifhasnat.vercel.app/**
 
@@ -17,6 +17,11 @@ Gym app: **https://arifhasnat.vercel.app/gym/**
 - `assets/js/main.js` — navigation, motion controls, project filtering/details, video dialog, and printing.
 - `assets/js/cinema.js` and `assets/css/cinema.css` — watchlist gallery, pointer tilt, filters, and accessible scene viewer.
 - `assets/img/watchlist/` — 20 optimized supplied images; `manifest.json` records the source mapping.
+- `assets/js/entangled.js` and `assets/css/cosmos.css` — the animated tree, black hole, stars, and galaxies; bundled Three.js with a static fallback.
+- `assets/js/cameos.js` and `assets/css/cameos.css` — original SVG cameos and five discoverable secrets.
+- `src/routine.fragment.html`, `assets/js/routine.js`, and `assets/css/routine.css` — the dedicated personal workout section.
+- `assets/js/contact.js` — FormSubmit delivery, validation, status, and native fallback. See `docs/contact-setup.md` for Gmail activation.
+- `assets/img/projects/sources.json` — provenance for authentic project artwork.
 - `gym/` — the supplied standalone Gym Field Guide app, with local assets and a scoped offline service worker.
 
 The portfolio uses HTML, CSS, and vanilla JavaScript. Profile content is rendered into HTML at build time, so professional information remains readable without JavaScript. The gallery and interactive controls use JavaScript. The main page loads optional Google Fonts; the gym app bundles its fonts locally.
@@ -37,7 +42,7 @@ Use a current Node.js LTS release. There are no npm packages to install.
 
 Do not edit the generated `index.html` directly: the next build replaces it. The object inside `data.js` is parsed as JSON, so keep quoted keys, double-quoted strings, and JSON-compatible values; do not add comments, trailing commas, or executable expressions inside the object.
 
-`currentSkills` controls the four highlighted expertise cards. `featuredProjects` controls the new showcase cards; `projects` retains the earlier work. Keep existing records when adding new information. A featured project without a public destination opens a local details dialog rather than a placeholder link. Never add private repository links as public demos.
+`currentSkills` controls the four interactive expertise tabs. `featuredProjects` controls the editorial project showcase; `projects` retains the earlier work. Keep existing records when adding new information. A featured project without a public destination opens a local details dialog rather than a placeholder link. Never add private repository links as public demos.
 
 To edit the watchlist, update the title/frame metadata in `assets/js/cinema.js` and the matching images. Keep descriptive alternative text and accurate dimensions. Duplicate scenes are available in the scene viewer. The gallery respects reduced-motion preferences and the page's motion toggle.
 
