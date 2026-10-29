@@ -48,11 +48,18 @@ const readReplies = dialog.querySelector('#tars-read-replies');
 const voiceSelect = dialog.querySelector('#tars-browser-voice');
 const audioStatus = dialog.querySelector('.tars-audio-status');
 voiceButton.before(audioStatus);
+// Keep the preview directly reachable, without opening a disclosure on a phone.
+const previewButton = dialog.querySelector('.tars-voice-test');
+const audioSettings = dialog.querySelector('.tars-audio-settings');
+audioSettings.before(previewButton);
+const previewLabel = 'Preview recorded voice';
 const voicePlayer = createTarsVoice({
   onState(state) {
     audioState = state;
     audioStatus.hidden = state === 'idle';
     audioStatus.querySelector('span').textContent = state === 'loading' ? 'Preparing voice…' : 'Speaking…';
+    previewButton.textContent = state === 'loading' ? 'Loading voice…' : state === 'speaking' ? 'Replay recorded voice' : previewLabel;
+    previewButton.setAttribute('aria-busy', String(state === 'loading'));
     full?.setSpeaking(state === 'speaking');
     voiceButton.classList.toggle('is-speaking', state === 'speaking');
   },
@@ -165,7 +172,21 @@ function addMessage(role, text, links = []) {
   log.append(item);
   // Keep a bounded, in-memory conversation. Nothing is stored or submitted.
   while (log.children.length > 24) log.firstElementChild.remove();
-  log.scrollTop = log.scrollHeight;
+  return item;
+}
+
+function showReply(item) {
+  // Phones use the dialog as their single scroll surface. Desktop retains its
+  // bounded transcript. Scroll once per exchange, with no focus-induced jump.
+  const behavior = motionAllowed() ? 'smooth' : 'instant';
+  if (window.matchMedia('(max-width: 700px)').matches) {
+    const headerHeight = dialog.querySelector('.tars-header').getBoundingClientRect().height;
+    const top = dialog.scrollTop + item.getBoundingClientRect().top - dialog.getBoundingClientRect().top - headerHeight - 16;
+    dialog.scrollTo({ top: Math.max(0, top), behavior });
+  } else {
+    const top = log.scrollTop + item.getBoundingClientRect().top - log.getBoundingClientRect().top;
+    log.scrollTo({ top, behavior });
+  }
 }
 
 function ask(question) {
@@ -174,7 +195,8 @@ function ask(question) {
   feedback.textContent = '';
   addMessage('user', text);
   const answer = answerTars(text, { humor, variant: turn++ });
-  addMessage('assistant', answer.text, answer.links || []);
+  const reply = addMessage('assistant', answer.text, answer.links || []);
+  showReply(reply);
   if (answer.action && motionAllowed()) full?.perform(answer.action);
   speak(answer);
 }
@@ -226,7 +248,7 @@ dialog.addEventListener('close', () => {
   updateMotion(); mountMini();
   if (queuedOpener) { const pending = queuedOpener; queuedOpener = null; queueMicrotask(() => openTarsGuide(pending)); }
 });
-dialog.querySelector('.tars-form').addEventListener('submit', event => { event.preventDefault(); ask(input.value); input.value = ''; input.focus(); });
+dialog.querySelector('.tars-form').addEventListener('submit', event => { event.preventDefault(); input.focus({ preventScroll: true }); ask(input.value); input.value = ''; });
 tarsPrompts.slice(0, 4).forEach(prompt => { const button = document.createElement('button'); button.type = 'button'; button.textContent = prompt.label; button.addEventListener('click', () => ask(prompt.question)); dialog.querySelector('.tars-prompts').append(button); });
 humorInput.addEventListener('input', event => { humor = Number(event.target.value); updatePersonality(); });
 humorInput.addEventListener('change', () => { try { localStorage.setItem('portfolio:tars-humor', String(humor)); } catch {} speak(getTarsBanter('greeting', { humor })); });
@@ -238,7 +260,7 @@ function setVoice(enabled) {
   if (voice) speak(getTarsBanter('greeting', { humor })); else stopSpeaking();
 }
 voiceButton.addEventListener('click', () => setVoice(!voice));
-dialog.querySelector('.tars-voice-test').addEventListener('click', () => { if (!voice) setVoice(true); else speak(getTarsBanter('greeting', { humor })); });
+previewButton.addEventListener('click', () => { if (!voice) setVoice(true); else speak(getTarsBanter('greeting', { humor })); });
 dialog.querySelector('.tars-stop-voice').addEventListener('click', () => { stopSpeaking(); feedback.textContent = 'Playback stopped.'; });
 readReplies.addEventListener('change', () => {
   dialog.querySelector('.tars-browser-options').hidden = !readReplies.checked;
@@ -250,7 +272,8 @@ dialog.querySelectorAll('[data-tars-fun]').forEach(button => button.addEventList
   const kind = button.dataset.tarsFun;
   const answer = getTarsBanter(kind, { humor, variant: turn++ });
   addMessage('user', kind === 'joke' ? 'Tell me a joke.' : 'Secret handshake?');
-  addMessage('assistant', answer.text);
+  const reply = addMessage('assistant', answer.text);
+  showReply(reply);
   // This explicit play button asks for a flourish; portfolio questions stay still.
   if (motionAllowed()) full?.perform(kind === 'easterEgg' ? 'balance' : humor >= 75 ? 'wave' : 'reset');
   speak(answer);
