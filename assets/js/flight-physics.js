@@ -9,9 +9,22 @@
     return t * t * (3 - 2 * t);
   };
   const approach = (current, target, response, dt) => current + (target - current) * (1 - Math.exp(-response * dt));
+  const ascentLane = (viewportWidth, width) => viewportWidth * (viewportWidth < 700 ? .66 : .74) - width / 2;
 
   function createState(kind, viewportWidth, viewportHeight, width, height) {
     const duration = kind === 'ironman' ? 14 : 20;
+    if (kind === 'ironman') {
+      const speed = (viewportHeight + height * 2 + 130) / (duration * 1.08);
+      return {
+        kind, duration, width, height, viewportWidth, viewportHeight,
+        age: 0, x: ascentLane(viewportWidth, width), y: viewportHeight + height * .6 + 40,
+        vx: 0, vy: -speed * .55, ax: 0, ay: 0, speed,
+        bank: 0, pitch: 0, heading: 0, yaw: 0, throttle: .56, scale: .83,
+        maxForwardAcceleration: speed * 1.2,
+        maxLateralAcceleration: clamp(viewportWidth * .06, 24, 70),
+        maxLateralSpeed: clamp(viewportWidth * .08, 30, 100)
+      };
+    }
     const speed = (viewportWidth + width * 2 + 130) / (duration * 1.08);
     return {
       kind, duration, width, height, viewportWidth, viewportHeight,
@@ -26,8 +39,45 @@
     };
   }
 
+  function stepAscent(state, dt) {
+    state.age += dt;
+    const progress = state.age / state.duration;
+    const departure = smooth(.76, .98, progress);
+    let targetSpeed = state.speed * (.72 + .3 * smooth(0, .18, progress) + 2.7 * departure);
+    if (progress > .76) {
+      const remaining = Math.max(.3, state.duration - state.age);
+      const distance = state.y + state.height * .6 + 40;
+      targetSpeed = Math.max(targetSpeed, clamp(distance / remaining * 1.15, state.speed, state.speed * 5));
+    }
+    const requestedAy = clamp((-targetSpeed - state.vy) * 1.35,
+      -state.maxForwardAcceleration, state.maxForwardAcceleration * .48);
+    // Hold a vertical column. Only a viewport resize requires sideways correction.
+    const targetVx = clamp((ascentLane(state.viewportWidth, state.width) - state.x) * .72,
+      -state.maxLateralSpeed, state.maxLateralSpeed);
+    const requestedAx = clamp((targetVx - state.vx) * 1.9,
+      -state.maxLateralAcceleration, state.maxLateralAcceleration);
+    state.ay += clamp(requestedAy - state.ay, -state.maxForwardAcceleration * 2.4 * dt, state.maxForwardAcceleration * 2.4 * dt);
+    state.ax += clamp(requestedAx - state.ax, -state.maxLateralAcceleration * 2.1 * dt, state.maxLateralAcceleration * 2.1 * dt);
+    state.vy += state.ay * dt;
+    state.vx += state.ax * dt;
+    state.y += state.vy * dt;
+    state.x += state.vx * dt;
+    // Heading is measured from screen-up for the upright suit, not from screen-right.
+    const course = Math.atan2(state.vx, Math.max(20, -state.vy));
+    state.heading = approach(state.heading, clamp(course, -.22, .22), 4.1, dt);
+    state.bank = approach(state.bank, clamp(-state.ax / state.maxLateralAcceleration * .1, -.1, .1), 4.3, dt);
+    state.pitch = approach(state.pitch, clamp(state.ay / state.maxForwardAcceleration * .06, -.06, .06), 3.5, dt);
+    state.yaw = approach(state.yaw, 0, 2.4, dt);
+    const thrust = Math.hypot(Math.max(0, -state.ay) / state.maxForwardAcceleration,
+      state.ax / state.maxLateralAcceleration * .2);
+    state.throttle = approach(state.throttle, clamp(.48 + thrust * .4 + departure * .12, 0, 1), 5, dt);
+    state.scale = approach(state.scale, .83 - departure * .045, 1.4, dt);
+    return state;
+  }
+
   /* Autopilot specifies altitude and speed, never position. Bounded thrust changes velocity. */
   function step(state, dt) {
+    if (state.kind === 'ironman') return stepAscent(state, dt);
     state.age += dt;
     const progress = state.age / state.duration;
     const height = state.viewportHeight;
@@ -145,8 +195,12 @@
 
     function paint() {
       element.style.transform = `translate3d(${state.x.toFixed(2)}px,${(state.y - state.height / 2).toFixed(2)}px,0) scale(${state.scale.toFixed(4)})`;
-      const entry = smooth(-state.width * .95, -state.width * .1, state.x);
-      const exit = 1 - smooth(state.viewportWidth, state.viewportWidth + state.width * .45, state.x);
+      const entry = kind === 'ironman'
+        ? 1 - smooth(state.viewportHeight - state.height * .1, state.viewportHeight + state.height * .5, state.y)
+        : smooth(-state.width * .95, -state.width * .1, state.x);
+      const exit = kind === 'ironman'
+        ? smooth(-state.height * .6, 0, state.y)
+        : 1 - smooth(state.viewportWidth, state.viewportWidth + state.width * .45, state.x);
       element.style.opacity = (opacity * entry * exit).toFixed(3);
       options.setFlightState?.({ throttle: state.throttle, bank: state.bank, pitch: state.pitch, heading: state.heading, yaw: state.yaw });
     }
@@ -166,7 +220,9 @@
         accumulator -= FIXED_STEP;
       }
       paint();
-      const outside = state.x > state.viewportWidth + state.width * .45;
+      const outside = kind === 'ironman'
+        ? state.y + state.height * state.scale / 2 < 0
+        : state.x > state.viewportWidth + state.width * .45;
       if (state.age + FIXED_STEP / 2 >= state.duration && outside) { finish(); return; }
       // A late viewport resize may need a short coast beyond the nominal flight time.
       if (state.age >= state.duration + 3) { finish(); return; }

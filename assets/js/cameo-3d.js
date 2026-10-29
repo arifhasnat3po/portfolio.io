@@ -179,7 +179,8 @@ function createFlightEffects(kind, pivot, rig) {
  * await Portfolio3D.mount(element, 'ironman'|'falcon', options) -> cleanup function.
  * options: interactive, signal, onReady({ kind, label, source, animationClips }), onError(error).
  * Returned cleanup.setFlightState({throttle:0..1, bank, pitch, heading, yaw}) drives engines/attitude.
- * Angles are radians; heading follows the screen-space course, bank rolls about the model's long axis.
+ * Angles are radians. Heading is clockwise from screen-right for Falcon, from screen-up for Iron Man.
+ * Bank rolls about the model's long axis.
  * The host needs nonzero width/height. Interactive: drag/arrow keys rotate; +/- zoom; Home resets.
  * Honors reduced motion, portfolio:motionchange, page visibility and viewport intersection.
  * No external network requests, shared global THREE, audio, or self-starting flyby traversal.
@@ -242,7 +243,7 @@ export async function mount(container, kind, options = {}) {
   const headingAxis = new THREE.Vector3(0, 0, 1);
   const base = kind === 'falcon'
     ? new THREE.Euler(0.48, -0.65, -0.10)
-    : new THREE.Euler(interactive ? 0 : -0.07, -.30, interactive ? 0 : -Math.PI / 2, 'ZYX');
+    : new THREE.Euler(interactive ? 0 : -0.07, -.30, 0, 'ZYX');
   const motion = () => !preference.matches && document.documentElement.dataset.motion !== 'off';
   const visible = () => !document.hidden && inView && container.isConnected;
   const draw = () => { if (!disposed && ready && visible()) renderer.render(scene, camera); };

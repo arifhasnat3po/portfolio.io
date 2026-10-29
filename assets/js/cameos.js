@@ -175,7 +175,7 @@
     layer.appendChild(flight);
     const currentFlight=flight;
     try{
-      await import('./cameo-3d.js?v=20261029g');
+      await import('./cameo-3d.js?v=20261029h');
       if(currentFlight!==flight)return;
       flightController=new AbortController();
       const destroy=await window.Portfolio3D.mount(currentFlight.firstElementChild,kind,{interactive:false,signal:flightController.signal});
