@@ -129,10 +129,14 @@ try {
     const bytes = fs.readFileSync(path.join(root, file));
     const clip = clips.get(id);
     if (!clip || clip.text !== text || clip.bytes !== bytes.length || clip.sha256 !== createHash('sha256').update(bytes).digest('hex')) fail(`TARS audio is stale or mismatched: ${id}`);
-    if (!clip || !(clip.durationSeconds > 0) || bytes.length > 150000) fail(`TARS audio duration or size is invalid: ${id}`);
+    if (!clip || !(clip.durationSeconds > 0) || bytes.length > 600000 || !(clip.peakDbFS < -1)) fail(`TARS audio duration, headroom or size is invalid: ${id}`);
     totalBytes += bytes.length;
   }
-  if (totalBytes !== manifest.totalBytes || totalBytes > 1500000) fail('TARS audio manifest total or download budget is invalid');
+  // Sixty individually requested recordings, never a full-library page download.
+  if (totalBytes !== manifest.totalBytes || totalBytes > 10 * 1024 * 1024) fail('TARS audio manifest total or library budget is invalid');
+  for (const file of ['assets/js/tars-voice.js', 'assets/js/tars-guide.js']) {
+    if (/speechSynthesis|SpeechSynthesisUtterance/.test(read(file))) fail(`Device speech must not be used: ${file}`);
+  }
 } catch (error) { fail(`TARS voice integrity: ${error.message}`); }
 try {
   const credits=JSON.parse(read('assets/models/credits.json'));

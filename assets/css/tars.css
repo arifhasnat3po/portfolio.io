@@ -84,9 +84,6 @@ html[data-theme=light] .tars-dialog::backdrop{background:#172c24a6}
 .tars-audio-settings summary>span{float:right;color:var(--muted);font-size:10px}
 .tars-audio-options{padding:0 0 14px;display:grid;gap:12px}
 .tars-audio-options p{font:11px/1.7 var(--font-body);color:var(--muted);margin:0}
-.tars-read-toggle{display:flex;align-items:center;gap:10px;min-height:36px;color:var(--text)}
-.tars-read-toggle input{accent-color:var(--accent);width:18px;height:18px;flex:none}
-.tars-browser-options select{width:100%;min-height:44px;margin:6px 0 8px;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:4px;color:var(--text);font:12px/1.5 var(--font-body)}
 .tars-voice-test{flex:none;min-height:48px;border:1px solid var(--accent);background:var(--surface);color:var(--text);padding:10px 16px;border-radius:4px;font:12px/1.5 var(--font-body);touch-action:manipulation;cursor:pointer}
 .tars-voice-test:hover{border-color:var(--accent)}
 .tars-audio-status:not([hidden]){display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:32px;color:var(--accent);font:11px/1.5 var(--font-mono);flex:none}
@@ -97,7 +94,7 @@ html[data-theme=light] .tars-dialog::backdrop{background:#172c24a6}
 .tars-conversation:has(.tars-audio-settings[open]) .tars-log{flex:none;height:220px}
 @media(min-width:701px){.tars-stage{height:clamp(180px,24vh,260px)}.tars-personality{margin-top:12px;padding-top:12px}}
 @media(min-width:701px) and (max-height:800px){.tars-stage{height:140px}.tars-personality-preview{min-height:42px}.tars-header{padding-block:16px}.tars-conversation{height:max(480px,calc(100dvh - 190px))}.tars-log{min-height:120px}}
-@media(max-width:700px){.tars-personality-preview{min-height:0;margin:12px 0}.tars-audio-settings summary,.tars-audio-options p{font-size:12px}.tars-browser-options select{font-size:16px}.tars-conversation:has(.tars-audio-settings[open]){min-height:0}}
+@media(max-width:700px){.tars-personality-preview{min-height:0;margin:12px 0}.tars-audio-settings summary,.tars-audio-options p{font-size:12px}.tars-conversation:has(.tars-audio-settings[open]){min-height:0}}
 /* One touch scroll surface, with the composer available while reading replies. */
 .tars-dialog{overscroll-behavior-y:contain;scroll-padding-block:180px 24px}
 .tars-dialog :is(button,input,summary,select){scroll-margin-block:12px}

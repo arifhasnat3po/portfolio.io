@@ -1,100 +1,84 @@
-/* Small on-demand recordings; optional installed-browser voices for longer answers. */
-import { tarsVoiceLines } from './tars-knowledge.js?v=20261029d';
+/* On-demand recordings only. The visitor's speech engine is never used. */
+import { tarsVoiceLines } from './tars-knowledge.js?v=20261029e';
+
+const audioVersion = '20261029-studio';
 
 export function createTarsVoice({ onState = () => {}, onError = () => {} } = {}) {
-  const synth = globalThis.speechSynthesis;
-  const canSpeak = Boolean(synth && globalThis.SpeechSynthesisUtterance);
-  let epoch = 0, audio = null, utterance = null, timer = null, destroyed = false;
+  let epoch = 0, audio = null, warmup = null, destroyed = false;
+
+  function release(element) {
+    if (!element) return;
+    element.onplaying = element.onended = element.onerror = null;
+    element.pause();
+    element.removeAttribute('src');
+    element.load();
+  }
 
   function stop() {
     ++epoch;
-    clearTimeout(timer);
-    timer = null;
-    if (audio) {
-      audio.onplaying = audio.onended = audio.onerror = null;
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-      audio = null;
-    }
-    if (utterance) {
-      utterance.onstart = utterance.onend = utterance.onerror = null;
-      utterance = null;
-      synth?.cancel();
-    }
+    release(audio); release(warmup);
+    audio = warmup = null;
     onState('idle');
   }
 
-  function getVoices() {
-    return canSpeak ? synth.getVoices().filter(item => /^en(?:-|_|$)/i.test(item.lang)) : [];
-  }
-
-  function speak(text, voiceURI, token) {
-    if (destroyed || token !== epoch) return;
-    if (!canSpeak) { onState('idle'); onError('Browser reading is unavailable. Recorded lines still work.'); return; }
-    const voices = getVoices();
-    const selected = voices.find(item => item.voiceURI === voiceURI)
-      || voices.find(item => item.localService && /natural|david|daniel|alex|guy/i.test(item.name))
-      || voices.find(item => item.localService) || voices[0];
-    // Short utterances prevent browser engines from stalling on long portfolio answers.
-    const sentences = String(text).replace(/\n+/g, '. ').match(/[^.!?]+(?:[.!?]+|$)/g) || [text];
-    const chunks = sentences.flatMap(sentence => sentence.trim().match(/.{1,210}(?:\s|$)|\S{1,210}/g) || []);
-    let index = 0;
-    function next() {
-      if (destroyed || token !== epoch) return;
-      if (index >= chunks.length) { utterance = null; onState('idle'); return; }
-      utterance = new SpeechSynthesisUtterance(chunks[index++].trim());
-      if (selected) utterance.voice = selected;
-      utterance.lang = selected?.lang || 'en-US';
-      utterance.rate = .94; utterance.pitch = .95; utterance.volume = .85;
-      utterance.onstart = () => { if (token === epoch && !destroyed) onState('speaking'); };
-      utterance.onend = () => { if (token === epoch && !destroyed) { timer = setTimeout(next, 170); } };
-      utterance.onerror = event => {
-        if (token !== epoch || destroyed) return;
-        utterance = null; onState('idle');
-        if (!['canceled', 'interrupted'].includes(event.error)) onError('Voice could not play. The full reply is here to read.');
-      };
-      try { synth.speak(utterance); }
-      catch {
-        if (token === epoch && !destroyed) { utterance = null; onState('idle'); onError('Voice could not play. The full reply is here to read.'); }
-      }
-    }
-    onState('loading');
-    next();
-  }
-
-  function play(answer, { browserSpeech = false, voiceURI = '' } = {}) {
+  function play(answer) {
     stop();
     if (destroyed || !answer?.text) return;
+    const clips = answer.clips ?? (answer.clip ? [answer.clip] : []);
+    // A recording sequence must say the complete displayed answer, in order.
+    // Neither user input nor arbitrary URLs may become an audio source.
+    const valid = Array.isArray(clips) && clips.length > 0 && clips.length <= 4
+      && clips.every(id => typeof id === 'string' && Object.hasOwn(tarsVoiceLines, id))
+      && clips.map(id => tarsVoiceLines[id]).join(' ') === answer.text;
+    if (!valid) {
+      onError('This reply is available as text. Try a project, skills, or workflow question to hear a recorded answer.');
+      return;
+    }
     const token = epoch;
-    const clip = answer.clip;
-    const validClip = typeof clip === 'string' && Object.hasOwn(tarsVoiceLines, clip)
-      && tarsVoiceLines[clip] === answer.text;
-    if (!validClip) { if (browserSpeech) speak(answer.text, voiceURI, token); return; }
     const current = new Audio();
     audio = current;
     current.preload = 'none';
-    current.volume = .85;
-    current.src = new URL(`../audio/tars/${clip}.mp3`, import.meta.url).href;
-    onState('loading');
-    let failed = false;
-    function fail() {
-      if (failed || destroyed || token !== epoch) return;
+    current.volume = .9;
+    let index = 0, sequence = 0, failed = false;
+    const clipURL = id => new URL(`../audio/tars/${id}.mp3?v=${audioVersion}`, import.meta.url).href;
+
+    function fail(clipSequence) {
+      if (failed || destroyed || token !== epoch || clipSequence !== sequence) return;
       failed = true;
-      current.onplaying = current.onended = current.onerror = null;
-      current.pause(); current.removeAttribute('src'); current.load(); audio = null;
-      if (browserSpeech) speak(answer.text, voiceURI, token);
-      else { onState('idle'); onError('The voice clip could not load. You can still read the line here.'); }
+      release(current); release(warmup);
+      audio = warmup = null;
+      onState('idle');
+      onError('The recording could not play. Check your connection and try again; the full answer is here to read.');
     }
-    current.onplaying = () => { if (token === epoch && !destroyed) onState('speaking'); };
-    current.onended = () => {
-      if (token !== epoch || destroyed) return;
-      current.onplaying = current.onended = current.onerror = null;
-      audio = null; onState('idle');
-    };
-    current.onerror = fail;
-    try { current.play()?.catch(fail); } catch { fail(); }
+
+    function next() {
+      if (failed || destroyed || token !== epoch) return;
+      const clipSequence = ++sequence;
+      if (index >= clips.length) {
+        release(current); release(warmup);
+        audio = warmup = null;
+        onState('idle');
+        return;
+      }
+      current.src = clipURL(clips[index++]);
+      current.onplaying = () => { if (!failed && token === epoch && !destroyed && clipSequence === sequence) onState('speaking'); };
+      current.onended = () => { if (clipSequence === sequence) next(); };
+      current.onerror = () => fail(clipSequence);
+      onState('loading');
+      // The first play stays in the click stack. Reuse this unlocked element
+      // for the optional humor aside so mobile browsers keep the same session.
+      try { current.play()?.catch(() => fail(clipSequence)); } catch { fail(clipSequence); }
+      release(warmup); warmup = null;
+      if (!failed && index < clips.length) {
+        warmup = new Audio();
+        warmup.preload = 'auto';
+        warmup.src = clipURL(clips[index]);
+        warmup.load();
+      }
+    }
+
+    next();
   }
 
-  return { play, stop, getVoices, canSpeak, destroy() { if (!destroyed) { stop(); destroyed = true; } } };
+  return { play, stop, destroy() { if (!destroyed) { stop(); destroyed = true; } } };
 }

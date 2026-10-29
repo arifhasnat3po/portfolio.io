@@ -48,7 +48,8 @@ export const tarsPrompts = Object.freeze([
   { label: 'Wave hello', question: 'Wave at me' }
 ].map(prompt => Object.freeze(prompt)));
 
-// Stable recording IDs. A clip may be used only for this exact, complete text.
+// Stable recording IDs. Each segment must exactly match its recorded text.
+// A returned clips array covers the COMPLETE reply when joined with one space.
 // All lines are original; these are not dialogue or voice samples from a film.
 export const tarsVoiceLines = Object.freeze({
   'greeting-professional': 'Hello. I’m TARS, your local portfolio guide. Ask me about Arif’s work, skills, or projects.',
@@ -66,8 +67,61 @@ export const tarsVoiceLines = Object.freeze({
   'easter-egg-professional': 'You found an extra. Interstellar is in Arif’s favorites gallery.',
   'easter-egg-dry': 'Secret discovered. The reward is another line from a rectangular tour guide.',
   'easter-egg-witty': 'Docking complete. No planets were inconvenienced during this portfolio visit.',
-  'easter-egg-mischievous': 'You found the secret transmission. Please act surprised. I rehearsed this.'
+  'easter-egg-mischievous': 'You found the secret transmission. Please act surprised. I rehearsed this.',
+  'faq-tour': "Start with PixelPair for WordPress product development, the Bit Flows and n8n/Zapier canvases for workflow design, and Gym Field Guide for an interactive web app. For engineering depth, explore the Python projects and published research. Pick the area closest to what you want to build.",
+  'faq-current-skills': "Arif’s current focus is Technical SEO, SEO, AEO (Answer Engine Optimization), and GEO (Generative Engine Optimization). These cover crawlability and performance, search intent, clear answers, and trustworthy content for AI discovery. His wider toolkit includes technical writing, SaaS/WordPress editing, Python, data analysis, automation, and payment workflows.",
+  'faq-technical-seo': "Technical SEO is the foundation of Arif’s search work: crawlability, indexing, site architecture, Core Web Vitals, and structured data. His experience also includes technical audits, Google Search Console, analytics, and on-page improvements.",
+  'faq-seo': "Arif’s SEO work combines keyword research, search-intent analysis, semantic content, internal linking, and performance measurement. Technical SEO strengthens that with indexing, crawlability, schema, and site performance. Tools in his toolkit include Search Console, Analytics, SEMrush, Ahrefs, and Sitechecker.",
+  'faq-aeo': "AEO means Answer Engine Optimization. Arif’s focus is answer-first content, clear entities, and well-structured explanations that help answer engines understand useful information. It’s about clarity and relevance; the portfolio makes no guaranteed placement claim.",
+  'faq-geo': "GEO means Generative Engine Optimization. Arif focuses on trustworthy content for AI-assisted discovery, supported by clear sources, topic coverage, and consistent brand information. Inclusion in an AI answer can’t be guaranteed.",
+  'faq-pixelpair': "PixelPair is Arif’s independently built, free WordPress plugin for Meta Pixel & CAPI, GA4, GTM, and TikTok tracking. It supports commerce events, consent integrations, role and IP exclusions, and page-cache support. An optional authenticated MCP server helps an assistant manage tracking settings.",
+  'faq-bitflows': "The Bit Flows project connects a Bit Form submission and CRM eligibility check to an AI agent, then routes hot, normal, and cold leads. It includes tools such as Gmail, Telegram, Bit CRM, and Google Sheets, with human review where required. Other examples cover email drafts, order review, and HR screening.",
+  'faq-n8n': "Arif’s n8n canvas shows BANT lead qualification: a contact form feeds AI scoring and JSON parsing, then a switch routes hot leads to calendar booking, mid leads to WhatsApp, and cold leads to website or email follow-up. It’s a documented workflow canvas; I don’t have live run results.",
+  'faq-zapier': "The Zapier Unified Lead Capture canvas brings advertising, website, and other lead sources into a central HubSpot process. The original screenshot includes Meta, Google Ads, TikTok, LinkedIn, Webflow, G2, and forms. I can show the design, not verify its live runs.",
+  'faq-automation': "Arif’s automation work includes Bit Flows, n8n, Zapier, Python, APIs, and webhooks. Start with the lead-qualification canvases, then explore the AI Social Media Assembly Line for content production and human approval flows.",
+  'faq-social-assembly': "The AI Social Media Assembly Line organizes multi-channel content production. Documented flows turn WordPress posts into platform-specific captions, route by category, and send to Bit Social or a webhook. Related flows include human approval, Google Sheets records, and editor notifications.",
+  'faq-gym': "Gym Field Guide is Arif’s personal three-day routine with 29 animated exercise guides. It includes machine setup, movement cues, set tracking, automatic rest timers, themes, local progress storage, and offline support. Explore the routine here or open the full app.",
+  'faq-experience': "The portfolio lists Arif as SEO & Technical Content Writer at Bit Code Technologies Limited from April 2026. Earlier roles include SEO and Data Analyst at Carbarn, SEO Content Writer at Star Tech, a QA automation internship at A1QA, and Teaching Assistant at IIUC. The journey section includes a “Save résumé as PDF” control.",
+  'faq-education': "Arif holds a B.Sc. in Computer & Communication Engineering from International Islamic University Chittagong, listed for 2019–2024, with a CGPA of 3.793/4.00. His thesis was “Enhancing Insider Malware Detection Accuracy with Machine Learning Algorithms.”",
+  'faq-research': "Arif lists three research publications: insider malware detection with machine learning, IoT-based office automation, and an AI-enabled digital twin for Industry 4.0. You can open the papers below or read the publication summaries.",
+  'faq-about': "Arif Hasnat is based in Chittagong, Bangladesh. He is an engineering graduate working across SEO and data analysis, Python automation, machine learning research, technical content, and WordPress. His current focus brings search visibility and practical automation together.",
+  'faq-contact': "You can email Arif at arifhasnat83@gmail.com or contact him on LinkedIn. His public contact section also lists +8801626702431. This chat doesn’t send a message to him; use one of those links to reach him.",
+  'faq-hire': "For search visibility, technical content, WordPress, or automation work, send Arif a short brief: what you want to improve, the tools or website involved, the scope, and your timeline. Use his email or LinkedIn to discuss availability and next steps.",
+  'faq-favorites': "Arif’s favorites include Interstellar, Star Wars, Iron Man, The Dark Knight, Sherlock, Friends, The Office, The Big Bang Theory, Loki, and House of the Dragon, among others. Open a gallery frame to see its images; the film and series filters help you explore. I don’t know his viewing order or personal ratings.",
+  'faq-github': "Arif’s GitHub is arifhasnat3po. Public projects linked here include PixelPair, the Python Automation Suite, StreamVision, the Full-Stack Social App, and engineering practice repositories. The archive contains direct source links.",
+  'faq-capabilities': "I’m a local, scripted portfolio guide with prewritten, topic-matched replies. I don’t use an LLM, browse the web, access Arif’s accounts, or send this chat to a server. I can explain the information on this site and offer links or a few robot poses.",
+  'faq-thanks': "You’re welcome. I’m here if you need another route through the portfolio.",
+  'faq-fallback': "I’m a locally scripted guide to Arif’s portfolio. I can help with his skills, projects, experience, research, gym guide, favorite films, or contact details. I can’t browse the web or answer general questions. Try “What does PixelPair do?” or “How can I contact Arif?”",
+  'faq-workflow-comparison': "These are separate workflow examples: Bit Flows handles AI-assisted lead qualification with human review; the n8n canvas shows BANT scoring and branching follow-up; Zapier shows lead sources feeding a HubSpot process. The original canvases are linked below.",
+  'faq-n8n-zapier': "The n8n example covers BANT lead scoring and follow-up branches. The Zapier example connects multiple lead sources to HubSpot. These are distinct canvases, and both original screenshots are available to explore.",
+  'faq-interstellar': "Interstellar is in Arif’s favorites gallery. This little guide borrows a TARS-inspired dry sense of humor, while the portfolio’s space setting includes stars, galaxies, and a black hole. The film archive is a good detour.",
+  'faq-universe': "The portfolio’s universe brings together a black hole, stars, galaxies, a Loki-inspired tree, and references to favorite screen worlds. Iron Man and the Falcon have flight moments; Caraxes appears as an animated red dragon, alongside the House of the Dragon image gallery. You’ll find the films and shows in the favorites section.",
+  'faq-toolkit': "Alongside Technical SEO, SEO, AEO, and GEO, Arif’s toolkit covers programming, data science, machine learning, cybersecurity, QA, technical writing, SaaS/WordPress editing, automation, and PaymentForm.io workflows. The complete skills grid retains these earlier areas of work.",
+  'faq-paymentform': "Arif’s PaymentForm.io work covers SEO and content planning, blog posts, landing pages, help guides, competitor research, and technical SEO improvements. It includes Stripe, PayPal, and Razorpay setup guides for payment collection workflows.",
+  'aside-dry-scroll': "That should save a little scrolling.",
+  'aside-dry-start': "A useful place to start. Minimal ceremony required.",
+  'aside-witty-route': "Useful coordinates. Consider the scenic route optional.",
+  'aside-mischievous-credit': "I’ve done the navigation. You get the credit for excellent taste.",
+  'aside-mischievous-route': "A promising route. My imaginary mission control approves.",
+  'aside-witty-tour': "A route with useful stops. No seven-year detour required.",
+  'aside-witty-bitflows': "Automation handles repetition. People keep the important decisions.",
+  'aside-witty-automation': "Less repetition. More time for the interesting problems.",
+  'aside-witty-social-assembly': "One idea, several drafts, one human with the final say.",
+  'aside-witty-gym': "Rest timers: a civilized alternative to negotiating with the clock.",
+  'aside-witty-hire': "Clear briefs reduce the need for mind reading. My least reliable module.",
+  'aside-witty-favorites': "A respectable range of galaxies, detectives, and questionable office management.",
+  'aside-witty-thanks': "No docking fee.",
+  'aside-witty-interstellar': "I recommend docking with the gallery before attempting the singularity."
 });
+
+const voiceIdByText = new Map(Object.entries(tarsVoiceLines).map(([id, text]) => [text, id]));
+
+function recordedReply(parts) {
+  const clips = parts.map(text => voiceIdByText.get(text));
+  // Never attach partial audio to a dynamic or unrecorded answer.
+  if (!clips.every(Boolean)) return {};
+  return { clips, ...(clips.length === 1 ? { clip: clips[0] } : {}) };
+}
 
 const personalityBands = [
   { id: 'professional', label: 'Professional', min: 0, max: 24 },
@@ -127,7 +181,7 @@ export function getTarsBanter(kind, options = {}) {
   if (kind === 'greeting') clip = `greeting-${personality.id}`;
   if (kind === 'joke') clip = `joke-${personality.id}-${variantIndex(variant, 2) + 1}`;
   if (kind === 'easterEgg') clip = `easter-egg-${personality.id}`;
-  if (clip) return { text: tarsVoiceLines[clip], clip };
+  if (clip) return { text: tarsVoiceLines[clip], clip, clips: [clip] };
   if (typeof kind === 'string' && Object.hasOwn(movementLines, kind)) {
     const lines = movementLines[kind][band];
     return { text: lines[variantIndex(variant, lines.length)], action: kind };
@@ -138,14 +192,14 @@ export function getTarsBanter(kind, options = {}) {
 function personalityAside(personality, variant, original) {
   if (!original || personality.id === 'professional') return '';
   const choices = personality.id === 'dry'
-    ? ['That should save a little scrolling.', 'A useful place to start. Minimal ceremony required.']
+    ? [tarsVoiceLines['aside-dry-scroll'], tarsVoiceLines['aside-dry-start']]
     : personality.id === 'witty'
-      ? [original, 'Useful coordinates. Consider the scenic route optional.']
-      : ['I’ve done the navigation. You get the credit for excellent taste.', 'A promising route. My imaginary mission control approves.'];
+      ? [original, tarsVoiceLines['aside-witty-route']]
+      : [tarsVoiceLines['aside-mischievous-credit'], tarsVoiceLines['aside-mischievous-route']];
   return ` ${choices[variantIndex(variant, choices.length)]}`;
 }
 
-const fallback = 'I’m a locally scripted guide to Arif’s portfolio. I can help with his skills, projects, experience, research, gym guide, favorite films, or contact details. I can’t browse the web or answer general questions. Try “What does PixelPair do?” or “How can I contact Arif?”';
+const fallback = tarsVoiceLines['faq-fallback'];
 
 function normalize(value) {
   return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -159,13 +213,13 @@ export function answerTars(question, context = {}) {
   const { humor } = personality;
   const variant = context?.variant ?? context?.turn ?? 0;
   const reply = (text, keys = [], flourish = '', action) => {
-    const fullText = text + personalityAside(personality, variant, flourish);
-    const clip = Object.keys(tarsVoiceLines).find(id => tarsVoiceLines[id] === fullText);
+    const aside = personalityAside(personality, variant, flourish);
+    const parts = aside ? [text, aside.slice(1)] : [text];
     return {
-      text: fullText,
+      text: parts.join(' '),
       links: keys.map(key => ({ label: destinations[key][0], href: destinations[key][1] })),
       ...(action ? { action } : {}),
-      ...(clip ? { clip } : {})
+      ...recordedReply(parts)
     };
   };
   const banter = (kind, keys = []) => {
@@ -202,9 +256,9 @@ export function answerTars(question, context = {}) {
     return banter('easterEgg', ['movies']);
   }
   if (/\b(are you (real|ai|an ai|a bot|chatgpt)|who are you|who is tars|what are you|tell me about yourself|how do you work|language model|llm|chatgpt|gpt|chatbot|scripted|prewritten|your capabilities|what can you do|can you browse|live data|real time|realtime|privacy|private chat|store my|save my|send my|store (messages|chat)|send (this|the) chat)\b/.test(q)) {
-    return reply('I’m a local, scripted portfolio guide with prewritten, topic-matched replies. I don’t use an LLM, browse the web, access Arif’s accounts, or send this chat to a server. I can explain the information on this site and offer links or a few robot poses.', ['projects', 'skills', 'contact']);
+    return reply(tarsVoiceLines['faq-capabilities'], ['projects', 'skills', 'contact']);
   }
-  if (/\b(thanks|thank you|thank u|cheers)\b/.test(q)) return reply('You’re welcome. I’m here if you need another route through the portfolio.', [], 'No docking fee.');
+  if (/\b(thanks|thank you|thank u|cheers)\b/.test(q)) return reply(tarsVoiceLines['faq-thanks'], [], tarsVoiceLines['aside-witty-thanks']);
 
   const bitflows = /\b(bit ?flows?|bit apps|bitapps)\b/.test(q);
   const n8n = /\b(n8n|n 8 n)\b/.test(q);
@@ -219,36 +273,36 @@ export function answerTars(question, context = {}) {
     return reply('I can show the work Arif lists here, but I don’t know his live availability, rates, or turnaround time. Email him with your goal, current setup, scope, deadline, and budget to discuss a fit.', ['email', 'linkedin', 'projects']);
   }
   if (/\b(hire|hiring|recruit|recruiter|work with|work together|collaborat\w*|book a call|consultation|project proposal|start a project)\b/.test(q)) {
-    return reply('For search visibility, technical content, WordPress, or automation work, send Arif a short brief: what you want to improve, the tools or website involved, the scope, and your timeline. Use his email or LinkedIn to discuss availability and next steps.', ['email', 'linkedin', 'projects'], 'Clear briefs reduce the need for mind reading. My least reliable module.');
+    return reply(tarsVoiceLines['faq-hire'], ['email', 'linkedin', 'projects'], tarsVoiceLines['aside-witty-hire']);
   }
   if (/\b(contact|email|e mail|gmail|reach (arif|him|out)|get in touch|message (arif|him)|phone|telephone|whatsapp)\b/.test(q) && !workflow && !bitflows && !n8n && !zapier) {
-    return reply('You can email Arif at arifhasnat83@gmail.com or contact him on LinkedIn. His public contact section also lists +8801626702431. This chat doesn’t send a message to him; use one of those links to reach him.', ['email', 'linkedin', 'contact']);
+    return reply(tarsVoiceLines['faq-contact'], ['email', 'linkedin', 'contact']);
   }
   if (/\b(linkedin)\b/.test(q) && !workflow && !zapier) return reply('Arif’s LinkedIn profile is linked below, along with his experience on this site. I can’t read live LinkedIn updates or private messages.', ['linkedin', 'journey']);
   if (/\b(youtube|video|channel|walkthrough)\b/.test(q) && !workflow && !bitflows && !n8n && !zapier) return reply('The featured video is a PixelPair walkthrough. You can watch it directly or visit Arif’s YouTube channel for his shared work.', ['video', 'youtube']);
 
   if (/\b(pixel ?pair|pixelpair plugin|meta pixel|capi|gtm|mcp|tiktok tracking|cookiebot|complianz|cookieyes)\b/.test(q)) {
-    return reply('PixelPair is Arif’s independently built, free WordPress plugin for Meta Pixel & CAPI, GA4, GTM, and TikTok tracking. It supports commerce events, consent integrations, role and IP exclusions, and page-cache support. An optional authenticated MCP server helps an assistant manage tracking settings.', ['pixelpair', 'pixelSource', 'video']);
+    return reply(tarsVoiceLines['faq-pixelpair'], ['pixelpair', 'pixelSource', 'video']);
   }
   if (bitflows && (n8n || zapier)) {
-    return reply('These are separate workflow examples: Bit Flows handles AI-assisted lead qualification with human review; the n8n canvas shows BANT scoring and branching follow-up; Zapier shows lead sources feeding a HubSpot process. The original canvases are linked below.', ['bitflows', 'n8n', 'zapier', 'projects']);
+    return reply(tarsVoiceLines['faq-workflow-comparison'], ['bitflows', 'n8n', 'zapier', 'projects']);
   }
   if (bitflows) {
-    return reply('The Bit Flows project connects a Bit Form submission and CRM eligibility check to an AI agent, then routes hot, normal, and cold leads. It includes tools such as Gmail, Telegram, Bit CRM, and Google Sheets, with human review where required. Other examples cover email drafts, order review, and HR screening.', ['bitflows', 'projects'], 'Automation handles repetition. People keep the important decisions.');
+    return reply(tarsVoiceLines['faq-bitflows'], ['bitflows', 'projects'], tarsVoiceLines['aside-witty-bitflows']);
   }
   if (n8n || zapier) {
-    if (n8n && !zapier) return reply('Arif’s n8n canvas shows BANT lead qualification: a contact form feeds AI scoring and JSON parsing, then a switch routes hot leads to calendar booking, mid leads to WhatsApp, and cold leads to website or email follow-up. It’s a documented workflow canvas; I don’t have live run results.', ['n8n', 'projects']);
-    if (zapier && !n8n) return reply('The Zapier Unified Lead Capture canvas brings advertising, website, and other lead sources into a central HubSpot process. The original screenshot includes Meta, Google Ads, TikTok, LinkedIn, Webflow, G2, and forms. I can show the design, not verify its live runs.', ['zapier', 'projects']);
-    return reply('The n8n example covers BANT lead scoring and follow-up branches. The Zapier example connects multiple lead sources to HubSpot. These are distinct canvases, and both original screenshots are available to explore.', ['n8n', 'zapier', 'projects']);
+    if (n8n && !zapier) return reply(tarsVoiceLines['faq-n8n'], ['n8n', 'projects']);
+    if (zapier && !n8n) return reply(tarsVoiceLines['faq-zapier'], ['zapier', 'projects']);
+    return reply(tarsVoiceLines['faq-n8n-zapier'], ['n8n', 'zapier', 'projects']);
   }
   if (/\b(assembly line|content production|multi channel|social media automation|bit social)\b/.test(q)) {
-    return reply('The AI Social Media Assembly Line organizes multi-channel content production. Documented flows turn WordPress posts into platform-specific captions, route by category, and send to Bit Social or a webhook. Related flows include human approval, Google Sheets records, and editor notifications.', ['projects'], 'One idea, several drafts, one human with the final say.');
+    return reply(tarsVoiceLines['faq-social-assembly'], ['projects'], tarsVoiceLines['aside-witty-social-assembly']);
   }
   if (/\b(payment ?form|payment collection|payment workflow|stripe|paypal|razorpay)\b/.test(q)) {
-    return reply('Arif’s PaymentForm.io work covers SEO and content planning, blog posts, landing pages, help guides, competitor research, and technical SEO improvements. It includes Stripe, PayPal, and Razorpay setup guides for payment collection workflows.', ['skills', 'linkedin']);
+    return reply(tarsVoiceLines['faq-paymentform'], ['skills', 'linkedin']);
   }
   if (/\b(gym|workout|exercise|fitness|rest timer|set tracking|three day|3 day)\b/.test(q)) {
-    return reply('Gym Field Guide is Arif’s personal three-day routine with 29 animated exercise guides. It includes machine setup, movement cues, set tracking, automatic rest timers, themes, local progress storage, and offline support. Explore the routine here or open the full app.', ['routine', 'gym'], 'Rest timers: a civilized alternative to negotiating with the clock.');
+    return reply(tarsVoiceLines['faq-gym'], ['routine', 'gym'], tarsVoiceLines['aside-witty-gym']);
   }
   if (/\b(streamvision|m3u8?|playlist player|streaming app)\b/.test(q)) {
     return reply('StreamVision is a React and TypeScript M3U/M3U8 playlist player with channel names, groups, logos, a responsive sidebar, and a video player. Playback depends on the streams supplied in the playlist; it doesn’t supply a channel subscription.', ['stream', 'archive']);
@@ -261,32 +315,32 @@ export function answerTars(question, context = {}) {
   if (/\b(iot|office automation|workplace efficiency)\b/.test(q)) return reply('Arif’s IEEE ICISET paper, “Enhancing Workplace Efficiency: An Intelligent Office Automation System Leveraging IoT,” describes an IoT architecture for office operations and energy efficiency.', ['iot', 'research']);
 
   if (/\b(education|degree|university|college|cgpa|gpa|graduate|graduated|thesis|studied|study)\b/.test(q)) {
-    return reply('Arif holds a B.Sc. in Computer & Communication Engineering from International Islamic University Chittagong, listed for 2019–2024, with a CGPA of 3.793/4.00. His thesis was “Enhancing Insider Malware Detection Accuracy with Machine Learning Algorithms.”', ['journey', 'malware']);
+    return reply(tarsVoiceLines['faq-education'], ['journey', 'malware']);
   }
   if (/\b(certificates?|certifications?|credentials?|courses?|qualified|qualification)\b/.test(q)) {
     return reply('His credentials include Google’s Technical Support Fundamentals, the University of Michigan’s Programming for Everybody, Eduonix’s White Hat Hacker and Pen Tester course, Practical Ethical Hacking on Udemy, and Cisco’s Operating Systems Basics. The credentials section includes verification links.', ['credentials']);
   }
   if (/\b(publications?|research|papers?|published|machine learning)\b/.test(q)) {
-    return reply('Arif lists three research publications: insider malware detection with machine learning, IoT-based office automation, and an AI-enabled digital twin for Industry 4.0. You can open the papers below or read the publication summaries.', ['malware', 'iot', 'twin', 'research']);
+    return reply(tarsVoiceLines['faq-research'], ['malware', 'iot', 'twin', 'research']);
   }
   if (/\b(carbarn)\b/.test(q)) return reply('At Carbarn, Arif was an SEO and Data Analyst from February 2025 to March 2026. His work included search performance analysis, data collection and cleaning, Python reporting bots, keyword and competitor analysis, and on-page and technical SEO.', ['journey']);
   if (/\b(star tech)\b/.test(q)) return reply('Arif worked at Star Tech Ltd as an Executive / SEO Content Writer from July to September 2024, covering SEO content, keyword research, content strategy, and coordination with marketing teams.', ['journey']);
   if (/\b(a1qa|qa internship|automation testing|webdriverio|software testing)\b/.test(q)) return reply('Arif’s QA Automation Engineer internship at A1QA ran from April to May 2024. He used WebdriverIO and JavaScript for test scripts, result analysis, and automated test environments. QA automation and E2E testing remain part of his toolkit.', ['journey', 'skills']);
   if (/\b(teaching assistant|teaching|mentoring)\b/.test(q)) return reply('Arif was a Teaching Assistant at IIUC from January 2023 to January 2024, supporting Basic Electronics and Basic Communication Engineering sessional courses through grading, lab supervision, and student mentoring.', ['journey']);
   if (/\b(experience|career|employment|work history|current (role|job)|where does he work|bit code|bitcode|resume|cv)\b/.test(q)) {
-    return reply('The portfolio lists Arif as SEO & Technical Content Writer at Bit Code Technologies Limited from April 2026. Earlier roles include SEO and Data Analyst at Carbarn, SEO Content Writer at Star Tech, a QA automation internship at A1QA, and Teaching Assistant at IIUC. The journey section includes a “Save résumé as PDF” control.', ['journey', 'linkedin']);
+    return reply(tarsVoiceLines['faq-experience'], ['journey', 'linkedin']);
   }
   if (/\b(leadership|volunteer|volunteering|community|achievements?|cce club|olympiad|photograph)\b/.test(q)) {
     return reply('Arif’s community work includes leadership in IIUC’s CCE Club, photography for the IEEE IIUC Student Branch, and managing the Chittagong District College Team for ICT Olympiad Bangladesh. His listed achievements include an inter-semester programming championship and cybersecurity event participation.', ['credentials']);
   }
 
   if ([aeo, geo, seo].filter(Boolean).length > 1 || /\b(current skills|latest skills|main skills|skill set|expertise|speciali[sz]|strengths|what (does he|can he|does arif|can arif) do|what is he good at)\b/.test(q)) {
-    return reply('Arif’s current focus is Technical SEO, SEO, AEO (Answer Engine Optimization), and GEO (Generative Engine Optimization). These cover crawlability and performance, search intent, clear answers, and trustworthy content for AI discovery. His wider toolkit includes technical writing, SaaS/WordPress editing, Python, data analysis, automation, and payment workflows.', ['skills', 'projects']);
+    return reply(tarsVoiceLines['faq-current-skills'], ['skills', 'projects']);
   }
-  if (technicalSeo) return reply('Technical SEO is the foundation of Arif’s search work: crawlability, indexing, site architecture, Core Web Vitals, and structured data. His experience also includes technical audits, Google Search Console, analytics, and on-page improvements.', ['skills', 'journey']);
-  if (aeo) return reply('AEO means Answer Engine Optimization. Arif’s focus is answer-first content, clear entities, and well-structured explanations that help answer engines understand useful information. It’s about clarity and relevance; the portfolio makes no guaranteed placement claim.', ['skills']);
-  if (geo) return reply('GEO means Generative Engine Optimization. Arif focuses on trustworthy content for AI-assisted discovery, supported by clear sources, topic coverage, and consistent brand information. Inclusion in an AI answer can’t be guaranteed.', ['skills']);
-  if (seo) return reply('Arif’s SEO work combines keyword research, search-intent analysis, semantic content, internal linking, and performance measurement. Technical SEO strengthens that with indexing, crawlability, schema, and site performance. Tools in his toolkit include Search Console, Analytics, SEMrush, Ahrefs, and Sitechecker.', ['skills', 'journey']);
+  if (technicalSeo) return reply(tarsVoiceLines['faq-technical-seo'], ['skills', 'journey']);
+  if (aeo) return reply(tarsVoiceLines['faq-aeo'], ['skills']);
+  if (geo) return reply(tarsVoiceLines['faq-geo'], ['skills']);
+  if (seo) return reply(tarsVoiceLines['faq-seo'], ['skills', 'journey']);
   if (/\b(content writ\w*|technical writ\w*|copy edit\w*|copyedit\w*|saas|documentation|wordpress|editorial)\b/.test(q)) {
     return reply('Technical content writing and SaaS/WordPress copy editing remain central to Arif’s work. His toolkit includes product documentation, keyword research, and content strategy; PaymentForm.io work includes payment setup guides, landing pages, and help content. PixelPair shows his hands-on WordPress development.', ['skills', 'pixelpair', 'writing']);
   }
@@ -295,20 +349,20 @@ export function answerTars(question, context = {}) {
     return reply('Arif’s engineering toolkit includes Python, JavaScript, C, C++, Java, SQL, MATLAB, Django, and Flask. For data and automation he lists Pandas, NumPy, Scikit-learn, Selenium, Beautiful Soup, Requests, and Matplotlib. His Python Automation Suite is a useful place to start exploring the code.', ['python', 'skills', 'archive']);
   }
   if (/\b(network|networking|ccna|cisco|cybersecurity|cyber security|cryptography|security|linux)\b/.test(q)) return reply('His earlier work includes Cisco networking labs, optical communication simulations, cryptography, and malware research. Cybersecurity, Linux, computer networking, CCNA basics, and ethical hacking remain in his skills grid.', ['archive', 'skills', 'research']);
-  if (workflow) return reply('Arif’s automation work includes Bit Flows, n8n, Zapier, Python, APIs, and webhooks. Start with the lead-qualification canvases, then explore the AI Social Media Assembly Line for content production and human approval flows.', ['projects', 'bitflows', 'n8n', 'zapier'], 'Less repetition. More time for the interesting problems.');
+  if (workflow) return reply(tarsVoiceLines['faq-automation'], ['projects', 'bitflows', 'n8n', 'zapier'], tarsVoiceLines['aside-witty-automation']);
 
   if (/\b(interstellar|tars|cooper|black hole|gargantua|space theme|stars|galaxies|loki|yggdrasil|falcon|iron man|caraxes|dragon)\b/.test(q)) {
-    if (/\b(interstellar|cooper|gargantua)\b/.test(q)) return reply('Interstellar is in Arif’s favorites gallery. This little guide borrows a TARS-inspired dry sense of humor, while the portfolio’s space setting includes stars, galaxies, and a black hole. The film archive is a good detour.', ['movies'], 'I recommend docking with the gallery before attempting the singularity.');
-    return reply('The portfolio’s universe brings together a black hole, stars, galaxies, a Loki-inspired tree, and references to favorite screen worlds. Iron Man and the Falcon have flight moments; Caraxes belongs to the House of the Dragon image gallery. You’ll find the films and shows in the favorites section.', ['movies']);
+    if (/\b(interstellar|cooper|gargantua)\b/.test(q)) return reply(tarsVoiceLines['faq-interstellar'], ['movies'], tarsVoiceLines['aside-witty-interstellar']);
+    return reply(tarsVoiceLines['faq-universe'], ['movies']);
   }
   if (/\b(favou?rites?|movies?|films?|shows|tv show|series|watchlist|watched|watching|cinema|friends|the office|big bang theory|breaking bad|sherlock|dark knight|star wars|spider man|harry potter|stranger things|witcher|last of us|black sails|avengers|game of thrones)\b/.test(q)) {
-    return reply('Arif’s favorites include Interstellar, Star Wars, Iron Man, The Dark Knight, Sherlock, Friends, The Office, The Big Bang Theory, Loki, and House of the Dragon, among others. Open a gallery frame to see its images; the film and series filters help you explore. I don’t know his viewing order or personal ratings.', ['movies'], 'A respectable range of galaxies, detectives, and questionable office management.');
+    return reply(tarsVoiceLines['faq-favorites'], ['movies'], tarsVoiceLines['aside-witty-favorites']);
   }
-  if (/\b(github|repositories|repos|source code|open source)\b/.test(q)) return reply('Arif’s GitHub is arifhasnat3po. Public projects linked here include PixelPair, the Python Automation Suite, StreamVision, the Full-Stack Social App, and engineering practice repositories. The archive contains direct source links.', ['github', 'pixelSource', 'python', 'archive']);
+  if (/\b(github|repositories|repos|source code|open source)\b/.test(q)) return reply(tarsVoiceLines['faq-github'], ['github', 'pixelSource', 'python', 'archive']);
   if (/\b(projects?|portfolio|recommend|recommendation|best work|start here|explore first|where (do|should) i start|tour|show me around)\b/.test(q)) {
-    return reply('Start with PixelPair for WordPress product development, the Bit Flows and n8n/Zapier canvases for workflow design, and Gym Field Guide for an interactive web app. For engineering depth, explore the Python projects and published research. Pick the area closest to what you want to build.', ['pixelpair', 'projects', 'gym', 'research'], 'A route with useful stops. No seven-year detour required.');
+    return reply(tarsVoiceLines['faq-tour'], ['pixelpair', 'projects', 'gym', 'research'], tarsVoiceLines['aside-witty-tour']);
   }
-  if (/\b(skills?|tools?|toolkit|technologies|tech stack)\b/.test(q)) return reply('Alongside Technical SEO, SEO, AEO, and GEO, Arif’s toolkit covers programming, data science, machine learning, cybersecurity, QA, technical writing, SaaS/WordPress editing, automation, and PaymentForm.io workflows. The complete skills grid retains these earlier areas of work.', ['skills']);
-  if (/\b(who is arif|about arif|tell me about (him|arif)|introduce arif|location|based|live|bangladesh|chittagong|chattogram)\b/.test(q)) return reply('Arif Hasnat is based in Chittagong, Bangladesh. He is an engineering graduate working across SEO and data analysis, Python automation, machine learning research, technical content, and WordPress. His current focus brings search visibility and practical automation together.', ['about', 'journey', 'contact']);
+  if (/\b(skills?|tools?|toolkit|technologies|tech stack)\b/.test(q)) return reply(tarsVoiceLines['faq-toolkit'], ['skills']);
+  if (/\b(who is arif|about arif|tell me about (him|arif)|introduce arif|location|based|live|bangladesh|chittagong|chattogram)\b/.test(q)) return reply(tarsVoiceLines['faq-about'], ['about', 'journey', 'contact']);
   return reply(fallback, ['projects', 'skills', 'contact']);
 }

@@ -1,6 +1,6 @@
 /* A local portfolio companion: explicit voice opt-in, bounded answers, accessible controls. */
-import { answerTars, tarsPrompts, getTarsPersonality, getTarsBanter } from './tars-knowledge.js?v=20261029d';
-import { createTarsVoice } from './tars-voice.js?v=20261029d';
+import { answerTars, tarsPrompts, getTarsPersonality, getTarsBanter } from './tars-knowledge.js?v=20261029e';
+import { createTarsVoice } from './tars-voice.js?v=20261029e';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const robotIcon = '<svg viewBox="0 0 64 92" fill="none" aria-hidden="true"><path d="M7 7h12v75H7zm15-3h12v82H22zm15 0h12v82H37zm15 3h9v75h-9z" fill="currentColor" opacity=".72"/><path d="M24 23h8v10h-8zm15 0h8v10h-8z" fill="#183b41"/><path d="M25 26h6m9 0h6M25 29h4m11 0h5" stroke="#b9e8e6" stroke-width=".8"/></svg>';
@@ -17,7 +17,7 @@ dialog.setAttribute('aria-labelledby', 'tars-heading');
 dialog.setAttribute('aria-describedby', 'tars-description');
 dialog.innerHTML = `<header class="tars-header"><div><span class="tars-kicker">OBSERVATORY CREW / 06</span><h2 id="tars-heading">Your co-pilot, <em>TARS.</em></h2><p id="tars-description">A friendly guide to Arif’s work. A slightly unusual walking companion.</p></div><button type="button" class="tars-close" aria-label="Close TARS guide" autofocus>×</button></header>
   <div class="tars-layout"><section class="tars-bay" aria-label="Interactive 3D TARS robot"><div class="tars-bay-label"><span>TARS / ONLINE</span><span>EARTH GRAVITY</span></div><div class="tars-stage" role="img" aria-label="Articulated silver TARS robot standing on a softly lit floor"><span class="tars-static">${robotIcon}</span></div><div class="tars-model-note" role="status">Preparing the docking bay…</div><div class="tars-actions" role="group" aria-label="TARS movement"><button type="button" data-tars-action="walk">Walk</button><button type="button" data-tars-action="wave">Wave</button><button type="button" data-tars-action="balance">Balance</button><button type="button" data-tars-action="nudge">Nudge</button></div><p class="tars-motion-note" hidden>Motion is paused. The guide is still ready to help.</p><button type="button" class="tars-resume" hidden>Enable motion</button><div class="tars-personality"><label for="tars-humor">Humor setting <output for="tars-humor">65%</output></label><input type="range" id="tars-humor" min="0" max="100" value="65" step="5" aria-label="TARS humor setting"></div></section>
-  <section class="tars-conversation" aria-label="Conversation with TARS"><div class="tars-conversation-top"><span><i aria-hidden="true"></i>PORTFOLIO GUIDE</span><button type="button" class="tars-voice" aria-pressed="false">Voice off</button></div><div class="tars-log" role="log" tabindex="0" aria-live="polite" aria-relevant="additions" aria-label="TARS conversation"></div><div class="tars-prompts" aria-label="Suggested questions"></div><form class="tars-form"><label for="tars-question">Ask about Arif’s projects, skills, or favorite worlds</label><div><input id="tars-question" name="question" type="text" maxlength="400" required autocomplete="off" placeholder="What should I explore first?"><button type="submit" aria-label="Send question to TARS">Send ↗</button></div></form><p class="tars-scope">Prewritten, topic-matched answers from this portfolio. Voice, when enabled, uses your browser’s speech service.</p><p class="tars-feedback" role="status"></p></section></div>`;
+  <section class="tars-conversation" aria-label="Conversation with TARS"><div class="tars-conversation-top"><span><i aria-hidden="true"></i>PORTFOLIO GUIDE</span><button type="button" class="tars-voice" aria-pressed="false">Voice off</button></div><div class="tars-log" role="log" tabindex="0" aria-live="polite" aria-relevant="additions" aria-label="TARS conversation"></div><div class="tars-prompts" aria-label="Suggested questions"></div><form class="tars-form"><label for="tars-question">Ask about Arif’s projects, skills, or favorite worlds</label><div><input id="tars-question" name="question" type="text" maxlength="400" required autocomplete="off" placeholder="What should I explore first?"><button type="submit" aria-label="Send question to TARS">Send ↗</button></div></form><p class="tars-scope">A playful, prewritten portfolio guide. No live AI connection.</p><p class="tars-feedback" role="status"></p></section></div>`;
 document.body.append(dialog);
 
 const miniHost = dock.querySelector('.tars-mini-stage');
@@ -41,17 +41,12 @@ const humorInput = dialog.querySelector('#tars-humor');
 humorInput.value = String(humor);
 humorInput.setAttribute('aria-describedby', 'tars-personality-preview');
 
-dialog.querySelector('.tars-conversation-top').insertAdjacentHTML('afterend', `<details class="tars-audio-settings"><summary>Voice settings <span>Recorded voice</span></summary><div class="tars-audio-options"><p>Small, prerecorded greetings, jokes, and secrets. Sound starts only when you enable it.</p><label class="tars-read-toggle"><input type="checkbox" id="tars-read-replies"> Also read portfolio answers</label><div class="tars-browser-options" hidden><label for="tars-browser-voice">Browser reading voice</label><select id="tars-browser-voice"><option value="">Automatic English voice</option></select><p>Longer answers use your browser’s speech service. Its voice may sound different from the recordings.</p></div><button type="button" class="tars-voice-test">Preview recorded voice</button></div></details><div class="tars-audio-status" hidden><span role="status">Speaking…</span><button type="button" class="tars-stop-voice">Stop</button></div>`);
+dialog.querySelector('.tars-conversation-top').insertAdjacentHTML('afterend', `<button type="button" class="tars-voice-test">Preview recorded voice</button><details class="tars-audio-settings"><summary>About the voice <span>Recorded dialogue</span></summary><div class="tars-audio-options"><p>One consistent voice for every joke and the main portfolio answers. The humor slider changes his banter. Sound starts only when you enable it.</p><p>Short recordings load as needed. Other replies remain readable as text.</p></div></details><div class="tars-audio-status" hidden><span role="status">Speaking…</span><button type="button" class="tars-stop-voice">Stop</button></div>`);
 dialog.querySelector('.tars-scope').textContent = 'A playful, prewritten portfolio guide. No live AI connection.';
 voiceButton.textContent = 'Sound off';
-const readReplies = dialog.querySelector('#tars-read-replies');
-const voiceSelect = dialog.querySelector('#tars-browser-voice');
 const audioStatus = dialog.querySelector('.tars-audio-status');
 voiceButton.before(audioStatus);
-// Keep the preview directly reachable, without opening a disclosure on a phone.
 const previewButton = dialog.querySelector('.tars-voice-test');
-const audioSettings = dialog.querySelector('.tars-audio-settings');
-audioSettings.before(previewButton);
 const previewLabel = 'Preview recorded voice';
 const voicePlayer = createTarsVoice({
   onState(state) {
@@ -65,17 +60,6 @@ const voicePlayer = createTarsVoice({
   },
   onError(message) { feedback.textContent = message; }
 });
-if (!voicePlayer.canSpeak) { readReplies.disabled = true; readReplies.parentElement.title = 'Browser speech is unavailable on this device. Recorded voice still works.'; }
-
-function refreshVoices() {
-  const selected = voiceSelect.value;
-  voiceSelect.replaceChildren(new Option('Automatic English voice', ''));
-  voicePlayer.getVoices().forEach(item => voiceSelect.add(new Option(`${item.name}${item.localService ? ' · on device' : ''}`, item.voiceURI)));
-  if ([...voiceSelect.options].some(item => item.value === selected)) voiceSelect.value = selected;
-}
-globalThis.speechSynthesis?.addEventListener('voiceschanged', refreshVoices);
-refreshVoices();
-
 function updatePersonality() {
   const mode = getTarsPersonality(humor);
   personality.querySelector('output').textContent = `${humor}% · ${mode.label}`;
@@ -144,7 +128,7 @@ function stopSpeaking() {
 
 function speak(answer) {
   if (!voice || !dialog.open || document.hidden) { stopSpeaking(); return; }
-  voicePlayer.play(answer, { browserSpeech: readReplies.checked, voiceURI: voiceSelect.value });
+  voicePlayer.play(answer);
 }
 
 function addMessage(role, text, links = []) {
@@ -256,18 +240,12 @@ function setVoice(enabled) {
   voice = enabled;
   voiceButton.setAttribute('aria-pressed', String(voice));
   voiceButton.textContent = voice ? 'Sound on' : 'Sound off';
-  feedback.textContent = voice ? 'Recorded voice enabled. Jokes and secrets have their own lines.' : 'Sound is off.';
+  feedback.textContent = voice ? 'Recorded voice enabled for jokes, secrets, and the main portfolio answers.' : 'Sound is off.';
   if (voice) speak(getTarsBanter('greeting', { humor })); else stopSpeaking();
 }
 voiceButton.addEventListener('click', () => setVoice(!voice));
 previewButton.addEventListener('click', () => { if (!voice) setVoice(true); else speak(getTarsBanter('greeting', { humor })); });
 dialog.querySelector('.tars-stop-voice').addEventListener('click', () => { stopSpeaking(); feedback.textContent = 'Playback stopped.'; });
-readReplies.addEventListener('change', () => {
-  dialog.querySelector('.tars-browser-options').hidden = !readReplies.checked;
-  stopSpeaking();
-  feedback.textContent = readReplies.checked ? 'Longer answers can now use your browser voice when sound is on.' : 'Only prerecorded lines will play.';
-});
-voiceSelect.addEventListener('change', stopSpeaking);
 dialog.querySelectorAll('[data-tars-fun]').forEach(button => button.addEventListener('click', () => {
   const kind = button.dataset.tarsFun;
   const answer = getTarsBanter(kind, { humor, variant: turn++ });
