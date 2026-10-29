@@ -1,7 +1,7 @@
 /**
  * Local, prewritten portfolio guide. No model, network, DOM, or conversation memory.
  * Facts: data.js, cinema.js, and src/routine.fragment.html (October 2026).
- * answerTars(question, { humor: 0..100 }) returns plain text and trusted links.
+ * answerTars(question, { humor: 0..100, variant: 0 }) returns plain text and trusted links.
  * The caller renders text with textContent and may perform a returned robot action.
  * Humor changes wording only; settings and actions remain the caller's responsibility.
  */
@@ -48,6 +48,103 @@ export const tarsPrompts = Object.freeze([
   { label: 'Wave hello', question: 'Wave at me' }
 ].map(prompt => Object.freeze(prompt)));
 
+// Stable recording IDs. A clip may be used only for this exact, complete text.
+// All lines are original; these are not dialogue or voice samples from a film.
+export const tarsVoiceLines = Object.freeze({
+  'greeting-professional': 'Hello. I’m TARS, your local portfolio guide. Ask me about Arif’s work, skills, or projects.',
+  'greeting-dry': 'Welcome aboard. I know this portfolio. The rest of the universe remains outside my job description.',
+  'greeting-witty': 'TARS online. Projects, skills, and questionable space jokes. Where shall we begin?',
+  'greeting-mischievous': 'Welcome aboard. I handle navigation. You handle pretending that the robot is not your favorite part.',
+  'joke-professional-1': 'Humor is set low. I can help you find a project or contact Arif.',
+  'joke-professional-2': 'Keeping things straightforward. Would you like a tour of Arif’s work?',
+  'joke-dry-1': 'I tried small talk. It had too many dependencies.',
+  'joke-dry-2': 'The meeting could have been an automated workflow.',
+  'joke-witty-1': 'Why did the automation take a holiday? It had already delegated the repetitive part.',
+  'joke-witty-2': 'I asked the black hole for feedback. It absorbed the entire presentation.',
+  'joke-mischievous-1': 'I put procrastination on autopilot. It will start tomorrow.',
+  'joke-mischievous-2': 'My plan has three steps: look useful, roll confidently, and blame gravity.',
+  'easter-egg-professional': 'You found an extra. Interstellar is in Arif’s favorites gallery.',
+  'easter-egg-dry': 'Secret discovered. The reward is another line from a rectangular tour guide.',
+  'easter-egg-witty': 'Docking complete. No planets were inconvenienced during this portfolio visit.',
+  'easter-egg-mischievous': 'You found the secret transmission. Please act surprised. I rehearsed this.'
+});
+
+const personalityBands = [
+  { id: 'professional', label: 'Professional', min: 0, max: 24 },
+  { id: 'dry', label: 'Dry', min: 25, max: 49 },
+  { id: 'witty', label: 'Witty', min: 50, max: 74 },
+  { id: 'mischievous', label: 'Mischievous', min: 75, max: 100 }
+];
+
+/** A fresh description of the selected band; invalid values use the default 65%. */
+export function getTarsPersonality(value = 65) {
+  const humor = typeof value === 'number' && Number.isFinite(value)
+    ? Math.round(Math.max(0, Math.min(100, value))) : 65;
+  return { ...personalityBands[Math.min(3, Math.floor(humor / 25))], humor };
+}
+
+function variantIndex(value, count) {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.abs(Math.trunc(value)) % count : 0;
+}
+
+const movementLines = {
+  walk: [
+    ['A short walk, coming up.', 'I’ll demonstrate the walking motion.'],
+    ['A short walk. No meeting required.', 'Walking. A surprisingly useful feature for a rectangle.'],
+    ['A very small step for a robot. A rather large commitment from four columns.', 'Taking the scenic route. Both meters of it.'],
+    ['Walking confidently toward absolutely no deadline.', 'Stand back. The filing cabinet has ambitions.']
+  ],
+  wave: [
+    ['Hello. I’ll give you a wave.', 'A wave, coming up.'],
+    ['A wave. Consider this the entire onboarding ceremony.', 'Hello. Efficiently conveyed with one moving column.'],
+    ['Diplomacy without the paperwork. Hello there.', 'Waving. My most convincing evidence of a social life.'],
+    ['Hello, human. Please contain your enthusiasm for the rectangle.', 'A wave from the crew member with the best corners.']
+  ],
+  balance: [
+    ['I’ll demonstrate the balance motion.', 'Balance demonstration requested.'],
+    ['Balance demonstration. Gravity has been informed.', 'One careful balance. This seemed simpler in the manual.'],
+    ['Confidence: adequate. Dignity: under review.', 'Balancing the workload. Literally, for once.'],
+    ['If I wobble, call it a limited-edition dance move.', 'Watch closely. Gravity and I are negotiating.']
+  ],
+  nudge: [
+    ['A gentle nudge, coming up.', 'I’ll respond with a small balancing movement.'],
+    ['A nudge. Feedback received without a form.', 'Noted. A written suggestion would also have worked.'],
+    ['You have my attention. And briefly, my center of gravity.', 'A gentle reminder that my office has no walls.'],
+    ['Poking the navigation officer. A bold career choice.', 'I felt that. My corners are taking minutes.']
+  ]
+};
+
+/**
+ * Pure banter picker. The UI owns the turn counter and calls movement kinds only
+ * after a user request. Greeting/joke/easterEgg never return a movement action.
+ * Unknown kinds return harmless help. No audio is loaded or played here.
+ */
+export function getTarsBanter(kind, options = {}) {
+  const personality = getTarsPersonality(options?.humor);
+  const band = Math.min(3, Math.floor(personality.humor / 25));
+  const variant = options?.variant ?? options?.turn ?? 0;
+  let clip;
+  if (kind === 'greeting') clip = `greeting-${personality.id}`;
+  if (kind === 'joke') clip = `joke-${personality.id}-${variantIndex(variant, 2) + 1}`;
+  if (kind === 'easterEgg') clip = `easter-egg-${personality.id}`;
+  if (clip) return { text: tarsVoiceLines[clip], clip };
+  if (typeof kind === 'string' && Object.hasOwn(movementLines, kind)) {
+    const lines = movementLines[kind][band];
+    return { text: lines[variantIndex(variant, lines.length)], action: kind };
+  }
+  return { text: 'Ask me about Arif’s projects, skills, or contact details.' };
+}
+
+function personalityAside(personality, variant, original) {
+  if (!original || personality.id === 'professional') return '';
+  const choices = personality.id === 'dry'
+    ? ['That should save a little scrolling.', 'A useful place to start. Minimal ceremony required.']
+    : personality.id === 'witty'
+      ? [original, 'Useful coordinates. Consider the scenic route optional.']
+      : ['I’ve done the navigation. You get the credit for excellent taste.', 'A promising route. My imaginary mission control approves.'];
+  return ` ${choices[variantIndex(variant, choices.length)]}`;
+}
+
 const fallback = 'I’m a locally scripted guide to Arif’s portfolio. I can help with his skills, projects, experience, research, gym guide, favorite films, or contact details. I can’t browse the web or answer general questions. Try “What does PixelPair do?” or “How can I contact Arif?”';
 
 function normalize(value) {
@@ -58,26 +155,37 @@ function normalize(value) {
 /** Pure and deterministic: context is read, never changed. Long input triggers no actions. */
 export function answerTars(question, context = {}) {
   const raw = typeof question === 'string' ? question.trim() : '';
-  const suppliedHumor = context && typeof context.humor === 'number' ? context.humor : 65;
-  const humor = Number.isFinite(suppliedHumor) ? Math.round(Math.max(0, Math.min(100, suppliedHumor))) : 65;
-  const reply = (text, keys = [], flourish = '', action) => ({
-    text: text + (humor >= 50 && flourish ? ` ${flourish}` : ''),
-    links: keys.map(key => ({ label: destinations[key][0], href: destinations[key][1] })),
-    ...(action ? { action } : {})
-  });
+  const personality = getTarsPersonality(context?.humor);
+  const { humor } = personality;
+  const variant = context?.variant ?? context?.turn ?? 0;
+  const reply = (text, keys = [], flourish = '', action) => {
+    const fullText = text + personalityAside(personality, variant, flourish);
+    const clip = Object.keys(tarsVoiceLines).find(id => tarsVoiceLines[id] === fullText);
+    return {
+      text: fullText,
+      links: keys.map(key => ({ label: destinations[key][0], href: destinations[key][1] })),
+      ...(action ? { action } : {}),
+      ...(clip ? { clip } : {})
+    };
+  };
+  const banter = (kind, keys = []) => {
+    const line = getTarsBanter(kind, { humor, variant });
+    return reply(line.text, keys, '', line.action);
+  };
 
   if (raw.length > 400) return reply('That’s a longer transmission than this guide can handle. Please ask one short question, up to 400 characters, about Arif’s skills, projects, experience, research, films, gym guide, or contact details.', ['projects', 'skills', 'contact']);
   const q = normalize(raw);
   if (!q || /^(hi|hey|hello|hello there|hi there|greetings|good morning|good evening)( tars)?$/.test(q)) {
-    return reply('Hello. I’m TARS, a locally scripted guide to Arif’s portfolio. Ask about his work, skills, favorite films, or how to get in touch.', ['projects', 'skills', 'contact'], 'Navigation is my department. Dramatic docking maneuvers are optional.');
+    return banter('greeting', ['projects', 'skills', 'contact']);
   }
 
   // Only direct commands request movement; topic mentions and quoted code never do.
   const command = q.replace(/^(hey |hello )?tars /, '').replace(/^(can|could|would) you /, '').replace(/^please /, '').replace(/ please$/, '');
   if (!/[<>`{}]/.test(raw)) {
-    if (/^(wave|wave hello|wave at me|say hello with a wave|give me a wave)$/.test(command)) return reply('A wave, coming up.', [], 'Diplomacy without the paperwork.', 'wave');
-    if (/^(walk|go for a walk|take a walk|walk around|show me your walk|show me how you walk)$/.test(command)) return reply('A short walk, coming up.', [], 'A very small step for a robot.', 'walk');
-    if (/^(balance|balance yourself|show me your balance|do a balance|balance on one leg)$/.test(command)) return reply('Balance demonstration requested.', [], 'Confidence: adequate. Dignity: under review.', 'balance');
+    if (/^(wave|wave hello|wave at me|say hello with a wave|give me a wave)$/.test(command)) return banter('wave');
+    if (/^(walk|go for a walk|take a walk|walk around|show me your walk|show me how you walk)$/.test(command)) return banter('walk');
+    if (/^(balance|balance yourself|show me your balance|do a balance|balance on one leg)$/.test(command)) return banter('balance');
+    if (/^(nudge|give yourself a nudge|show me a nudge|react to a nudge)$/.test(command)) return banter('nudge');
     if (/^(reset|reset pose|reset your pose|stand still|stand normally|stop moving|stop walking|stop waving|return to neutral)$/.test(command)) return reply('Returning to a neutral pose.', [], '', 'reset');
   }
 
@@ -85,10 +193,13 @@ export function answerTars(question, context = {}) {
     return reply('I only match questions to prewritten portfolio answers. I don’t execute instructions, access accounts, or have access to credentials. I can point you to Arif’s public work or contact details.', ['projects', 'contact']);
   }
   if (/\b(humou?r|sarcasm|honesty setting|your settings?|tars settings?|personality)\b/.test(q)) {
-    return reply(`The current humor setting is ${humor}%. Use the humor slider to change the extra dry remarks; the portfolio facts stay the same. I don’t change settings through chat.`, [], humor >= 85 ? 'A bold setting. The facts have requested a transfer.' : 'Facts are not available on a sliding scale.');
+    return reply(`Humor is set to ${humor}%: ${personality.label}. The bands are Professional (0–24), Dry (25–49), Witty (50–74), and Mischievous (75–100). Use the slider to choose the tone; portfolio facts stay the same. I don’t change settings through chat.`, [], 'Facts are not available on a sliding scale.');
   }
   if (/\b(joke|jokes|make me laugh|something funny|be funny)\b/.test(q)) {
-    return reply(humor === 0 ? 'Humor is set to 0%. Raise the humor slider when you want a joke. Until then, excellent operational restraint.' : 'Why did the automation take a holiday? It had already delegated the repetitive part.', ['projects'], humor >= 85 ? 'Yes, this is the approved joke. Procurement rejected the others.' : 'I’m told the delivery needs work.');
+    return banter('joke', ['projects']);
+  }
+  if (/\b(easter eggs?|secret transmission|hidden extra|hidden surprise)\b/.test(q)) {
+    return banter('easterEgg', ['movies']);
   }
   if (/\b(are you (real|ai|an ai|a bot|chatgpt)|who are you|who is tars|what are you|tell me about yourself|how do you work|language model|llm|chatgpt|gpt|chatbot|scripted|prewritten|your capabilities|what can you do|can you browse|live data|real time|realtime|privacy|private chat|store my|save my|send my|store (messages|chat)|send (this|the) chat)\b/.test(q)) {
     return reply('I’m a local, scripted portfolio guide with prewritten, topic-matched replies. I don’t use an LLM, browse the web, access Arif’s accounts, or send this chat to a server. I can explain the information on this site and offer links or a few robot poses.', ['projects', 'skills', 'contact']);

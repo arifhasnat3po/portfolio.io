@@ -1,5 +1,6 @@
 /* A local portfolio companion: explicit voice opt-in, bounded answers, accessible controls. */
-import { answerTars, tarsPrompts } from './tars-knowledge.js?v=20261029a';
+import { answerTars, tarsPrompts, getTarsPersonality, getTarsBanter } from './tars-knowledge.js?v=20261029d';
+import { createTarsVoice } from './tars-voice.js?v=20261029d';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const robotIcon = '<svg viewBox="0 0 64 92" fill="none" aria-hidden="true"><path d="M7 7h12v75H7zm15-3h12v82H22zm15 0h12v82H37zm15 3h9v75h-9z" fill="currentColor" opacity=".72"/><path d="M24 23h8v10h-8zm15 0h8v10h-8z" fill="#183b41"/><path d="M25 26h6m9 0h6M25 29h4m11 0h5" stroke="#b9e8e6" stroke-width=".8"/></svg>';
@@ -28,11 +29,54 @@ const voiceButton = dialog.querySelector('.tars-voice');
 let mini = null, full = null, miniLoading = false, fullLoading = false;
 let miniEpoch = 0, fullEpoch = 0, rendererModule = null;
 let opener = null, previousOverflow = '', stowed = false, heroVisible = true;
-let humor = 65, voice = false, lastAnswer = '', utterance = null, speechToken = 0;
+let humor = 65, voice = false, turn = 0, audioState = 'idle';
 let disposed = false, sessionActive = false, queuedOpener = null;
 const motionAllowed = () => !reduced.matches && document.documentElement.dataset.motion !== 'off';
-const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-if (!canSpeak) { voiceButton.disabled = true; voiceButton.textContent = 'Voice unavailable'; }
+
+// Keep only the personality preference, never questions or sound opt-in.
+try { const saved = localStorage.getItem('portfolio:tars-humor'); if (saved !== null && Number.isFinite(Number(saved))) humor = Math.max(0, Math.min(100, Number(saved))); } catch {}
+const personality = dialog.querySelector('.tars-personality');
+personality.insertAdjacentHTML('beforeend', '<div class="tars-humor-scale" aria-hidden="true"><span>All business</span><span>Maximum banter</span></div><p class="tars-personality-preview" id="tars-personality-preview"></p><div class="tars-play"><button type="button" data-tars-fun="joke">Tell me a joke</button><button type="button" data-tars-fun="easterEgg">Secret handshake</button></div>');
+const humorInput = dialog.querySelector('#tars-humor');
+humorInput.value = String(humor);
+humorInput.setAttribute('aria-describedby', 'tars-personality-preview');
+
+dialog.querySelector('.tars-conversation-top').insertAdjacentHTML('afterend', `<details class="tars-audio-settings"><summary>Voice settings <span>Recorded voice</span></summary><div class="tars-audio-options"><p>Small, prerecorded greetings, jokes, and secrets. Sound starts only when you enable it.</p><label class="tars-read-toggle"><input type="checkbox" id="tars-read-replies"> Also read portfolio answers</label><div class="tars-browser-options" hidden><label for="tars-browser-voice">Browser reading voice</label><select id="tars-browser-voice"><option value="">Automatic English voice</option></select><p>Longer answers use your browser’s speech service. Its voice may sound different from the recordings.</p></div><button type="button" class="tars-voice-test">Preview recorded voice</button></div></details><div class="tars-audio-status" hidden><span role="status">Speaking…</span><button type="button" class="tars-stop-voice">Stop</button></div>`);
+dialog.querySelector('.tars-scope').textContent = 'A playful, prewritten portfolio guide. No live AI connection.';
+voiceButton.textContent = 'Sound off';
+const readReplies = dialog.querySelector('#tars-read-replies');
+const voiceSelect = dialog.querySelector('#tars-browser-voice');
+const audioStatus = dialog.querySelector('.tars-audio-status');
+voiceButton.before(audioStatus);
+const voicePlayer = createTarsVoice({
+  onState(state) {
+    audioState = state;
+    audioStatus.hidden = state === 'idle';
+    audioStatus.querySelector('span').textContent = state === 'loading' ? 'Preparing voice…' : 'Speaking…';
+    full?.setSpeaking(state === 'speaking');
+    voiceButton.classList.toggle('is-speaking', state === 'speaking');
+  },
+  onError(message) { feedback.textContent = message; }
+});
+if (!voicePlayer.canSpeak) { readReplies.disabled = true; readReplies.parentElement.title = 'Browser speech is unavailable on this device. Recorded voice still works.'; }
+
+function refreshVoices() {
+  const selected = voiceSelect.value;
+  voiceSelect.replaceChildren(new Option('Automatic English voice', ''));
+  voicePlayer.getVoices().forEach(item => voiceSelect.add(new Option(`${item.name}${item.localService ? ' · on device' : ''}`, item.voiceURI)));
+  if ([...voiceSelect.options].some(item => item.value === selected)) voiceSelect.value = selected;
+}
+globalThis.speechSynthesis?.addEventListener('voiceschanged', refreshVoices);
+refreshVoices();
+
+function updatePersonality() {
+  const mode = getTarsPersonality(humor);
+  personality.querySelector('output').textContent = `${humor}% · ${mode.label}`;
+  humorInput.setAttribute('aria-valuetext', `${humor} percent, ${mode.label}`);
+  personality.querySelector('.tars-personality-preview').textContent = getTarsBanter('greeting', { humor }).text;
+  personality.dataset.personality = mode.id;
+}
+updatePersonality();
 
 function loadRenderer() {
   if (!rendererModule) rendererModule = import('./tars-3d.js?v=20261029c').catch(error => { rendererModule = null; throw error; });
@@ -77,6 +121,7 @@ async function mountFull() {
     const renderer = await mountTars(stage, { compact: false });
     if (disposed || epoch !== fullEpoch || !dialog.open) { renderer.destroy(); return; }
     full = renderer;
+    full.setSpeaking(audioState === 'speaking');
     stage.dataset.ready = 'true';
     dialog.querySelector('.tars-model-note').textContent = 'Four columns. Quite a few possibilities.';
     updateMotion();
@@ -87,27 +132,12 @@ async function mountFull() {
 }
 
 function stopSpeaking() {
-  ++speechToken;
-  if (canSpeak) speechSynthesis.cancel();
-  utterance = null;
-  full?.setSpeaking(false);
-  voiceButton.classList.remove('is-speaking');
+  voicePlayer.stop();
 }
 
-function speak(text) {
-  stopSpeaking();
-  if (!voice || !dialog.open || !canSpeak) return;
-  const token = speechToken;
-  utterance = new SpeechSynthesisUtterance(text);
-  const voices = speechSynthesis.getVoices().filter(item => /^en(?:-|_)/i.test(item.lang));
-  const selected = voices.find(item => item.localService && /natural|david|daniel|alex|guy/i.test(item.name)) || voices.find(item => item.localService) || voices[0];
-  if (selected) utterance.voice = selected;
-  utterance.lang = selected?.lang || 'en-US';
-  utterance.rate = .96; utterance.pitch = .83; utterance.volume = .85;
-  utterance.onstart = () => { if (token === speechToken) { full?.setSpeaking(true); voiceButton.classList.add('is-speaking'); } };
-  utterance.onend = () => { if (token === speechToken) { full?.setSpeaking(false); voiceButton.classList.remove('is-speaking'); } };
-  utterance.onerror = event => { if (token === speechToken && event.error !== 'canceled' && event.error !== 'interrupted') { full?.setSpeaking(false); voiceButton.classList.remove('is-speaking'); feedback.textContent = 'Voice could not play. The full reply is here to read.'; } };
-  speechSynthesis.speak(utterance);
+function speak(answer) {
+  if (!voice || !dialog.open || document.hidden) { stopSpeaking(); return; }
+  voicePlayer.play(answer, { browserSpeech: readReplies.checked, voiceURI: voiceSelect.value });
 }
 
 function addMessage(role, text, links = []) {
@@ -136,7 +166,6 @@ function addMessage(role, text, links = []) {
   // Keep a bounded, in-memory conversation. Nothing is stored or submitted.
   while (log.children.length > 24) log.firstElementChild.remove();
   log.scrollTop = log.scrollHeight;
-  if (role === 'assistant') lastAnswer = text;
 }
 
 function ask(question) {
@@ -144,10 +173,10 @@ function ask(question) {
   if (!text) return;
   feedback.textContent = '';
   addMessage('user', text);
-  const answer = answerTars(text, { humor });
+  const answer = answerTars(text, { humor, variant: turn++ });
   addMessage('assistant', answer.text, answer.links || []);
   if (answer.action && motionAllowed()) full?.perform(answer.action);
-  speak(answer.text);
+  speak(answer);
 }
 
 function openTarsGuide(button = dock.querySelector('.tars-launcher')) {
@@ -165,8 +194,9 @@ function openTarsGuide(button = dock.querySelector('.tars-launcher')) {
   sessionActive = true;
   document.body.style.overflow = 'hidden';
   dialog.showModal();
+  feedback.textContent = '';
   dialog.querySelector('.tars-close').focus();
-  if (!log.children.length) addMessage('assistant', 'Hello. I’m TARS, your guide to this little corner of the universe. I can help you find Arif’s projects, explain his skills, or get in touch. Where shall we start?');
+  if (!log.children.length) addMessage('assistant', getTarsBanter('greeting', { humor }).text);
   document.dispatchEvent(new CustomEvent('portfolio:tars-discovered'));
   updateMotion();
   mountFull();
@@ -187,7 +217,7 @@ dialog.querySelector('.tars-close').addEventListener('click', () => dialog.close
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
 dialog.addEventListener('close', () => {
   if (!sessionActive) return;
-  stopSpeaking(); voice = false; voiceButton.setAttribute('aria-pressed', 'false'); if (canSpeak) voiceButton.textContent = 'Voice off';
+  stopSpeaking(); voice = false; voiceButton.setAttribute('aria-pressed', 'false'); voiceButton.textContent = 'Sound off';
   document.body.style.overflow = previousOverflow;
   ++fullEpoch;
   full?.destroy(); full = null; stage.dataset.ready = 'false';
@@ -198,9 +228,34 @@ dialog.addEventListener('close', () => {
 });
 dialog.querySelector('.tars-form').addEventListener('submit', event => { event.preventDefault(); ask(input.value); input.value = ''; input.focus(); });
 tarsPrompts.slice(0, 4).forEach(prompt => { const button = document.createElement('button'); button.type = 'button'; button.textContent = prompt.label; button.addEventListener('click', () => ask(prompt.question)); dialog.querySelector('.tars-prompts').append(button); });
-dialog.querySelector('#tars-humor').addEventListener('input', event => { humor = Number(event.target.value); dialog.querySelector('.tars-personality output').textContent = `${humor}%`; });
-voiceButton.addEventListener('click', () => { if (!canSpeak) return; voice = !voice; voiceButton.setAttribute('aria-pressed', String(voice)); voiceButton.textContent = voice ? 'Voice on' : 'Voice off'; feedback.textContent = voice ? 'Voice enabled. You can turn it off at any time.' : 'Voice is off.'; if (voice && lastAnswer) speak(lastAnswer); else stopSpeaking(); });
-dialog.querySelectorAll('[data-tars-action]').forEach(button => button.addEventListener('click', () => { if (!motionAllowed() || !full) return; full.perform(button.dataset.tarsAction); const lines = {walk:'A short walk. Every step accounted for.',wave:'Hello, human. Excellent choice of planet.',balance:'Center of mass: under control.',nudge:'External force detected. Still on my feet.'}; dialog.querySelector('.tars-model-note').textContent = lines[button.dataset.tarsAction]; }));
+humorInput.addEventListener('input', event => { humor = Number(event.target.value); updatePersonality(); });
+humorInput.addEventListener('change', () => { try { localStorage.setItem('portfolio:tars-humor', String(humor)); } catch {} speak(getTarsBanter('greeting', { humor })); });
+function setVoice(enabled) {
+  voice = enabled;
+  voiceButton.setAttribute('aria-pressed', String(voice));
+  voiceButton.textContent = voice ? 'Sound on' : 'Sound off';
+  feedback.textContent = voice ? 'Recorded voice enabled. Jokes and secrets have their own lines.' : 'Sound is off.';
+  if (voice) speak(getTarsBanter('greeting', { humor })); else stopSpeaking();
+}
+voiceButton.addEventListener('click', () => setVoice(!voice));
+dialog.querySelector('.tars-voice-test').addEventListener('click', () => { if (!voice) setVoice(true); else speak(getTarsBanter('greeting', { humor })); });
+dialog.querySelector('.tars-stop-voice').addEventListener('click', () => { stopSpeaking(); feedback.textContent = 'Playback stopped.'; });
+readReplies.addEventListener('change', () => {
+  dialog.querySelector('.tars-browser-options').hidden = !readReplies.checked;
+  stopSpeaking();
+  feedback.textContent = readReplies.checked ? 'Longer answers can now use your browser voice when sound is on.' : 'Only prerecorded lines will play.';
+});
+voiceSelect.addEventListener('change', stopSpeaking);
+dialog.querySelectorAll('[data-tars-fun]').forEach(button => button.addEventListener('click', () => {
+  const kind = button.dataset.tarsFun;
+  const answer = getTarsBanter(kind, { humor, variant: turn++ });
+  addMessage('user', kind === 'joke' ? 'Tell me a joke.' : 'Secret handshake?');
+  addMessage('assistant', answer.text);
+  // This explicit play button asks for a flourish; portfolio questions stay still.
+  if (motionAllowed()) full?.perform(kind === 'easterEgg' ? 'balance' : humor >= 75 ? 'wave' : 'reset');
+  speak(answer);
+}));
+dialog.querySelectorAll('[data-tars-action]').forEach(button => button.addEventListener('click', () => { if (!motionAllowed() || !full) return; full.perform(button.dataset.tarsAction); const answer = getTarsBanter(button.dataset.tarsAction, { humor, variant: turn++ }); dialog.querySelector('.tars-model-note').textContent = answer.text; speak(answer); }));
 dialog.querySelector('.tars-resume').addEventListener('click', () => { if (!reduced.matches) document.querySelector('.motion-toggle')?.click(); });
 document.addEventListener('portfolio:motionchange', updateMotion);
 document.addEventListener('visibilitychange', updateMotion);

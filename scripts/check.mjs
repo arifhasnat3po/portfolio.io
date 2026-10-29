@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -115,7 +116,24 @@ function checkSyntax(file) {
 
 for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
-for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'assets/js/tars-guide.js', 'assets/js/tars-knowledge.js', 'assets/js/tars-3d.js', 'assets/js/tars-physics.js', 'gym/sw.js']) checkSyntax(file);
+for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'assets/js/tars-guide.js', 'assets/js/tars-knowledge.js', 'assets/js/tars-voice.js', 'assets/js/tars-3d.js', 'assets/js/tars-physics.js', 'gym/sw.js']) checkSyntax(file);
+try {
+  const { tarsVoiceLines } = await import(pathToFileURL(path.join(root, 'assets/js/tars-knowledge.js')).href);
+  const manifest = JSON.parse(read('assets/audio/tars/manifest.json'));
+  const clips = new Map(manifest.clips.map(clip => [clip.id, clip]));
+  if (clips.size !== manifest.clips.length || clips.size !== Object.keys(tarsVoiceLines).length) fail('TARS audio catalogue and manifest counts differ');
+  let totalBytes = 0;
+  for (const [id, text] of Object.entries(tarsVoiceLines)) {
+    const file = `assets/audio/tars/${id}.mp3`;
+    localReference(file, 'index.html');
+    const bytes = fs.readFileSync(path.join(root, file));
+    const clip = clips.get(id);
+    if (!clip || clip.text !== text || clip.bytes !== bytes.length || clip.sha256 !== createHash('sha256').update(bytes).digest('hex')) fail(`TARS audio is stale or mismatched: ${id}`);
+    if (!clip || !(clip.durationSeconds > 0) || bytes.length > 150000) fail(`TARS audio duration or size is invalid: ${id}`);
+    totalBytes += bytes.length;
+  }
+  if (totalBytes !== manifest.totalBytes || totalBytes > 1500000) fail('TARS audio manifest total or download budget is invalid');
+} catch (error) { fail(`TARS voice integrity: ${error.message}`); }
 try {
   const credits=JSON.parse(read('assets/models/credits.json'));
   for(const model of credits.models){
@@ -123,7 +141,7 @@ try {
     if(fs.statSync(path.join(root,'assets/models',model.file)).size!==model.bytes)fail(`Model size does not match manifest: ${model.file}`);
     if(!model.author||!model.source||!model.licenseUrl)fail(`Incomplete model attribution: ${model.file}`);
   }
-  const imports=['assets/js/cameo-3d.js','assets/js/tars-guide.js','assets/js/tars-3d.js',...fs.readdirSync(path.join(root,'assets/vendor/cameo-three')).filter(f=>f.endsWith('.js')).map(f=>`assets/vendor/cameo-three/${f}`)];
+  const imports=['assets/js/cameo-3d.js','assets/js/tars-guide.js','assets/js/tars-voice.js','assets/js/tars-3d.js',...fs.readdirSync(path.join(root,'assets/vendor/cameo-three')).filter(f=>f.endsWith('.js')).map(f=>`assets/vendor/cameo-three/${f}`)];
   for(const file of imports)for(const match of read(file).matchAll(/(?:from\s+|import\s*\(\s*)['"](\.[^'"]+)['"]/g))localReference(match[1],file);
 }catch(error){fail(`3D asset integrity: ${error.message}`);}
 
