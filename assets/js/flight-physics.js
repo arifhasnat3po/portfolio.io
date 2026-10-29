@@ -19,7 +19,7 @@
       vx: speed * .68, vy: -viewportHeight * .012,
       ax: 0, ay: 0, speed,
       altitudeTarget: viewportHeight * .34,
-      bank: 0, pitch: 0, throttle: .46, scale: .83,
+      bank: 0, pitch: 0, heading: 0, yaw: 0, throttle: .46, scale: .83,
       maxForwardAcceleration: speed * 1.2,
       maxLateralAcceleration: clamp(viewportHeight * .085, 44, 100),
       maxLateralSpeed: clamp(viewportHeight * .1, 50, 120)
@@ -66,13 +66,19 @@
     state.x += state.vx * dt;
     state.y += state.vy * dt;
 
-    const targetBank = clamp(-state.ay / state.maxLateralAcceleration * .5, -.5, .5);
-    const targetPitch = clamp(-Math.atan2(state.vy, Math.max(20, state.vx)) * .42, -.27, .27);
+    const course = Math.atan2(state.vy, Math.max(20, state.vx));
+    const rollLimit = state.kind === 'falcon' ? .62 : .34;
+    const targetBank = clamp(-state.ay / state.maxLateralAcceleration * rollLimit, -rollLimit, rollLimit);
+    // A slight nose-up attitude under acceleration reads as thrust, independently of course and roll.
+    const targetPitch = clamp(-state.ax / state.maxForwardAcceleration * .11 - course * .12, -.2, .2);
     state.bank = approach(state.bank, targetBank, 4.3, dt);
     state.pitch = approach(state.pitch, targetPitch, 3.5, dt);
+    state.heading = approach(state.heading, clamp(course, -.55, .55), 4.1, dt);
+    const departure = smooth(.76, .98, progress);
+    const targetYaw = (state.kind === 'falcon' ? -.36 : -.2) * targetBank + departure * .14;
+    state.yaw = approach(state.yaw, clamp(targetYaw, -.3, .3), 2.4, dt);
     const thrust = Math.hypot(Math.max(0, state.ax) / state.maxForwardAcceleration,
       state.ay / state.maxLateralAcceleration * .35);
-    const departure = smooth(.76, .98, progress);
     state.throttle = approach(state.throttle, clamp(.2 + thrust * .67 + departure * .15, 0, 1), 5, dt);
     const depth = .79 + clamp(state.y / height, .1, .6) * .24;
     state.scale = approach(state.scale, depth - departure * .045, 1.4, dt);
@@ -142,7 +148,7 @@
       const entry = smooth(-state.width * .95, -state.width * .1, state.x);
       const exit = 1 - smooth(state.viewportWidth, state.viewportWidth + state.width * .45, state.x);
       element.style.opacity = (opacity * entry * exit).toFixed(3);
-      options.setFlightState?.({ throttle: state.throttle, bank: state.bank, pitch: state.pitch });
+      options.setFlightState?.({ throttle: state.throttle, bank: state.bank, pitch: state.pitch, heading: state.heading, yaw: state.yaw });
     }
 
     function tick(now) {

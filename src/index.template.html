@@ -74,8 +74,7 @@
       <div class="container">
         <div class="section-heading"><div><p class="eyebrow">01 / THINGS I'VE BUILT</p><h2 id="projects-heading">Selected <em>work.</em></h2></div><p>WordPress plugins, connected workflows, and tools I wanted to use myself.</p></div>
         <div class="featured-grid">{{FEATURED_PROJECTS}}</div>
-        <div class="archive-heading"><div><span class="eyebrow">THE EARLIER CHAPTERS</span><h3>More from the archive.</h3></div><label class="project-search"><span class="sr-only">Search earlier projects</span>{{SEARCH_ICON}}<input type="search" id="project-search" placeholder="Find a project or skill…" autocomplete="off"></label></div>
-        <div class="archive-grid" id="archive-grid">{{PROJECTS}}</div><p id="project-empty" class="empty-message" hidden>No projects match that search. Try “Python”, “networking”, or “security”.</p><p id="project-count" class="sr-only" aria-live="polite"></p>
+
       </div>
     </section>
     <section class="section expertise-section" id="expertise" aria-labelledby="expertise-heading">
@@ -93,6 +92,12 @@
     </section>
     <section class="section journey-section" id="journey" aria-labelledby="journey-heading"><div class="container"><div class="section-heading"><div><p class="eyebrow">04 / THE PATH SO FAR</p><h2 id="journey-heading">Experience &amp;<br><em>education.</em></h2></div><button class="button button-outline print-profile">Save résumé as PDF {{ARROW}}</button></div><div class="journey-grid"><div class="experience-list">{{EXPERIENCE}}</div><aside class="journey-aside"><span class="eyebrow">THE FOUNDATION</span>{{EDUCATION}}</aside></div></div></section>
     <section class="section research-section" id="publications" aria-labelledby="research-heading"><div class="container"><div class="section-heading"><div><p class="eyebrow">05 / PEER-REVIEWED WORK</p><h2 id="research-heading">Published <em>research.</em></h2></div><p>Machine learning, connected environments, and the systems behind them.</p></div><div class="publication-list">{{PUBLICATIONS}}</div></div></section>
+    <section class="section earlier-projects-section" id="earlier-projects" aria-labelledby="earlier-projects-heading"><div class="container">
+      <div class="section-heading"><div><p class="eyebrow">MORE THINGS I'VE BUILT</p><h2 id="earlier-projects-heading">Projects &amp; <em>experiments.</em></h2></div><p>Web applications, engineering experiments, and the earlier chapters.</p></div>
+      <div class="featured-grid">{{EARLIER_FEATURED_PROJECTS}}</div>
+        <div class="archive-heading"><div><span class="eyebrow">THE EARLIER CHAPTERS</span><h3>More from the archive.</h3></div><label class="project-search"><span class="sr-only">Search earlier projects</span>{{SEARCH_ICON}}<input type="search" id="project-search" placeholder="Find a project or skill…" autocomplete="off"></label></div>
+        <div class="archive-grid" id="archive-grid">{{PROJECTS}}</div><p id="project-empty" class="empty-message" hidden>No projects match that search. Try “Python”, “networking”, or “security”.</p><p id="project-count" class="sr-only" aria-live="polite"></p>
+    </div></section>
     <section class="section credentials-section" id="certificates" aria-labelledby="credentials-heading"><div class="container"><div class="section-heading"><div><p class="eyebrow">06 / KEEP LEARNING</p><h2 id="credentials-heading">Credentials &amp; <em>community.</em></h2></div></div><div class="certificate-grid">{{CERTIFICATES}}</div><details class="community-details" open><summary><span>Beyond the classroom <small>Leadership, volunteering &amp; achievements</small></span><span class="details-sign" aria-hidden="true">+</span></summary><div class="community-grid">{{EXTRACURRICULAR}}</div><ul class="achievement-list">{{ACHIEVEMENTS}}</ul></details></div></section>
     <section id="watchlist" class="section cinema-section"><div class="container"><div id="cinema-root"></div></div></section>
     {{ROUTINE}}

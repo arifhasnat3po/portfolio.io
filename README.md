@@ -17,10 +17,10 @@ Gym app: **https://arifhasnat.vercel.app/gym/**
 - `assets/js/main.js` — navigation, motion controls, project filtering/details, video dialog, and printing.
 - `assets/js/cinema.js` and `assets/css/cinema.css` — watchlist gallery, pointer tilt, filters, and accessible scene viewer.
 - `assets/img/watchlist/` — 20 optimized supplied images; `manifest.json` records the source mapping.
-- `assets/js/entangled.js` and `assets/css/cosmos.css` — the restored green branching tree, drifting black hole with click/tap sparks, stars, and galaxies. Light mode fades the black hole; motion controls and reduced-motion preferences are respected.
+- `assets/js/entangled.js` and `assets/css/cosmos.css` — the layered 3D world tree, drifting black hole with click/tap sparks, stars, and galaxies. Light mode fades the black hole; motion controls and reduced-motion preferences are respected.
 - `assets/js/cameos.js` and `assets/css/cameos.css` — model flybys and five discoverable secrets.
 - `assets/js/flight-physics.js` — fixed-step velocity/acceleration simulation with bounded thrust, smooth banking, and throttle feedback for the engines.
-- `assets/js/cameo-3d.js` — local licensed meshes, material lighting, model-attached engines, and 3D viewer controls. `assets/models/credits.json` records provenance. The flyby Iron Man is a compact asset; the detailed reference model is available through its official embed in the viewer.
+- `assets/js/cameo-3d.js` — local licensed meshes, material lighting, model-attached engines, and 3D viewer controls. `assets/models/credits.json` records provenance. Iron Man uses the detailed, 66-bone Mark 85 model with articulated flight and boot-mounted exhaust. Models load on demand. The separate docking-bay viewer features only the Millennium Falcon.
 - `src/routine.fragment.html`, `assets/js/routine.js`, and `assets/css/routine.css` — the dedicated personal workout section.
 - `assets/js/contact.js` — FormSubmit delivery, validation, status, and native fallback. See `docs/contact-setup.md` for Gmail activation.
 - `assets/img/projects/sources.json` — provenance for authentic project artwork.
@@ -44,7 +44,7 @@ Use a current Node.js LTS release. There are no npm packages to install.
 
 Do not edit the generated `index.html` directly: the next build replaces it. The object inside `data.js` is parsed as JSON, so keep quoted keys, double-quoted strings, and JSON-compatible values; do not add comments, trailing commas, or executable expressions inside the object.
 
-`currentSkills` controls the four interactive expertise tabs. `featuredProjects` controls the editorial project showcase; `projects` retains the earlier work. Keep existing records when adding new information. A featured project without a public destination opens a local details dialog rather than a placeholder link. Never add private repository links as public demos.
+`currentSkills` controls the four interactive expertise tabs. `featuredProjects` controls the editorial project showcase; `projects` retains the earlier work. StreamVision and the projects following it appear after Publications, along with the project archive. Keep existing records when adding new information. A featured project without a public destination opens a local details dialog rather than a placeholder link. Never add private repository links as public demos.
 
 To edit the watchlist, update the title/frame metadata in `assets/js/cinema.js` and the matching images. Keep descriptive alternative text and accurate dimensions. Duplicate scenes are available in the scene viewer. The gallery respects reduced-motion preferences and the page's motion toggle.
 

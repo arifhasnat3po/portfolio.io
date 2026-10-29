@@ -10,7 +10,7 @@
   const titles = [
     { title: 'Star Wars', kind: 'film', genre: 'A galaxy far, far away', accent: '#d8b47c', wide: true, cameo: 'falcon', orbitLabel: 'Send the Falcon into orbit', frames: [frame('star-wars', 1440, 810, 'Star Wars saga collage with spacecraft and lightsabers')] },
     { title: 'Iron Man', kind: 'film', genre: 'Marvel universe', accent: '#d8b47c', position: '58% 45%', cameo: 'ironman', orbitLabel: 'Send Iron Man into orbit', frames: [frame('iron-man', 1391, 700, 'Iron Man testing a glowing repulsor'), frame('iron-man-jericho', 857, 358, 'Iron Man film scene in front of a mountain range')] },
-    { title: 'House of the Dragon', kind: 'series', genre: 'Fire & blood', accent: '#d8b47c', position: '70% 50%', cameo: 'dragon', orbitLabel: 'Send Caraxes into orbit', frames: [frame('house-of-the-dragon', 1440, 960, 'House of the Dragon scene beside Caraxes'), frame('house-of-the-dragon-throne', 1440, 810, 'House of the Dragon scene with a sword and dragon banners')] },
+    { title: 'House of the Dragon', kind: 'series', genre: 'Fire & blood', accent: '#d8b47c', position: '70% 50%', cameo: 'dragon', orbitLabel: 'Wake the dragon’s constellation', frames: [frame('house-of-the-dragon', 1440, 960, 'House of the Dragon scene beside Caraxes'), frame('house-of-the-dragon-throne', 1440, 810, 'House of the Dragon scene with a sword and dragon banners')] },
     { title: 'Friends', kind: 'series', genre: 'Central Perk', accent: '#f5ce92', frames: [frame('friends', 739, 415, 'Friends ensemble portrait'), frame('friends-central-perk', 900, 587, 'Friends gathered in Central Perk')] },
     { title: 'Spider-Man: No Way Home', kind: 'film', genre: 'Across the multiverse', accent: '#f29999', frames: [frame('spider-man', 596, 335, 'Three Spider-Man suits in an action scene'), frame('spider-man-point', 1200, 676, 'Three Spider-Man characters pointing at each other')] },
     { title: 'Loki', kind: 'series', genre: 'For all time. Always.', accent: '#9dcea2', position: '65% 50%', frames: [frame('loki', 1440, 810, 'Loki and Sylvie sitting in a green landscape')] },
@@ -31,7 +31,7 @@
   const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const initialCount = 7;
   let filter = 'all';
-  let expanded = false;
+  let expanded = true;
   let opener = null;
   let viewerFrames = [];
   let viewerIndex = 0;
@@ -211,6 +211,10 @@
     renderGallery();
   }));
   root.querySelector('.cinema-spotlight-open').addEventListener('click', event => openViewer(2, event.currentTarget, true));
+  document.addEventListener('portfolio:cinema-open', event => {
+    const index = titles.findIndex(title => title.title === event.detail?.title);
+    if (index >= 0 && !dialog.open) openViewer(index, event.detail.opener || root.querySelector('.cinema-spotlight-open'), true);
+  });
   orbitButton.addEventListener('click', event => {
     event.stopPropagation();
     const type = orbitButton.dataset.cameo;

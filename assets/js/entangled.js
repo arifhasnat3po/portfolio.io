@@ -1,4 +1,4 @@
-/* Green Yggdrasil branches restored from a17ff6f, with touch and theme support. */
+/* A volumetric tree of life: braided emerald core, layered branches and living filaments. */
 (() => {
   'use strict';
   function initEntangled() {
@@ -29,7 +29,9 @@
       const sky = document.createElement('div'); sky.className = 'cosmos-fallback';
       const blackHole = document.createElement('i'); blackHole.className = 'cosmos-fallback-hole'; sky.appendChild(blackHole);
       const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
-      svg.setAttribute('viewBox', '-13 -12 26 25'); svg.setAttribute('class', 'cosmos-fallback-tree'); svg.setAttribute('aria-hidden', 'true');
+      const points=branches.flatMap(curve=>[curve.a,curve.b,curve.c,curve.d]),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+      const minX=Math.min(...xs)-2,maxX=Math.max(...xs)+2,minY=Math.min(...ys)-2,maxY=Math.max(...ys)+2;
+      svg.setAttribute('viewBox', `${minX} ${-maxY} ${maxX-minX} ${maxY-minY}`); svg.setAttribute('class', 'cosmos-fallback-tree'); svg.setAttribute('aria-hidden', 'true');
       branches.forEach(curve => {
         const p=document.createElementNS(ns,'path');
         p.setAttribute('d',`M ${curve.a[0]} ${-curve.a[1]} C ${curve.b[0]} ${-curve.b[1]},${curve.c[0]} ${-curve.c[1]},${curve.d[0]} ${-curve.d[1]}`);
@@ -141,68 +143,133 @@
       return [0,1,2].map(i=>u*u*u*curve.a[i]+3*u*u*t*curve.b[i]+3*u*t*t*curve.c[i]+t*t*t*curve.d[i]);
     }
     function makeBranches() {
-      const trunk={a:[0,-3.9,0],b:[-1.2,-1.6,.25],c:[1.25,.7,-.15],d:[-.15,2.65,0],width:.66,phase:.5,trunk:true};
+      const trunk={a:[-.7,-4.7,.2],b:[2.1,-2.4,-.8],c:[-1.65,1.1,.9],d:[0,3.1,0],width:1.35,phase:.5,trunk:true,root:false,level:0};
       branches.push(trunk);
-      function fork(start,angle,length,depth,width,isRoot=false) {
-        const end=[start[0]+Math.cos(angle)*length,start[1]+Math.sin(angle)*length,start[2]+(random()-.5)*length*.32];
-        const curve={a:start,b:[start[0]+Math.cos(angle+.2)*length*.34,start[1]+Math.sin(angle+.2)*length*.34,start[2]],
-          c:[end[0]-Math.cos(angle-.2)*length*.27,end[1]-Math.sin(angle-.2)*length*.27+(isRoot?-.22:.22),end[2]],d:end,width,phase:random()*6.283,trunk:false};
-        branches.push(curve);
-        if(!depth)return;
-        const split=.26+random()*.23;
-        fork(end,angle+split,length*(.62+random()*.10),depth-1,width*.59,isRoot);
-        fork(end,angle-split*.90,length*(.60+random()*.13),depth-1,width*.56,isRoot);
+      function fork(start,azimuth,pitch,length,depth,width,isRoot=false,level=0) {
+        const direction=[Math.cos(azimuth)*Math.cos(pitch),Math.sin(pitch),Math.sin(azimuth)*Math.cos(pitch)];
+        const end=start.map((value,i)=>value+direction[i]*length),curl=(random()-.5)*length*.5;
+        const curve={a:[...start],b:[start[0]+direction[0]*length*.26+Math.sin(azimuth)*curl,start[1]+direction[1]*length*.37,start[2]+direction[2]*length*.26-Math.cos(azimuth)*curl],
+          c:[end[0]-direction[0]*length*.25,end[1]-direction[1]*length*.18+(isRoot?-.4:.45),end[2]-direction[2]*length*.25],
+          d:end,width,phase:random()*Math.PI*2,trunk:false,root:isRoot,level};
+        branches.push(curve);if(!depth)return;
+        const split=.26+random()*.36;
+        fork(end,azimuth+split,pitch*.79+(random()-.5)*.32,length*(.62+random()*.10),depth-1,width*.60,isRoot,level+1);
+        fork(end,azimuth-split*.83,pitch*.80+(random()-.5)*.38,length*(.60+random()*.13),depth-1,width*.57,isRoot,level+1);
       }
-      [[.43,164,4.45],[.62,142,4.1],[.80,119,4.0],[1,102,3.7],[1,77,3.9],[.83,55,4.15],[.60,32,4.5],[.38,12,4.25]].forEach(([t,deg,length])=>fork(curvePoint(trunk,t),deg*Math.PI/180,length,3,.32));
-      [-170,-148,-126,-103,-77,-53,-31,-10].forEach((deg,i)=>fork([Math.sin(i)*.17,-3.6,0],deg*Math.PI/180,3.2+(i%3)*.35,2,.30,true));
+      const crownCount=small?14:24,rootCount=small?8:12;
+      for(let i=0;i<crownCount;i++){
+        const azimuth=i*2.39996323+(random()-.5)*.3,pitch=.18+Math.pow((Math.sin(i*1.7)+1)*.5,2)*.64;
+        fork(curvePoint(trunk,.62+random()*.38),azimuth,pitch,5.5+random()*1.8,small?3:4,.46+random()*.23);
+      }
+      for(let i=0;i<rootCount;i++)fork(curvePoint(trunk,.025+random()*.08),i/rootCount*Math.PI*2,-.15-random()*.24,4.3+random()*1.8,2,.40+random()*.16,true);
+      // Spread the crown through a real front-to-back volume, not a flat fan.
+      branches.forEach(curve=>{for(const key of ['a','b','c','d'])curve[key]=curve[key].map((value,i)=>(i===1&&value>3.1?3.1+(value-3.1)*1.35:value)*[1.10,.90,.80][i]);});
     }
-    const bendShader=`vec3 bend(vec3 p){float h=smoothstep(-3.8,9.0,p.y);p.x+=(sin(uTime*.47+p.y*.23)*.14+uPointer.x*.60)*h;p.z+=(cos(uTime*.36+p.y*.19)*.11+uPointer.y*.40)*h;return p;}
-      float energy(vec3 p){return exp(-pow((length(p.xy-vec2(0.0,-1.0))/12.0-uPulse*.85)*7.0,2.0))*max(0.0,1.0-uPulse/1.5);}`;
-    function createTree() {
-      tree=new THREE.Group();const positions=[],colors=[],phases=[],flows=[];
+    const bendShader=`vec3 bend(vec3 p){float h=smoothstep(-4.4,10.0,p.y);p.x+=(sin(uTime*.35+p.y*.17)*.09+uPointer.x*.52)*h;p.z+=(cos(uTime*.29+p.y*.16)*.09+uPointer.y*.40)*h;return p;}
+      float energy(vec3 p){return exp(-pow((length(p.xy-vec2(0.0,-1.0))/14.0-uPulse*.85)*7.0,2.0))*max(0.0,1.0-uPulse/1.5);}`;
+    function createTreeBody() {
+      const positions=[],normals=[],colors=[],flows=[],phases=[],stripes=[],indices=[];
+      function addTube(path,radius,steps,sides,color,phase,core=false){
+        const tube=new THREE.TubeGeometry(path,steps,radius,sides,false),position=tube.attributes.position,normal=tube.attributes.normal,uv=tube.attributes.uv,offset=positions.length/3;
+        for(let i=0;i<position.count;i++){
+          const t=uv.getX(i),center=path.getPoint(t),taper=core?.88+.12*Math.sin(t*Math.PI):Math.max(.09,1-t*.91);
+          positions.push(center.x+(position.getX(i)-center.x)*taper,center.y+(position.getY(i)-center.y)*taper,center.z+(position.getZ(i)-center.z)*taper);
+          normals.push(normal.getX(i),normal.getY(i),normal.getZ(i));colors.push(...color);flows.push(t);phases.push(phase);stripes.push(uv.getY(i)*Math.PI*2);
+        }
+        for(const index of tube.index.array)indices.push(index+offset);tube.dispose();
+      }
       branches.forEach(curve=>{
-        const strands=curve.trunk?(small?22:38):Math.max(2,Math.round(curve.width*(small?29:43))),steps=curve.trunk?36:18;
+        if(!curve.trunk&&curve.width<(small?.15:.105))return;
+        const path=new THREE.CubicBezierCurve3(...['a','b','c','d'].map(key=>new THREE.Vector3(...curve[key])));
+        const color=curve.trunk?[.16,.62,.20]:curve.root?[.09,.38,.17]:curve.level<2?[.055,.43,.24]:[.035,.37,.31];
+        addTube(path,curve.width*(curve.trunk?.64:.63),curve.trunk?(small?32:46):(small?9:13),curve.trunk?8:5,color,curve.phase,curve.trunk);
+      });
+      const trunk=branches[0],braidCount=small?5:8;
+      for(let braid=0;braid<braidCount;braid++){
+        const points=[],phase=braid/braidCount*Math.PI*2;
+        for(let j=0;j<=36;j++){
+          const t=j/36,p=curvePoint(trunk,t),angle=phase+t*8.4,radius=.70+Math.sin(t*Math.PI)*.20;
+          points.push(new THREE.Vector3(p[0]+Math.cos(angle)*radius,p[1],p[2]+Math.sin(angle)*radius));
+        }
+        addTube(new THREE.CatmullRomCurve3(points),.19+(braid%3)*.035,small?34:48,6,braid%4===0?[.38,.57,.13]:[.10,.54,.19],phase,true);
+      }
+      const g=geometry(new Float32Array(positions),new Float32Array(colors),null,new Float32Array(phases));
+      g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(normals),3));g.setAttribute('flow',new THREE.BufferAttribute(new Float32Array(flows),1));
+      g.setAttribute('stripe',new THREE.BufferAttribute(new Float32Array(stripes),1));g.setIndex(indices);
+      const body=new THREE.Mesh(g,new THREE.ShaderMaterial({
+        uniforms:treeUniforms,transparent:true,depthWrite:true,blending:THREE.NormalBlending,
+        vertexShader:`attribute vec3 color;attribute float phase,flow,stripe;uniform float uTime,uPulse;uniform vec2 uPointer;varying vec3 vColor,vNormal,vView;varying float vFlow,vStripe,vPulse;${bendShader}
+          void main(){vec4 mv=modelViewMatrix*vec4(bend(position),1.0);vNormal=normalize(normalMatrix*normal);vView=-mv.xyz;vColor=color;vFlow=flow;vStripe=stripe+phase;vPulse=energy(position);gl_Position=projectionMatrix*mv;}`,
+        fragmentShader:`uniform float uTime,uOpacity,uBoost,uLight;varying vec3 vColor,vNormal,vView;varying float vFlow,vStripe,vPulse;
+          void main(){vec3 n=normalize(vNormal),eye=normalize(vView),light=normalize(vec3(-.45,.7,1.0));float diffuse=max(0.0,dot(n,light)),rim=pow(1.0-max(0.0,dot(n,eye)),2.2);
+            float vein=pow(.5+.5*sin(vStripe*7.0+vFlow*5.0-uTime*.22),18.0),shine=pow(max(0.0,dot(reflect(-light,n),eye)),22.0);
+            vec3 color=vColor*(.30+diffuse*.86)+vec3(.10,.50,.30)*rim*.24+vec3(.32,.62,.21)*vein*(.12+uBoost*.35+vPulse*.3)+vec3(.22,.60,.43)*shine*.24;
+            vec3 daylight=vec3(.035,.13,.075)+vColor*(.30+diffuse*.30);gl_FragColor=vec4(mix(color,daylight,uLight),min(.96,uOpacity*.98));}`
+      }));body.renderOrder=2;body.frustumCulled=false;tree.add(body);
+      host.dataset.treeMeshTriangles=String(indices.length/3);
+    }
+    function createTree() {
+      tree=new THREE.Group();tree.name='Loki tree of life';const positions=[],colors=[],phases=[],flows=[];
+      branches.forEach(curve=>{
+        const strands=curve.trunk?(small?38:68):Math.max(small?2:3,Math.round(curve.width*(small?15:25))),steps=curve.trunk?42:(small?12:17);
         for(let strand=0;strand<strands;strand++){
-          const phase=strand/strands*6.283+curve.phase,silver=strand%6===0,shade=.66+random()*.34;
-          const color=silver?[.75*shade,.85*shade,.68*shade]:[.31*shade,.69*shade,.40*shade];let previous=null;
+          const phase=strand/strands*Math.PI*2+curve.phase,shade=.68+random()*.32,gold=curve.trunk&&strand%11===0;
+          const tint=gold?[.86,.76,.24]:curve.trunk?[.24,.92,.30]:curve.root?[.11,.70,.35]:strand%7===0?[.39,.95,.81]:[.08,.73,.59];
+          const color=tint.map(value=>value*shade);let previous=null;
           for(let j=0;j<=steps;j++){
-            const t=j/steps,p=curvePoint(curve,t),near=curvePoint(curve,Math.min(1,t+.01));
-            const dx=near[0]-p[0],dy=near[1]-p[1],norm=Math.hypot(dx,dy)||1,turn=phase+t*(curve.trunk?9:2.5),width=curve.width*(1-t*.67);
-            const ripple=Math.sin(t*12+phase)*width*.12;
-            p[0]+=(-dy/norm)*Math.cos(turn)*width+ripple;p[1]+=(dx/norm)*Math.cos(turn)*width;p[2]+=Math.sin(turn)*width;
+            const t=j/steps,p=curvePoint(curve,t),near=curvePoint(curve,Math.min(1,t+.002));
+            const tangent=new THREE.Vector3(near[0]-p[0],near[1]-p[1],near[2]-p[2]).normalize();if(tangent.lengthSq()<.1)tangent.set(0,1,0);
+            const normal=new THREE.Vector3().crossVectors(tangent,Math.abs(tangent.y)>.90?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0)).normalize(),binormal=new THREE.Vector3().crossVectors(tangent,normal);
+            const turn=phase+t*(curve.trunk?10:3.8),width=curve.width*(curve.trunk?.72+.12*Math.sin(t*Math.PI):.74*(1-t*.86));
+            const offset=normal.multiplyScalar(Math.cos(turn)*width).addScaledVector(binormal,Math.sin(turn)*width);p[0]+=offset.x;p[1]+=offset.y;p[2]+=offset.z;
             if(previous){positions.push(...previous,...p);colors.push(...color,...color);phases.push(curve.phase,curve.phase);flows.push((j-1)/steps,t);}
             previous=p;
           }
         }
       });
-      treeUniforms={uTime:{value:0},uOpacity:{value:small?.48:.84},uBoost:{value:0},uDpr:{value:dpr},uLight:{value:0},uPointer:{value:new THREE.Vector2()},uPulse:starUniforms.uPulse};
+      treeUniforms={uTime:{value:0},uOpacity:{value:small?.48:.84},uBoost:{value:0},uDpr:{value:dpr},uLight:{value:0},uPointer:{value:new THREE.Vector2()},uPulse:starUniforms.uPulse,uTreeScale:{value:1},uViewport:{value:innerHeight}};
+      createTreeBody();
       const g=geometry(new Float32Array(positions),new Float32Array(colors),null,new Float32Array(phases));
       g.setAttribute('flow',new THREE.BufferAttribute(new Float32Array(flows),1));
       g.computeBoundingBox();
-      const bounds=g.boundingBox;
-      treeBounds={centerX:(bounds.min.x+bounds.max.x)/2,centerY:(bounds.min.y+bounds.max.y)/2,width:bounds.max.x-bounds.min.x,height:bounds.max.y-bounds.min.y};
+      const bounds=g.boundingBox,depth=bounds.max.z-bounds.min.z;
+      treeBounds={centerX:(bounds.min.x+bounds.max.x)/2,centerY:(bounds.min.y+bounds.max.y)/2,width:Math.hypot(bounds.max.x-bounds.min.x,depth*.38),height:bounds.max.y-bounds.min.y+depth*.08};
       const lines=new THREE.LineSegments(g,new THREE.ShaderMaterial({
         uniforms:treeUniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
         vertexShader:`attribute vec3 color;attribute float phase,flow;uniform float uTime,uLight,uPulse;uniform vec2 uPointer;varying vec3 vColor;varying float vFlow,vPulse;${bendShader}
-          void main(){vColor=mix(color,vec3(.035,.16,.075)+color*.22,uLight);vFlow=pow(.5+.5*sin(flow*8.0-uTime*2.1+phase),12.0);vPulse=energy(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(bend(position),1.0);}`,
-        fragmentShader:`uniform float uOpacity,uBoost;varying vec3 vColor;varying float vFlow,vPulse;void main(){gl_FragColor=vec4(vColor*(.8+vFlow*.9),uOpacity*(.38+vFlow*.60+vPulse*.25)+uBoost*.22);}`
-      }));lines.frustumCulled=false;tree.add(lines);themedMaterials.push(lines.material);
-      const pos=[],a=[],b=[],c=[],d=[],phase=[],speed=[],size=[];
+          void main(){vColor=mix(color,vec3(.025,.13,.07)+color*.20,uLight);vFlow=pow(.5+.5*sin(flow*9.0-uTime*1.5+phase),16.0);vPulse=energy(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(bend(position),1.0);}`,
+        fragmentShader:`uniform float uOpacity,uBoost;varying vec3 vColor;varying float vFlow,vPulse;void main(){gl_FragColor=vec4(vColor*(.75+vFlow*.45),uOpacity*(.23+vFlow*.38+vPulse*.26)+uBoost*.10);}`
+      }));lines.renderOrder=3;lines.frustumCulled=false;tree.add(lines);themedMaterials.push(lines.material);
+      const pos=[],a=[],b=[],c=[],d=[],phase=[],speed=[],size=[],particleColors=[];
       for(let i=0;i<PARTICLE_COUNT;i++){
-        const branch=branches[Math.floor(random()*branches.length)];pos.push(0,0,0);a.push(...branch.a);b.push(...branch.b);c.push(...branch.c);d.push(...branch.d);
-        phase.push(random());speed.push(.06+random()*.12);size.push(1.8+Math.pow(random(),3)*3.2);
+        const branch=i%7===0?branches[0]:branches[Math.floor(random()*branches.length)];pos.push(0,0,0);a.push(...branch.a);b.push(...branch.b);c.push(...branch.c);d.push(...branch.d);
+        phase.push(random());speed.push(.045+random()*.12);size.push(1.3+Math.pow(random(),4)*3.4);particleColors.push(...(branch.trunk?[.68,.95,.35]:branch.root?[.28,.82,.44]:[.25,.91,.78]));
       }
-      const pg=geometry(new Float32Array(pos),null,new Float32Array(size),new Float32Array(phase));
+      const pg=geometry(new Float32Array(pos),new Float32Array(particleColors),new Float32Array(size),new Float32Array(phase));
       [['curveA',a],['curveB',b],['curveC',c],['curveD',d]].forEach(([name,values])=>pg.setAttribute(name,new THREE.BufferAttribute(new Float32Array(values),3)));
       pg.setAttribute('speed',new THREE.BufferAttribute(new Float32Array(speed),1));
       const particles=new THREE.Points(pg,new THREE.ShaderMaterial({
         uniforms:treeUniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-        vertexShader:`attribute vec3 curveA,curveB,curveC,curveD;attribute float phase,speed,pointSize;uniform float uTime,uDpr,uBoost,uOpacity,uLight,uPulse;uniform vec2 uPointer;varying float vAlpha;varying vec3 vColor;${bendShader}
+        vertexShader:`attribute vec3 curveA,curveB,curveC,curveD,color;attribute float phase,speed,pointSize;uniform float uTime,uDpr,uBoost,uOpacity,uLight,uPulse;uniform vec2 uPointer;varying float vAlpha;varying vec3 vColor;${bendShader}
           void main(){float t=fract(phase+uTime*speed),u=1.0-t;vec3 p=u*u*u*curveA+3.0*u*u*t*curveB+3.0*u*t*t*curveC+t*t*t*curveD;
             p.z+=sin(phase*72.0+uTime)*.10;float pulse=energy(p);vec4 mv=modelViewMatrix*vec4(bend(p),1.0);gl_Position=projectionMatrix*mv;gl_PointSize=pointSize*uDpr*(42.0/-mv.z)*(1.0+uBoost*.5+pulse*.6);
-            vAlpha=sin(t*3.14159)*uOpacity*(1.0+pulse*.45);vColor=mix(vec3(.47,.88,.55),vec3(.95,.98,.80),phase);vColor=mix(vColor,vec3(.03,.18,.08)+vColor*.18,uLight);}`,
+            vAlpha=sin(t*3.14159)*uOpacity*(1.0+pulse*.45);vColor=mix(color,vec3(.02,.16,.09)+color*.18,uLight);}`,
         fragmentShader:`varying float vAlpha;varying vec3 vColor;void main(){float r=length(gl_PointCoord-.5)*2.0;if(r>1.0)discard;gl_FragColor=vec4(vColor,(exp(-r*r*7.0)+pow(1.0-r,3.0)*.4)*vAlpha);}`
-      }));particles.frustumCulled=false;tree.add(particles);themedMaterials.push(particles.material);scene.add(tree);
+      }));particles.renderOrder=4;particles.frustumCulled=false;tree.add(particles);themedMaterials.push(particles.material);
+      const cloudPositions=[],cloudColors=[],cloudSizes=[],cloudPhases=[],canopy=branches.filter(branch=>!branch.root&&!branch.trunk&&branch.level>=2),cloudCount=small?76:160;
+      for(let i=0;i<cloudCount;i++){
+        const core=i%10===0,branch=core?branches[0]:canopy[Math.floor(random()*canopy.length)],p=curvePoint(branch,random());
+        cloudPositions.push(p[0]+(random()-.5)*1.8,p[1]+(random()-.5)*1.2,p[2]+(random()-.5)*2.0);cloudColors.push(...(core?[.12,.64,.23]:[.035,.58,.58]));cloudSizes.push(core?3.4+random()*1.5:4.8+random()*3.2);cloudPhases.push(random()*Math.PI*2);
+      }
+      const haze=new THREE.Points(geometry(new Float32Array(cloudPositions),new Float32Array(cloudColors),new Float32Array(cloudSizes),new Float32Array(cloudPhases)),new THREE.ShaderMaterial({
+        uniforms:treeUniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+        vertexShader:`attribute vec3 color;attribute float pointSize,phase;uniform float uTime,uDpr,uTreeScale,uViewport,uLight,uPulse;uniform vec2 uPointer;varying vec3 vColor;varying float vPhase;${bendShader}
+          void main(){vec3 p=position;p.x+=sin(uTime*.06+phase)*.18;vec4 mv=modelViewMatrix*vec4(bend(p),1.0);gl_Position=projectionMatrix*mv;gl_PointSize=clamp(pointSize*uTreeScale*uViewport*uDpr*1.18/(-mv.z),4.0,180.0*uDpr);vColor=color;vPhase=phase;}`,
+        fragmentShader:`uniform float uTime,uOpacity,uLight,uBoost;varying vec3 vColor;varying float vPhase;
+          void main(){vec2 p=gl_PointCoord*2.0-1.0;float r=length(p);if(r>1.0)discard;float mist=exp(-r*r*4.8)*(1.0-smoothstep(.55,1.0,r));
+            float cloud=.72+.28*sin(p.x*5.0+vPhase+sin(p.y*6.0+uTime*.04));gl_FragColor=vec4(vColor,mist*cloud*uOpacity*(.26+uBoost*.035)*(1.0-uLight*.90));}`
+      }));haze.renderOrder=1;haze.frustumCulled=false;tree.add(haze);themedMaterials.push(haze.material);
+      host.dataset.treeFilamentVertices=String(positions.length/3);host.dataset.treeDepth=depth.toFixed(1);host.dataset.treeLayers='4';scene.add(tree);
     }
     function createBlackHole() {
       holeUniforms={uTime:{value:0},uOpacity:{value:1}};
@@ -258,7 +325,7 @@
       // Fit the complete crown and roots, leaving room for pointer bending.
       const treeScale=mobile?Math.min(viewHeight*.43/(treeBounds.height*1.22),viewWidth*.78/(treeBounds.width*1.22)):
         Math.min(viewHeight*.44/(treeBounds.height*1.10),viewWidth*.43/(treeBounds.width*1.10));
-      tree.position.set(viewWidth*(mobile?.08:.24)-treeBounds.centerX*treeScale,-viewHeight*.17-treeBounds.centerY*treeScale,0);tree.scale.setScalar(treeScale);
+      tree.position.set(viewWidth*(mobile?.08:.24)-treeBounds.centerX*treeScale,-viewHeight*(mobile?.17:.135)-treeBounds.centerY*treeScale,0);tree.scale.setScalar(treeScale);treeUniforms.uTreeScale.value=treeScale;treeUniforms.uViewport.value=innerHeight;
       const holeWidth=.8*(mobile?viewWidth*.72:Math.min(viewWidth*.40,viewHeight*.65));
       hole.scale.setScalar(holeWidth/32);hole.position.set(viewWidth*(mobile?.12:.26),viewHeight*.28,0);
       starUniforms.uAspect.value=camera.aspect;galaxyUniforms.uAspect.value=camera.aspect;galaxyUniforms.uMobile.value=mobile?1:0;paint(0);
@@ -271,7 +338,7 @@
       starUniforms.uPointer.value.set(pointerX,-pointerY);starUniforms.uStrength.value=pointerStrength;starUniforms.uPulse.value=time-pulseStart;
       treeUniforms.uTime.value=time;treeUniforms.uBoost.value=boost;treeUniforms.uPointer.value.set(parallaxX,parallaxY);
       treeUniforms.uOpacity.value=((lightTheme?.95:mobile?.75:.84)+boost*.18)*(1-scrollProgress*.30);
-      tree.rotation.y=Math.sin(time*.14)*.025+parallaxX*.38;tree.rotation.z=Math.sin(time*.19)*.008;tree.rotation.x=parallaxY*.21;
+      tree.rotation.y=.10+Math.sin(time*.14)*.075+parallaxX*.34;tree.rotation.z=Math.sin(time*.19)*.006;tree.rotation.x=parallaxY*.17;
       holeUniforms.uTime.value=time;holeUniforms.uOpacity.value=(lightTheme?(mobile?.16:.24):(mobile?.62:.98))*(1-scrollProgress*.60);hole.rotation.z=.10+Math.sin(time*.12)*.012;
       hole.position.x=viewWidth*((mobile?.12:.26)+Math.sin(time*.34)*.035)+parallaxX*.12;
       hole.position.y=viewHeight*(.28+Math.sin(time*.24)*.018)-parallaxY*.10;
@@ -341,7 +408,7 @@
     try {createStars();createGalaxies();createTree();createBlackHole();syncTheme();resize();}
     catch(_){renderer.dispose();disposed=true;fallback();return;}
     host.dataset.cosmos='webgl';host.dataset.starCount=String(STAR_COUNT);host.dataset.branchCount=String(branches.length);
-    host.dataset.particleCount=String(PARTICLE_COUNT);host.dataset.galaxyCount='5';host.dataset.treeStyle='green-branching-tree';
+    host.dataset.particleCount=String(PARTICLE_COUNT);host.dataset.galaxyCount='5';host.dataset.treeStyle='volumetric-loki-tree';
     host.dataset.blackHoleSparkCount='0';host.dataset.blackHoleSparkParticles=String(SPARK_COUNT);
     window.addEventListener('resize',resize,{passive:true});
     window.addEventListener('pointermove',event=>{if(event.isPrimary!==false){trackPointer(event.clientX,event.clientY);moveTap(event.pointerId,event.clientX,event.clientY);}},{passive:true});
@@ -378,7 +445,7 @@
       if(mutations.some(m=>m.attributeName==='data-motion'))syncMotion();
     }).observe(root,{attributes:true,attributeFilter:['data-motion','data-theme']});
     document.addEventListener('cosmos:jump',()=>{if(active())jumpEnd=time+2.8;});
-    document.addEventListener('cosmos:tree',()=>{if(active()){pulse(mobile?.16:.48,-.34);boostEnd=time+6;}});
+    document.addEventListener('cosmos:tree',()=>{if(active()){pulse(mobile?.16:.48,mobile?-.34:-.27);boostEnd=time+6;}});
     renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();disposed=true;fallback();});
     syncMotion();
   }

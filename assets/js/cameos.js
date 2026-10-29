@@ -75,15 +75,21 @@
   dialog.querySelectorAll('[data-cameo]').forEach(button=>{
     const kind=button.dataset.cameo, preview=button.querySelector('.cameo-preview');
     preview.innerHTML=`<img src="assets/img/cameos/${references[kind]}-reference.png" alt="${names[kind]} reference" loading="lazy">`;
-    if(kind==='dragon')button.querySelector('.cameo-discovery-label > span').textContent='Explore Caraxes in real 3D';
+    if(kind==='dragon')button.querySelector('.cameo-discovery-label > span').textContent='See my favorite Caraxes scenes';
   });
   const modelLinks=document.createElement('div');modelLinks.className='cameo-model-links';
-  modelLinks.innerHTML='<button type="button" data-model-open="ironman">Inspect the Mark VII in 3D ↗</button><button type="button" data-model-open="falcon">Enter the Falcon docking bay ↗</button><button type="button" data-model-open="dragon">Meet the Blood Wyrm ↗</button>';
+  modelLinks.innerHTML='<button type="button" data-model-open="falcon">Enter the Falcon docking bay ↗</button>';
   dialog.querySelector('.cameo-discovery-options').after(modelLinks);
   const credits=document.createElement('p');credits.className='model-credit';
-  credits.innerHTML='Flyby artwork: <a href="https://sketchfab.com/3d-models/iron-man-mk7-ad4776eea8184283a3e49cf5487df754" target="_blank" rel="noopener noreferrer">Iron Man by CHANG747</a> · <a href="https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1" target="_blank" rel="noopener noreferrer">Falcon by Johnson Martin</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted for this observatory.';
+  credits.innerHTML='Flyby artwork: <a href="https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2" target="_blank" rel="noopener noreferrer">Iron Man retexture &amp; rig by Nihar Arora / 9A Films</a>, original model by <a href="https://sketchfab.com/LLIypuk" target="_blank" rel="noopener noreferrer">LLIypuk</a> · <a href="https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1" target="_blank" rel="noopener noreferrer">Falcon by Johnson Martin</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted for this observatory.';
   modelLinks.after(credits);
-  modelLinks.addEventListener('click',event=>{const button=event.target.closest('[data-model-open]');if(!button)return;event.stopPropagation();const returnTo=opener;dialog.close();window.openModelGallery?.(button.dataset.modelOpen,returnTo);});
+  function afterDiscoveryClose(action) {
+    if (!dialog.open) { action(); return; }
+    // The existing close handler restores focus and scroll before the next scene opens.
+    dialog.addEventListener('close', action, { once: true });
+    dialog.close();
+  }
+  modelLinks.addEventListener('click',event=>{const button=event.target.closest('[data-model-open]');if(!button)return;event.stopPropagation();const returnTo=opener;afterDiscoveryClose(()=>window.openModelGallery?.(button.dataset.modelOpen,returnTo));});
 
   function renderDiscoveryCount() {
     dialog.querySelector('.cameo-discovery-count').textContent = `${String(discoveries.size).padStart(2, '0')} / 05 discoveries`;
@@ -149,7 +155,7 @@
     if (requested || kind === 'ironman') showTransmission(kind, requested, isNew);
     dispatchScene(kind, source);
     if(kind==='dragon'){
-      if(requested)window.openModelGallery?.('dragon',returnTo);
+      if(requested&&source!=='cinema')requestAnimationFrame(()=>document.dispatchEvent(new CustomEvent('portfolio:cinema-open',{detail:{title:'House of the Dragon',opener:returnTo}})));
       return;
     }
     if (!motionEnabled() || kind === 'tree' || kind === 'jump') return;
@@ -161,7 +167,7 @@
     layer.appendChild(flight);
     const currentFlight=flight;
     try{
-      await import('./cameo-3d.js?v=20261029d');
+      await import('./cameo-3d.js?v=20261029g');
       if(currentFlight!==flight)return;
       flightController=new AbortController();
       const destroy=await window.Portfolio3D.mount(currentFlight.firstElementChild,kind,{interactive:false,signal:flightController.signal});
@@ -175,7 +181,7 @@
       flightTimer=window.setTimeout(()=>{if(currentFlight===flight)stopFlight();},kind==='falcon'?26000:20000);
     }catch(_){
       if(currentFlight!==flight)return;stopFlight();
-      if(requested){consoleEl.querySelector('.cameo-console-text').textContent='The 3D visitor could not load. Open the discovery panel to inspect its original model.';}
+      if(requested){consoleEl.querySelector('.cameo-console-text').textContent='The 3D visitor could not load. Please try again; its reference and artwork credits are in Explore the unknown.';}
     }
   }
 
@@ -186,7 +192,7 @@
     const delay = firstArrival ? 6000 + Math.random() * 1000 : 27000 + Math.random() * 16000;
     ambientTimer = window.setTimeout(() => {
       ambientTimer = 0;
-      if (!document.hidden && motionEnabled() && !document.querySelector('dialog[open]')) {
+      if (!document.hidden && motionEnabled() && !flight && !document.querySelector('dialog[open]')) {
         const kind = firstArrival ? 'falcon' : ['ironman', 'falcon'][ambientIndex++ % 2];
         runCameo(kind, 'ambient');
         firstArrival = false;
@@ -214,8 +220,8 @@
     if (discover) { openDiscovery(discover); return; }
     if (trigger && craft[trigger.dataset.cameo]) {
       const kind = trigger.dataset.cameo;
-      if (dialog.open) dialog.close();
-      runCameo(kind, 'discovery');
+      const returnTo = opener;
+      afterDiscoveryClose(() => runCameo(kind, 'discovery', returnTo));
     } else if (tree) {
       runCameo('tree', 'secret');
     }
@@ -265,7 +271,7 @@
   }
   function onExternalCameo(event) {
     if (craft[event.detail?.type]) {
-      runCameo(event.detail.type, 'discovery',event.detail.opener);
+      runCameo(event.detail.type, 'cinema',event.detail.opener);
     }
   }
   function dispose() {

@@ -1,17 +1,96 @@
-/* Real licensed models. Rigid-body presentation; these assets have no skeletal animation clips. */
+/* Licensed local models, procedural skeletal posing, and model-attached propulsion. */
 import * as THREE from '../vendor/cameo-three/three.module.js';
 import { GLTFLoader } from '../vendor/cameo-three/GLTFLoader.js';
 import { MeshoptDecoder } from '../vendor/cameo-three/meshopt_decoder.module.js';
 import { RoomEnvironment } from '../vendor/cameo-three/RoomEnvironment.js';
 
 const assets = {
-  ironman: { file: 'ironman-mk7.glb', label: 'Iron Man MK7 by CHANG747', source: 'https://sketchfab.com/3d-models/iron-man-mk7-ad4776eea8184283a3e49cf5487df754' },
+  ironman: { file: 'ironman-mark85.glb', label: 'Iron Man Mark 85 by 9A Films / Nihar Arora and LLIypuk', source: 'https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2' },
   falcon: { file: 'millennium-falcon.glb', label: 'Millennium Falcon by Johnson Martin', source: 'https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1' }
 };
 
+// Aim the real Mixamo joints in anatomical coordinates, independent of the imported bone axes.
+// The original bind pose and material groups are retained; no vertices are hand-deformed.
+function createSuitRig(model, normalized, interactive) {
+  const bones = new Map();
+  model.traverse(node => {
+    if (!node.isBone) return;
+    const name = node.name.replace(/^mixamorig:?/, '').replace(/_0\d*$/, '');
+    bones.set(name, { bone: node, rest: node.quaternion.clone() });
+  });
+  if (!bones.has('LeftFoot') || !bones.has('RightFoot')) return null;
+  const origin = new THREE.Vector3(), end = new THREE.Vector3(), direction = new THREE.Vector3();
+  const current = new THREE.Quaternion(), parent = new THREE.Quaternion(), basis = new THREE.Quaternion();
+  const turn = new THREE.Quaternion(), localTurn = new THREE.Quaternion();
+  const xAxis = new THREE.Vector3(1, 0, 0), zAxis = new THREE.Vector3(0, 0, 1);
+  const controlled = ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head', 'LeftArm', 'RightArm',
+    'LeftForeArm', 'RightForeArm', 'LeftHand', 'RightHand', 'LeftUpLeg', 'RightUpLeg', 'LeftLeg', 'RightLeg'];
+
+  function rotate(name, axis, angle) {
+    const entry = bones.get(name); if (!entry) return;
+    entry.bone.quaternion.multiply(localTurn.setFromAxisAngle(axis, angle));
+    entry.bone.updateWorldMatrix(false, false);
+  }
+  function aim(name, nextName, x, y, z) {
+    const entry = bones.get(name), next = bones.get(nextName);
+    if (!entry || !next) return;
+    const bone = entry.bone;
+    bone.getWorldPosition(origin); next.bone.getWorldPosition(end);
+    direction.copy(end).sub(origin).normalize();
+    end.set(x, y, z).normalize().applyQuaternion(basis);
+    turn.setFromUnitVectors(direction, end);
+    bone.getWorldQuaternion(current); bone.parent.getWorldQuaternion(parent).invert();
+    bone.quaternion.copy(parent.multiply(turn.multiply(current)));
+    bone.updateWorldMatrix(false, false);
+  }
+  function update(time, flight, moving) {
+    controlled.forEach(name => { const entry = bones.get(name); if (entry) entry.bone.quaternion.copy(entry.rest); });
+    normalized.updateWorldMatrix(true, true);
+    normalized.getWorldQuaternion(basis);
+    const flying = !interactive;
+    const bank = flying ? flight.bank : 0;
+    const power = flying ? flight.throttle : .1;
+    const breathe = moving ? Math.sin(time * 1.1) * .008 : 0;
+    rotate('Hips', zAxis, bank * -.045);
+    rotate('Spine', xAxis, flying ? -.07 - power * .035 : breathe);
+    rotate('Spine2', zAxis, bank * .07);
+    // Look along the line of travel, rather than keeping a standing head on a horizontal body.
+    rotate('Neck', xAxis, flying ? -.18 : 0);
+    rotate('Head', xAxis, flying ? -.48 - power * .11 : 0);
+    for (const [side, sign] of [['Left', 1], ['Right', -1]]) {
+      const correction = bank * sign;
+      aim(`${side}Arm`, `${side}ForeArm`, sign * (flying ? .14 + sign * .025 + correction * .06 : .25), -1, flying ? -.16 - sign * .055 : -.03);
+      aim(`${side}ForeArm`, `${side}Hand`, sign * (flying ? .08 + sign * .025 : .16), -1, flying ? -.01 + sign * .075 - correction * .12 : .14);
+      aim(`${side}Hand`, `${side}HandMiddle1`, sign * .035, -1, flying ? -.10 : .08);
+      aim(`${side}UpLeg`, `${side}Leg`, sign * (flying ? .055 : .075), -1, flying ? .02 + sign * .025 + correction * .03 : -.015);
+      aim(`${side}Leg`, `${side}Foot`, sign * .025, -1, flying ? -.12 - sign * .045 - power * .07 - correction * .09 : -.035);
+    }
+    normalized.updateWorldMatrix(true, true);
+  }
+  function footSocket(side) {
+    const foot = bones.get(`${side}Foot`).bone, toe = bones.get(`${side}ToeBase`)?.bone;
+    if (!toe) return null;
+    const ankle = foot.getWorldPosition(new THREE.Vector3());
+    const toePosition = toe.getWorldPosition(new THREE.Vector3());
+    const length = ankle.distanceTo(toePosition);
+    // The nozzle sits beneath the sole, between heel and ball. Store it in the actual foot joint.
+    const sole = ankle.clone().lerp(toePosition, .42);
+    normalized.getWorldQuaternion(current);
+    sole.add(new THREE.Vector3(0, -length * .43, 0).applyQuaternion(current));
+    const socket = new THREE.Group(); socket.name = `${side.toLowerCase()}-boot-thruster`;
+    socket.position.copy(foot.worldToLocal(sole));
+    socket.quaternion.copy(foot.getWorldQuaternion(parent).invert().multiply(current));
+    const scale = foot.getWorldScale(new THREE.Vector3());
+    socket.scale.set(1 / scale.x, 1 / scale.y, 1 / scale.z);
+    foot.add(socket);
+    return socket;
+  }
+  return { update, footSocket, boneCount: bones.size };
+}
+
 // Engine geometry is attached in the model's normalized coordinates, before its flight rotation.
 // Falcon: bow -Z, engine +Z. Iron Man: head +Y, soles -Y, chest +Z.
-function createFlightEffects(kind, pivot) {
+function createFlightEffects(kind, pivot, rig) {
   const group = new THREE.Group(); group.name = 'model-attached-engine-effects'; pivot.add(group);
   const engineMaterials = [], glowSprites = [];
   const glowCanvas = document.createElement('canvas'); glowCanvas.width = glowCanvas.height = 96;
@@ -21,10 +100,10 @@ function createFlightEffects(kind, pivot) {
   gradient.addColorStop(.35, 'rgba(39,153,255,.4)'); gradient.addColorStop(1, 'rgba(12,91,255,0)');
   ctx.fillStyle = gradient; ctx.fillRect(0, 0, 96, 96);
   const glowMap = new THREE.CanvasTexture(glowCanvas);
-  function glow(position, size, strength = 1) {
+  function glow(position, size, strength = 1, parent = group) {
     const material = new THREE.SpriteMaterial({ map: glowMap, color: 0xc7f6ff, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     const sprite = new THREE.Sprite(material); sprite.position.copy(position); sprite.scale.setScalar(size);
-    sprite.userData.baseSize = size; sprite.userData.strength = strength; group.add(sprite); glowSprites.push(sprite); return sprite;
+    sprite.userData.baseSize = size; sprite.userData.strength = strength; parent.add(sprite); glowSprites.push(sprite); return sprite;
   }
   function plumeMaterial(axis) {
     const material = new THREE.ShaderMaterial({
@@ -72,19 +151,18 @@ function createFlightEffects(kind, pivot) {
     for (let i = 6; i < 48; i += 9) glow(points[i], .38, .48);
     group.userData.updateCore = throttle => { core.material.color.setRGB(.38 + throttle * .45, .65 + throttle * .3, 1); halo.material.opacity = .15 + throttle * .38; };
   } else {
-    function jet(x, y, z, radius, length, tilt = 0) {
+    function jet(socket, radius, length) {
       const geometry = new THREE.CylinderGeometry(radius * .42, radius, length, 16, 8, true); geometry.translate(0, -length / 2, 0);
-      const plume = new THREE.Mesh(geometry, plumeMaterial(1)); plume.position.set(x, y, z); plume.rotation.z = tilt; plume.frustumCulled = false; group.add(plume);
+      const plume = new THREE.Mesh(geometry, plumeMaterial(1)); plume.frustumCulled = false; plume.userData.engineEffect = true; socket.add(plume);
       const source = new THREE.Mesh(new THREE.CircleGeometry(radius * .48, 24), new THREE.MeshBasicMaterial({ color: 0xd6faff, side: THREE.DoubleSide, toneMapped: false }));
-      source.rotation.x = Math.PI / 2; source.position.set(x, y - .004, z); group.add(source);
-      glow(new THREE.Vector3(x, y, z), radius * 4.2);
+      source.rotation.x = Math.PI / 2; source.position.y = -.004; source.userData.engineEffect = true; socket.add(source);
+      glow(new THREE.Vector3(), radius * 4.2, .9, socket);
     }
-    jet(-.31, -1.635, .095, .12, .9); jet(.31, -1.635, .095, .12, .9);
-    // The supplied hands are in a closed resting pose: show repulsor glow without a beam through the fingers.
-    glow(new THREE.Vector3(-.675, .08, .22), .18, .7); glow(new THREE.Vector3(.675, .08, .22), .18, .7);
-    const reactor = new THREE.Mesh(new THREE.CircleGeometry(.055, 32), new THREE.MeshBasicMaterial({ color: 0xcaf4ff, side: THREE.DoubleSide, toneMapped: false }));
-    reactor.position.set(0, .84, .357); group.add(reactor);
-    glow(new THREE.Vector3(0, .84, .361), .24, .45);
+    for (const side of ['Left', 'Right']) {
+      const socket = rig?.footSocket(side);
+      if (socket) jet(socket, .083, .82);
+    }
+    // Eye, chest and palm light comes from the artist's emissive geometry and mask.
   }
   return {
     group,
@@ -100,7 +178,8 @@ function createFlightEffects(kind, pivot) {
 /**
  * await Portfolio3D.mount(element, 'ironman'|'falcon', options) -> cleanup function.
  * options: interactive, signal, onReady({ kind, label, source, animationClips }), onError(error).
- * Returned cleanup.setFlightState({throttle:0..1, bank:radians, pitch:radians}) drives engines/attitude.
+ * Returned cleanup.setFlightState({throttle:0..1, bank, pitch, heading, yaw}) drives engines/attitude.
+ * Angles are radians; heading follows the screen-space course, bank rolls about the model's long axis.
  * The host needs nonzero width/height. Interactive: drag/arrow keys rotate; +/- zoom; Home resets.
  * Honors reduced motion, portfolio:motionchange, page visibility and viewport intersection.
  * No external network requests, shared global THREE, audio, or self-starting flyby traversal.
@@ -109,6 +188,7 @@ export async function mount(container, kind, options = {}) {
   if (!(container instanceof HTMLElement)) throw new TypeError('A model container element is required.');
   if (!assets[kind]) throw new Error(`No licensed local model configured for ${kind}.`);
   if (options.signal?.aborted) return () => {};
+  const loading = new AbortController();
   const interactive = options.interactive === true;
   const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
@@ -118,7 +198,7 @@ export async function mount(container, kind, options = {}) {
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.88;
+  renderer.toneMappingExposure = kind === 'ironman' ? 1 : 0.88;
   const canvas = renderer.domElement;
   canvas.className = 'cameo-3d-canvas';
   canvas.style.cssText = 'display:block;width:100%;height:100%;outline-offset:-4px;';
@@ -146,28 +226,41 @@ export async function mount(container, kind, options = {}) {
   const envTarget = pmrem.fromScene(environment, 0.04);
   environment.dispose(); pmrem.dispose();
   scene.environment = envTarget.texture;
-  scene.environmentIntensity = 0.6;
+  scene.environmentIntensity = kind === 'ironman' ? .95 : 0.6;
 
   let disposed = false, ready = false, frame = 0, last = 0, time = 0;
   let inView = true, width = 0, height = 0, zoom = 1;
   let yaw = 0, pitch = 0, drag = null;
-  let effects = null, flightControlled = false;
-  const flight = { throttle: interactive ? .13 : .6, bank: 0, pitch: 0 };
+  let effects = null, rig = null, flightControlled = false;
+  const flight = { throttle: interactive ? .13 : .6, bank: 0, pitch: 0, heading: 0, yaw: 0 };
   const flightTarget = { ...flight };
   let fitPoints = null;
   const fitPoint = new THREE.Vector3();
   const fitRotation = new THREE.Matrix4();
+  const attitude = new THREE.Euler(), turnRotation = new THREE.Euler();
+  const turnQuaternion = new THREE.Quaternion(), headingQuaternion = new THREE.Quaternion();
+  const headingAxis = new THREE.Vector3(0, 0, 1);
   const base = kind === 'falcon'
     ? new THREE.Euler(0.48, -0.65, -0.10)
-    : new THREE.Euler(interactive ? 0 : -0.16, 0.38, interactive ? 0 : -Math.PI / 2);
+    : new THREE.Euler(interactive ? 0 : -0.07, -.30, interactive ? 0 : -Math.PI / 2, 'ZYX');
   const motion = () => !preference.matches && document.documentElement.dataset.motion !== 'off';
   const visible = () => !document.hidden && inView && container.isConnected;
   const draw = () => { if (!disposed && ready && visible()) renderer.render(scene, camera); };
   function pose() {
     const moving = motion();
     const drift = moving && !flightControlled;
-    pivot.rotation.set(base.x + pitch + (moving ? flight.pitch : 0) + (drift ? Math.sin(time * 0.65) * 0.035 : 0), base.y + yaw + (drift ? Math.sin(time * 0.38) * 0.12 : 0), base.z + (moving ? flight.bank : 0) + (drift ? Math.sin(time * 0.55) * 0.025 : 0));
+    attitude.set(base.x + pitch + (drift ? Math.sin(time * .65) * .035 : 0),
+      base.y + yaw + (drift ? Math.sin(time * .38) * .12 : 0),
+      base.z + (drift ? Math.sin(time * .55) * .025 : 0), base.order);
+    pivot.quaternion.setFromEuler(attitude);
+    if (moving && flightControlled) {
+      // Heading is camera-space, whereas roll and pitch are local to the actual aircraft/body.
+      turnRotation.set(flight.pitch, flight.yaw + (kind === 'ironman' ? flight.bank : 0), kind === 'falcon' ? flight.bank : 0, 'YXZ');
+      pivot.quaternion.multiply(turnQuaternion.setFromEuler(turnRotation));
+      pivot.quaternion.premultiply(headingQuaternion.setFromAxisAngle(headingAxis, -flight.heading));
+    }
     pivot.position.y = drift ? Math.sin(time * 0.9) * 0.065 : 0;
+    rig?.update(time, flight, moving);
     effects?.update(time, flight.throttle, moving);
   }
   function resize() {
@@ -219,16 +312,19 @@ export async function mount(container, kind, options = {}) {
   function tick(now) {
     frame = 0;
     if (disposed || !ready || !visible() || !motion()) { last = 0; return; }
-    const dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+    const dt = last ? Math.min(Math.max((now - last) / 1000, 0), 1) : 0;
     time += dt;
     const ease = 1 - Math.exp(-dt * 9);
     flight.throttle += (flightTarget.throttle - flight.throttle) * ease;
     flight.bank += (flightTarget.bank - flight.bank) * ease;
     flight.pitch += (flightTarget.pitch - flight.pitch) * ease;
+    flight.heading += (flightTarget.heading - flight.heading) * ease;
+    flight.yaw += (flightTarget.yaw - flight.yaw) * ease;
     last = now; pose(); draw(); frame = requestAnimationFrame(tick);
   }
   function sync() {
     if (disposed) return;
+    if (!container.isConnected) { cleanup(); return; }
     if (frame) cancelAnimationFrame(frame);
     frame = 0; last = 0; pose(); draw();
     if (ready && visible() && motion()) frame = requestAnimationFrame(tick);
@@ -269,9 +365,10 @@ export async function mount(container, kind, options = {}) {
   document.addEventListener('portfolio:motionchange', sync);
   preference.addEventListener('change', sync);
   function disposeObject(object) {
-    const geometries = new Set(), materials = new Set(), textures = new Set();
+    const geometries = new Set(), materials = new Set(), textures = new Set(), skeletons = new Set();
     object.traverse(child => {
       if (child.geometry) geometries.add(child.geometry);
+      if (child.skeleton) skeletons.add(child.skeleton);
       for (const material of [].concat(child.material || [])) {
         materials.add(material);
         for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
@@ -280,10 +377,12 @@ export async function mount(container, kind, options = {}) {
     geometries.forEach(geometry => geometry.dispose());
     materials.forEach(material => material.dispose());
     textures.forEach(texture => { texture.dispose(); texture.source?.data?.close?.(); });
+    skeletons.forEach(skeleton => skeleton.dispose());
   }
   function cleanup() {
     if (disposed) return;
     disposed = true; if (frame) cancelAnimationFrame(frame);
+    loading.abort();
     resizeObserver.disconnect(); observer.disconnect();
     document.removeEventListener('visibilitychange', sync);
     document.removeEventListener('portfolio:motionchange', sync);
@@ -297,13 +396,21 @@ export async function mount(container, kind, options = {}) {
     if (Number.isFinite(state.throttle)) flightTarget.throttle = THREE.MathUtils.clamp(state.throttle, 0, 1);
     if (Number.isFinite(state.bank)) flightTarget.bank = THREE.MathUtils.clamp(state.bank, -.65, .65);
     if (Number.isFinite(state.pitch)) flightTarget.pitch = THREE.MathUtils.clamp(state.pitch, -.45, .45);
+    if (Number.isFinite(state.heading)) flightTarget.heading = THREE.MathUtils.clamp(state.heading, -.65, .65);
+    if (Number.isFinite(state.yaw)) flightTarget.yaw = THREE.MathUtils.clamp(state.yaw, -.4, .4);
     if (!motion()) { flight.throttle = flightTarget.throttle; pose(); draw(); }
   };
   options.signal?.addEventListener('abort', cleanup, { once: true });
   try {
     await MeshoptDecoder.ready;
+    if (disposed) return cleanup;
     const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-    const gltf = await loader.loadAsync(new URL(`../models/${assets[kind].file}`, import.meta.url).href);
+    const modelURL = new URL(`../models/${assets[kind].file}`, import.meta.url);
+    const response = await fetch(modelURL, { signal: loading.signal });
+    if (!response.ok) throw new Error(`Model request failed (${response.status}).`);
+    const bytes = await response.arrayBuffer();
+    if (disposed || !container.isConnected) { cleanup(); return cleanup; }
+    const gltf = await loader.parseAsync(bytes, new URL('.', modelURL).href);
     if (disposed || !container.isConnected) { disposeObject(gltf.scene); cleanup(); return cleanup; }
     const bounds = new THREE.Box3().setFromObject(gltf.scene);
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
@@ -312,35 +419,53 @@ export async function mount(container, kind, options = {}) {
     gltf.scene.position.sub(center); normalized.add(gltf.scene);
     normalized.scale.setScalar(3.25 / Math.max(size.x, size.y, size.z));
     pivot.add(normalized);
+    pivot.updateMatrixWorld(true);
+    rig = kind === 'ironman' ? createSuitRig(gltf.scene, normalized, interactive) : null;
+    // Build sockets in the bind pose, then move the bones before fitting the camera.
+    effects = createFlightEffects(kind, pivot, rig);
+    rig?.update(0, flight, false);
     const samples = [];
     pivot.updateMatrixWorld(true);
     const inversePivot = new THREE.Matrix4().copy(pivot.matrixWorld).invert();
     gltf.scene.traverse(child => {
       if (!child.isMesh) return;
-      child.frustumCulled = true;
+      if (child.userData.engineEffect) return;
+      const materials = [].concat(child.material || []);
+      // The author's invisible glass cover must not occlude the reactor in a depth/shadow pass.
+      if (materials.length && materials.every(material => material.transparent && material.opacity === 0)) {
+        child.visible = false; child.castShadow = false; child.receiveShadow = false; return;
+      }
+      child.frustumCulled = !child.isSkinnedMesh;
       child.castShadow=true;child.receiveShadow=true;
-      for (const material of [].concat(child.material || [])) {
-        material.envMapIntensity = kind === 'ironman' ? .95 : .65;
-        if (kind === 'ironman') { material.roughness = .46; material.metalness = .92; }
+      for (const material of materials) {
+        // Imported normal/metalness/roughness maps remain in their glTF-defined color spaces.
+        // Scene.environmentIntensity controls these materials because they have no own envMap.
+        if (kind === 'ironman' && material.name === 'Lights') material.emissiveIntensity = 1.7;
       }
       const positions = child.geometry.getAttribute('position');
       const step = Math.max(1, Math.floor(positions.count / 1800));
       for (let i = 0; i < positions.count; i += step) {
-        fitPoint.fromBufferAttribute(positions, i).applyMatrix4(child.matrixWorld).applyMatrix4(inversePivot);
+        child.getVertexPosition(i, fitPoint).applyMatrix4(child.matrixWorld).applyMatrix4(inversePivot);
         samples.push(fitPoint.x, fitPoint.y, fitPoint.z);
       }
     });
-    effects = createFlightEffects(kind, pivot);
     if (!interactive) {
       if (kind === 'falcon') samples.push(-.7, -.05, 2.25, .7, -.05, 2.25);
-      else samples.push(-.31, -2.35, .10, .31, -2.35, .10);
+      else normalized.traverse(child => {
+        if (!child.name.endsWith('-boot-thruster')) return;
+        fitPoint.set(0, -.95, 0).applyMatrix4(child.matrixWorld).applyMatrix4(inversePivot);
+        samples.push(fitPoint.x, fitPoint.y, fitPoint.z);
+      });
     }
     fitPoints = new Float32Array(samples);
     ready = true; pose(); resize(); sync();
-    options.onReady?.({ kind, label: assets[kind].label, source: assets[kind].source, animationClips: gltf.animations.length });
+    options.onReady?.({ kind, label: assets[kind].label, source: assets[kind].source, animationClips: gltf.animations.length, bones: rig?.boneCount || 0 });
     return cleanup;
   } catch (error) {
-    cleanup(); options.onError?.(error); throw error;
+    const cancelled = disposed || loading.signal.aborted;
+    cleanup();
+    if (cancelled) return cleanup;
+    options.onError?.(error); throw error;
   }
 }
 
