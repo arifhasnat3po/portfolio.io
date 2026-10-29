@@ -40,7 +40,7 @@
   let ambientIndex = 0;
   let modelModulePromise = null;
   function loadModelModule() {
-    if (!modelModulePromise) modelModulePromise = import('./cameo-3d.js?v=20261029l').catch(error => {
+    if (!modelModulePromise) modelModulePromise = import('./cameo-3d.js?v=20261029m').catch(error => {
       modelModulePromise = null; throw error;
     });
     return modelModulePromise;

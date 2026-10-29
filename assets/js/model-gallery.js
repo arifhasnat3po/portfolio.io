@@ -31,7 +31,7 @@
       credit.textContent = 'The rest of the portfolio remains available.';
     }
     try {
-      const models = await import('./cameo-3d.js?v=20261029l');
+      const models = await import('./cameo-3d.js?v=20261029m');
       if (version !== revision) return;
       const canvasHost = document.createElement('div');
       canvasHost.className = 'model-local'; stage.append(canvasHost);

@@ -7,8 +7,8 @@ import { createCaraxes } from './caraxes-3d.js';
 import { loadModelBytes, rememberModelBytes, forgetModelBytes } from './model-resource.js';
 
 const assets = {
-  ironman: { file: 'ironman-mark85-flight.glb', label: 'Iron Man Mark 85 by 9A Films / Nihar Arora and LLIypuk', source: 'https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2' },
-  falcon: { file: 'millennium-falcon.glb', label: 'Millennium Falcon by Johnson Martin', source: 'https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1' },
+  ironman: { file: 'ironman-mark85-fast.glb', label: 'Iron Man Mark 85 by 9A Films / Nihar Arora and LLIypuk', source: 'https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2' },
+  falcon: { file: 'millennium-falcon-flight.glb', label: 'Millennium Falcon by Johnson Martin', source: 'https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1' },
   dragon: { procedural: true, label: 'Caraxes-inspired red dragon — original stylized 3D reconstruction', source: null }
 };
 
