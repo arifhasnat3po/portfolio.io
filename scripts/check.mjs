@@ -91,7 +91,7 @@ function checkWatchlist() {
     const base = source.match(/const\s+base\s*=\s*['"]([^'"]+)['"]/)?.[1];
     const frames = [...source.matchAll(/\bframe\(\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
     if (!base) { fail('assets/js/cinema.js: cannot find the watchlist asset directory'); return; }
-    if (frames.length !== 20 || new Set(frames).size !== 20) fail(`Watchlist must reference all 20 unique supplied frames; found ${frames.length} references and ${new Set(frames).size} unique frames`);
+    if (frames.length !== 23 || new Set(frames).size !== 23) fail(`Watchlist must reference all 23 unique supplied frames; found ${frames.length} references and ${new Set(frames).size} unique frames`);
     const files = new Set(frames.map(frame => `${base}${frame}.webp`));
     for (const file of files) localReference(file, 'index.html');
     counts.frames = files.size;

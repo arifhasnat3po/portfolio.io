@@ -23,7 +23,10 @@
     { title: 'The Office', kind: 'series', genre: 'Life at Dunder Mifflin', accent: '#83d3ed', frames: [frame('the-office', 678, 452, 'The Office cast around a desk')] },
     { title: 'The Big Bang Theory', kind: 'series', genre: 'Science meets sitcom', accent: '#e5b2ad', frames: [frame('the-big-bang-theory', 1440, 811, 'The Big Bang Theory group sharing a meal')] },
     { title: 'The Last of Us', kind: 'series', genre: 'Endure & survive', accent: '#bac8a1', position: '56% 40%', frames: [frame('the-last-of-us', 1440, 1080, 'The Last of Us characters in an overgrown city')] },
-    { title: 'The Witcher', kind: 'series', genre: 'Tales of the Continent', accent: '#9bcfc8', frames: [frame('the-witcher', 1440, 810, 'The Witcher scene with a white-haired swordsman')] }
+    { title: 'The Witcher', kind: 'series', genre: 'Tales of the Continent', accent: '#9bcfc8', frames: [frame('the-witcher', 1440, 810, 'The Witcher scene with a white-haired swordsman')] },
+    { title: 'Interstellar', kind: 'film', genre: 'Across space and time', accent: '#d8c7a2', frames: [frame('interstellar', 1200, 800, 'Cooper in his spacesuit aboard a spacecraft in Interstellar')] },
+    { title: 'Sherlock', kind: 'series', genre: 'The game is on', accent: '#a3b9ca', frames: [frame('sherlock', 739, 415, 'Sherlock Holmes and John Watson against the London skyline')] },
+    { title: 'The Dark Knight', kind: 'film', genre: 'Gotham after dark', accent: '#b6b88c', frames: [frame('the-dark-knight', 1920, 1280, 'Batman and the Joker facing each other in the interrogation room in The Dark Knight')] }
   ];
 
   const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
@@ -53,7 +56,7 @@
       <div class="cinema-spotlight-shade" aria-hidden="true"></div><div class="cinema-viewfinder" aria-hidden="true"></div>
       <div class="cinema-spotlight-top"><span><i aria-hidden="true"></i> IN THE VIEWFINDER</span><span>ARCHIVE 003 / SERIES</span></div>
       <div class="cinema-spotlight-copy"><p class="cinema-spotlight-kicker">FROM THE WORLD OF WESTEROS</p><h3>House of<br>the Dragon<span>.</span></h3><p>Fire, ambition, and a world<br>that refuses to let go.</p><button class="cinema-spotlight-open" type="button">Enter the scene ${arrow}</button></div>
-      <div class="cinema-spotlight-note"><span class="cinema-spotlight-coordinate" aria-hidden="true">+ 03 / 16</span><span>CARAXES &amp; DAEMON<br><small>A FAVORITE FRAME</small></span></div>
+      <div class="cinema-spotlight-note"><span class="cinema-spotlight-coordinate" aria-hidden="true">+ 03 / ${String(titles.length).padStart(2, '0')}</span><span>CARAXES &amp; DAEMON<br><small>A FAVORITE FRAME</small></span></div>
     </div>
     <div class="cinema-spotlight-caption"><span>FIELD NOTES <span aria-hidden="true">—</span> SOME OF MY FAVORITE MOVIES &amp; SHOWS</span><span>SCROLL TO THE CONTACT SHEET <span aria-hidden="true">↓</span></span></div>
     <div class="cinema-toolbar">

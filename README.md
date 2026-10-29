@@ -16,7 +16,7 @@ Gym app: **https://arifhasnat.vercel.app/gym/**
 - `assets/css/responsive.css` — responsive layout and printable résumé styles.
 - `assets/js/main.js` — navigation, motion controls, project filtering/details, video dialog, and printing.
 - `assets/js/cinema.js` and `assets/css/cinema.css` — watchlist gallery, pointer tilt, filters, and accessible scene viewer.
-- `assets/img/watchlist/` — 20 optimized supplied images; `manifest.json` records the source mapping.
+- `assets/img/watchlist/` — 23 optimized supplied images; `manifest.json` records the source mapping.
 - `assets/js/entangled.js` and `assets/css/cosmos.css` — the layered 3D world tree, drifting black hole with click/tap sparks, stars, and galaxies. Light mode fades the black hole; motion controls and reduced-motion preferences are respected.
 - `assets/js/cameos.js` and `assets/css/cameos.css` — model flybys and five discoverable secrets.
 - `assets/js/flight-physics.js` — fixed-step velocity/acceleration simulation with bounded thrust, smooth banking, and throttle feedback for the engines.

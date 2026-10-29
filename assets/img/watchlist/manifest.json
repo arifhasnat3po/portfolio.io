@@ -138,5 +138,26 @@
     "width": 1440,
     "height": 810,
     "bytes": 41882
+  },
+  {
+    "source": "1106-interstellar-black-hole.jpg",
+    "file": "assets/img/watchlist/interstellar.webp",
+    "width": 1200,
+    "height": 800,
+    "bytes": 90570
+  },
+  {
+    "source": "images (8).jpg",
+    "file": "assets/img/watchlist/sherlock.webp",
+    "width": 739,
+    "height": 415,
+    "bytes": 48198
+  },
+  {
+    "source": "jphstqvwecnb1.jpg",
+    "file": "assets/img/watchlist/the-dark-knight.webp",
+    "width": 1920,
+    "height": 1280,
+    "bytes": 141358
   }
 ]
