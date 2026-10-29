@@ -5,20 +5,21 @@
   if (!layer) return;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const storageKey = 'arif-cosmic-discoveries-v1';
-  const secretIds = ['falcon', 'dragon', 'ironman', 'jump', 'tree'];
+  const secretIds = ['falcon', 'dragon', 'ironman', 'jump', 'tree', 'tars'];
   const discoveries = new Set();
   try {
     const saved = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
     if (Array.isArray(saved)) saved.filter(id => secretIds.includes(id)).forEach(id => discoveries.add(id));
   } catch { /* Discoveries remain usable when browser storage is unavailable. */ }
 
-  const craft = { falcon:true, dragon:true, ironman:true };
-  const names = { falcon: 'Millennium Falcon', dragon: 'Caraxes', ironman: 'Iron Man', jump: 'Hyperspace', tree: 'The world tree' };
+  const craft = { falcon:true, dragon:true, ironman:true, tars:true };
+  const names = { falcon: 'Millennium Falcon', dragon: 'Caraxes', ironman: 'Iron Man', jump: 'Hyperspace', tree: 'The world tree', tars: 'TARS' };
   const messages = {
     falcon: { sender: 'FLIGHT CONTROL', title: 'An unexpected arrival.', text: 'One familiar freighter. A very unfamiliar shortcut.' },
     dragon: { sender: 'DEEP-SPACE OBSERVATORY', title: 'That is definitely a dragon.', text: 'Long neck. Red wings. Absolutely no respect for orbital traffic.' },
     ironman: { sender: 'JARVIS // PRIVATE CHANNEL', title: 'Systems online, sir.', text: 'The workflows are running themselves. Mr. Stark suggests taking the credit gracefully.' },
     jump: { sender: 'NAVIGATION', title: 'Coordinates accepted.', text: 'Some shortcuts are worth remembering.' },
+    tars: { sender: 'OBSERVATORY CREW', title: 'Your co-pilot has arrived.', text: 'A useful answer. A little dry humor. Four very capable columns.' },
     tree: { sender: 'A SIGNAL BETWEEN WORLDS', title: 'Every branch, another possibility.', text: 'You found the quiet connection holding this universe together.' }
   };
 
@@ -65,6 +66,7 @@
       <button type="button" class="cameo-discovery-card" data-cameo="falcon"><span class="cameo-preview cameo-preview-falcon"></span><span class="cameo-discovery-label"><small>01 / A FAMILIAR FREIGHTER</small><strong>The long way home <span aria-hidden="true">↗</span></strong><span>Call the Millennium Falcon</span></span></button>
       <button type="button" class="cameo-discovery-card" data-cameo="dragon"><span class="cameo-preview cameo-preview-dragon"></span><span class="cameo-discovery-label"><small>02 / FIRE IN THE DISTANCE</small><strong>Something with wings <span aria-hidden="true">↗</span></strong><span>Let Caraxes pass through</span></span></button>
       <button type="button" class="cameo-discovery-card" data-cameo="ironman"><span class="cameo-preview cameo-preview-ironman"></span><span class="cameo-discovery-label"><small>03 / A PRIVATE TRANSMISSION</small><strong>Call in the suit <span aria-hidden="true">↗</span></strong><span>A flyby, courtesy of JARVIS</span></span></button>
+      <button type="button" class="cameo-discovery-card" data-cameo="tars"><span class="cameo-preview cameo-preview-tars"><svg viewBox="0 0 64 92" fill="none" aria-hidden="true"><path d="M7 7h12v75H7zm15-3h12v82H22zm15 0h12v82H37zm15 3h9v75h-9z" fill="currentColor"/><path d="M24 23h8v10h-8zm15 0h8v10h-8z" fill="#183b41"/><path d="M25 26h6m9 0h6M25 29h4m11 0h5" stroke="#b9e8e6"/></svg></span><span class="cameo-discovery-label"><small>06 / A VERY HELPFUL RECTANGLE</small><strong>Meet your co-pilot <span aria-hidden="true">↗</span></strong><span>Talk to TARS. Humor: adjustable.</span></span></button>
     </div>
     <footer class="cameo-discovery-footer"><span class="cameo-discovery-count"></span><span class="cameo-discovery-hint">There are still things the map won’t tell you.</span></footer>
     <p class="cameo-motion-note" hidden>Ambient motion is paused. You can still discover every visitor and read their transmission.</p>
@@ -74,6 +76,7 @@
   const references={falcon:'falcon',dragon:'caraxes',ironman:'ironman'};
   dialog.querySelectorAll('[data-cameo]').forEach(button=>{
     const kind=button.dataset.cameo, preview=button.querySelector('.cameo-preview');
+    if (kind === 'tars') return;
     preview.innerHTML=`<img src="assets/img/cameos/${references[kind]}-reference.png" alt="${names[kind]} reference" loading="lazy">`;
     if(kind==='dragon')button.querySelector('.cameo-discovery-label > span').textContent='See my favorite Caraxes scenes';
   });
@@ -92,8 +95,8 @@
   modelLinks.addEventListener('click',event=>{const button=event.target.closest('[data-model-open]');if(!button)return;event.stopPropagation();const returnTo=opener;afterDiscoveryClose(()=>window.openModelGallery?.(button.dataset.modelOpen,returnTo));});
 
   function renderDiscoveryCount() {
-    dialog.querySelector('.cameo-discovery-count').textContent = `${String(discoveries.size).padStart(2, '0')} / 05 discoveries`;
-    dialog.querySelector('.cameo-discovery-hint').textContent = discoveries.size === 5 ? 'You found the stories between the stars.' : 'There are still things the map won’t tell you.';
+    dialog.querySelector('.cameo-discovery-count').textContent = `${String(discoveries.size).padStart(2, '0')} / ${String(secretIds.length).padStart(2, '0')} discoveries`;
+    dialog.querySelector('.cameo-discovery-hint').textContent = discoveries.size === secretIds.length ? 'You found the stories between the stars.' : 'There are still things the map won’t tell you.';
     dialog.querySelector('.cameo-motion-note').hidden = motionEnabled();
     dialog.querySelectorAll('[data-cameo]').forEach(button => {
       const found = discoveries.has(button.dataset.cameo);
@@ -152,6 +155,11 @@
       scheduleAmbient();
     }
     stopFlight();
+    if (kind === 'tars') {
+      if (window.openTarsGuide) window.openTarsGuide(returnTo);
+      else window.pendingTarsOpener = returnTo || document.activeElement;
+      return;
+    }
     if (requested || kind === 'ironman') showTransmission(kind, requested, isNew);
     dispatchScene(kind, source);
     if(kind==='dragon'){
@@ -245,7 +253,7 @@
     } else konamiPosition = key === konami[0] ? 1 : 0;
     if (!/^[a-z]$/.test(key)) return;
     keyboardBuffer = (keyboardBuffer + key).slice(-16);
-    const words = { falcon: 'falcon', dracarys: 'dragon', jarvis: 'ironman' };
+    const words = { falcon: 'falcon', dracarys: 'dragon', jarvis: 'ironman', tars: 'tars' };
     for (const [word, kind] of Object.entries(words)) {
       if (keyboardBuffer.endsWith(word)) {
         keyboardBuffer = '';
@@ -299,6 +307,7 @@
   document.addEventListener('portfolio:motionchange', onMotionChange);
   document.addEventListener('cosmos:motionchange', onMotionChange);
   document.addEventListener('portfolio:cameo', onExternalCameo);
+  document.addEventListener('portfolio:tars-discovered', () => markDiscovered('tars'));
   reduced.addEventListener('change', onMotionChange);
   window.addEventListener('pagehide', dispose);
   window.addEventListener('pageshow', event => { if (event.persisted) { disposed = false; scheduleAmbient(); } });

@@ -18,7 +18,9 @@ Gym app: **https://arifhasnat.vercel.app/gym/**
 - `assets/js/cinema.js` and `assets/css/cinema.css` — watchlist gallery, pointer tilt, filters, and accessible scene viewer.
 - `assets/img/watchlist/` — 23 optimized supplied images; `manifest.json` records the source mapping.
 - `assets/js/entangled.js` and `assets/css/cosmos.css` — the layered 3D world tree, drifting black hole with click/tap sparks, stars, and galaxies. Light mode fades the black hole; motion controls and reduced-motion preferences are respected.
-- `assets/js/cameos.js` and `assets/css/cameos.css` — model flybys and five discoverable secrets.
+- `assets/js/cameos.js` and `assets/css/cameos.css` — model flybys and six discoverable secrets.
+- `assets/js/tars-guide.js`, `tars-knowledge.js`, and `assets/css/tars.css` — a frontend-only TARS portfolio guide. Open the companion, choose TARS in Explore the unknown, use the Interstellar viewer, or type `tars` outside form fields. Replies are local topic matches, not a live AI service. Speech is off until explicitly enabled and uses browser speech synthesis; no API keys are included.
+- `assets/js/tars-3d.js` and `tars-physics.js` — original procedural TARS-inspired geometry, articulated motor-driven hinges, fixed-step gravity/contact constraints, and damped impulse recovery. Motion follows the site toggle and reduced-motion preference. Walk, wave, balance, and nudge are available in the guide.
 - `assets/js/flight-physics.js` — fixed-step velocity/acceleration simulation with bounded thrust, smooth banking, and throttle feedback for the engines.
 - `assets/js/cameo-3d.js` — local licensed meshes, material lighting, model-attached engines, and 3D viewer controls. `assets/models/credits.json` records provenance. Iron Man uses the detailed, 66-bone Mark 85 model with articulated flight and boot-mounted exhaust. Models load on demand. The separate docking-bay viewer features only the Millennium Falcon.
 - `src/routine.fragment.html`, `assets/js/routine.js`, and `assets/css/routine.css` — the dedicated personal workout section.

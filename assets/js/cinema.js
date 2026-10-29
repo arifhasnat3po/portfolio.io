@@ -24,7 +24,7 @@
     { title: 'The Big Bang Theory', kind: 'series', genre: 'Science meets sitcom', accent: '#e5b2ad', frames: [frame('the-big-bang-theory', 1440, 811, 'The Big Bang Theory group sharing a meal')] },
     { title: 'The Last of Us', kind: 'series', genre: 'Endure & survive', accent: '#bac8a1', position: '56% 40%', frames: [frame('the-last-of-us', 1440, 1080, 'The Last of Us characters in an overgrown city')] },
     { title: 'The Witcher', kind: 'series', genre: 'Tales of the Continent', accent: '#9bcfc8', frames: [frame('the-witcher', 1440, 810, 'The Witcher scene with a white-haired swordsman')] },
-    { title: 'Interstellar', kind: 'film', genre: 'Across space and time', accent: '#d8c7a2', frames: [frame('interstellar', 1200, 800, 'Cooper in his spacesuit aboard a spacecraft in Interstellar')] },
+    { title: 'Interstellar', kind: 'film', cameo: 'tars', orbitLabel: 'Talk to TARS', genre: 'Across space and time', accent: '#d8c7a2', frames: [frame('interstellar', 1200, 800, 'Cooper in his spacesuit aboard a spacecraft in Interstellar')] },
     { title: 'Sherlock', kind: 'series', genre: 'The game is on', accent: '#a3b9ca', frames: [frame('sherlock', 739, 415, 'Sherlock Holmes and John Watson against the London skyline')] },
     { title: 'The Dark Knight', kind: 'film', genre: 'Gotham after dark', accent: '#b6b88c', frames: [frame('the-dark-knight', 1920, 1280, 'Batman and the Joker facing each other in the interrogation room in The Dark Knight')] }
   ];
@@ -221,9 +221,10 @@
   orbitButton.addEventListener('click', event => {
     event.stopPropagation();
     const type = orbitButton.dataset.cameo;
-    if (!['dragon', 'falcon', 'ironman'].includes(type)) return;
+    if (!['dragon', 'falcon', 'ironman', 'tars'].includes(type)) return;
+    const returnTo = opener;
+    dialog.addEventListener('close', () => document.dispatchEvent(new CustomEvent('portfolio:cameo', { detail: { type, opener: returnTo } })), { once: true });
     dialog.close();
-    document.dispatchEvent(new CustomEvent('portfolio:cameo', { detail: { type, opener } }));
   });
   moreButton.addEventListener('click', () => {
     expanded = !expanded;
