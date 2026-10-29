@@ -23,7 +23,7 @@
     status.className = 'model-loading'; status.setAttribute('role', 'status');
     status.textContent = 'Opening the docking bay…'; stage.append(status);
     try {
-      await import('./cameo-3d.js?v=20261029j');
+      await import('./cameo-3d.js?v=20261029k');
       if (version !== revision) return;
       const canvasHost = document.createElement('div');
       canvasHost.className = 'model-local'; stage.append(canvasHost);

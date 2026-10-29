@@ -189,7 +189,7 @@
       if(requested)showTransmission(kind,true,false,'error');
     },90000);
     try{
-      await import('./cameo-3d.js?v=20261029j');
+      await import('./cameo-3d.js?v=20261029k');
       if(currentFlight!==flight)return;
       flightController=new AbortController();
       const destroy=await window.Portfolio3D.mount(currentFlight.firstElementChild,kind,{interactive:false,signal:flightController.signal});

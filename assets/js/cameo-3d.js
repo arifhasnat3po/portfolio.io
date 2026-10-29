@@ -497,6 +497,7 @@ export async function mount(container, kind, options = {}) {
     // populated scene has actually rendered, so callers can begin entrance effects afterwards.
     if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
     if (disposed || !container.isConnected) { cleanup(); return cleanup; }
+    if (renderer.getContext?.().isContextLost()) throw new Error('The 3D graphics context was lost before the model became visible.');
     ready = true;
     if (!draw(true)) throw new Error('The model could not draw its first frame.');
     container.dataset.modelReady = 'true';
