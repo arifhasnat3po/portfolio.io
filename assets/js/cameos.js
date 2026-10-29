@@ -29,6 +29,7 @@
   let firstArrival = true;
   let flight = null;
   let flightCleanup = null;
+  let flightMotion = null;
   let flightController = null;
   let opener = null;
   let previousOverflow = '';
@@ -123,6 +124,7 @@
   function stopFlight() {
     clearTimeout(flightTimer);
     flightTimer = 0;
+    flightMotion?.(); flightMotion=null;
     flightController?.abort();flightController=null;
     flightCleanup?.(); flightCleanup=null;
     flight?.remove();
@@ -154,19 +156,23 @@
     flight = document.createElement('div');
     flight.className = `cameo-flight cameo-flight-${kind}${requested ? ' cameo-requested' : ''}`;
     flight.setAttribute('aria-hidden', 'true');
-    flight.classList.add('is-loading');
+    flight.classList.add('is-loading', 'is-physical');
     flight.innerHTML = '<div class="cameo-craft cameo-craft-3d"></div>';
     layer.appendChild(flight);
     const currentFlight=flight;
-    const duration = kind === 'dragon' ? 20000 : kind === 'falcon' ? 13500 : 10500;
     try{
-      await import('./cameo-3d.js?v=20261029c');
+      await import('./cameo-3d.js?v=20261029d');
       if(currentFlight!==flight)return;
       flightController=new AbortController();
       const destroy=await window.Portfolio3D.mount(currentFlight.firstElementChild,kind,{interactive:false,signal:flightController.signal});
       if(currentFlight!==flight){destroy?.();return;}
       flightCleanup=destroy;currentFlight.classList.remove('is-loading');
-      flightTimer=window.setTimeout(stopFlight,duration+500);
+      flightMotion=window.PortfolioFlight.start(currentFlight,kind,{
+        setFlightState:destroy.setFlightState,
+        onComplete:()=>{if(currentFlight===flight)stopFlight();}
+      });
+      // Dispose even if a future renderer fails before the flight's natural exit.
+      flightTimer=window.setTimeout(()=>{if(currentFlight===flight)stopFlight();},kind==='falcon'?26000:20000);
     }catch(_){
       if(currentFlight!==flight)return;stopFlight();
       if(requested){consoleEl.querySelector('.cameo-console-text').textContent='The 3D visitor could not load. Open the discovery panel to inspect its original model.';}

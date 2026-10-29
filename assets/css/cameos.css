@@ -14,6 +14,7 @@
 .cameo-flight-ironman .cameo-craft { animation: cameo-ironman-bank 10.5s ease-in-out both; }
 .ironman-exhaust { animation: cameo-engine-pulse .35s ease-in-out infinite alternate; }
 .cameo-requested { opacity: .92; }
+.cameo-flight.is-physical, .cameo-flight.is-physical .cameo-craft { animation: none; }
 .cameo-flight-falcon.cameo-requested { filter: drop-shadow(0 0 15px #8dcdbb30); }
 .cameo-flight-dragon.cameo-requested { filter: drop-shadow(0 0 13px #d47c3220); }
 .cameo-flight-ironman.cameo-requested { filter: drop-shadow(0 0 15px #dbb27d28); }

@@ -15,7 +15,8 @@
       "animation": "No skeletal animation clips. Rigid-body motion only.",
       "bytes": 452820,
       "triangles": 7734,
-      "note": "This compact model is a different asset from the user's Benjamin Borromeo high-poly reference."
+      "note": "This compact model is a different asset from the user's Benjamin Borromeo high-poly reference.",
+      "renderingEffects": "Portfolio-authored model-attached engine glow and throttle-driven exhaust; smoothed rigid-body bank and pitch. These effects do not alter the original mesh or provide skeletal animation."
     },
     {
       "id": "falcon",
@@ -31,7 +32,8 @@
       "changes": "Flightradar24's adapted glTF 1 mesh converted to glTF 2 GLB. Original geometry and normals retained with lossless meshoptimizer compression. Five diffuse gray materials converted to PBR metal/roughness materials; no texture maps in the source distribution.",
       "animation": "No skeletal animation clips. Rigid-body flight transforms only.",
       "bytes": 12598668,
-      "triangles": 575233
+      "triangles": 575233,
+      "renderingEffects": "Portfolio-authored model-attached engine glow and throttle-driven exhaust; smoothed rigid-body bank and pitch. These effects do not alter the original mesh or provide skeletal animation."
     }
   ],
   "reference": {

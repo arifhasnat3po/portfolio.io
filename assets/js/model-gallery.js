@@ -30,7 +30,7 @@
       credit.textContent='Loading model credits…';
       const status=document.createElement('p');status.className='model-loading';status.setAttribute('role','status');status.textContent='Opening the docking bay…';stage.append(status);
       try {
-        await import('./cameo-3d.js?v=20261029c');
+        await import('./cameo-3d.js?v=20261029d');
         if(version!==revision)return;
         const canvasHost=document.createElement('div');canvasHost.className='model-local';stage.append(canvasHost);
         controller=new AbortController();

@@ -115,7 +115,7 @@ function checkSyntax(file) {
 
 for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
-for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'gym/sw.js']) checkSyntax(file);
+for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'gym/sw.js']) checkSyntax(file);
 try {
   const credits=JSON.parse(read('assets/models/credits.json'));
   for(const model of credits.models){

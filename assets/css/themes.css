@@ -6,7 +6,7 @@
 .theme-toggle .theme-icon-moon{display:none}
 html[data-theme=light] .theme-toggle .theme-icon-sun{display:none}
 html[data-theme=light] .theme-toggle .theme-icon-moon{display:block}
-html:not([data-theme=light]){--bg:#101915;--surface:#18231c;--text:#f0eee5;--muted:#b3bcb2;--dim:#93a18c;--accent:#b9e8bb;--gold:#dfbe89;--line:rgba(205,221,201,.24)}
+html:not([data-theme=light]){--bg:#101915;--surface:#18231c;--text:#f0eee5;--muted:#c2c9bf;--dim:#a7b3a0;--accent:#b9e8bb;--gold:#dfbe89;--line:rgba(205,221,201,.24)}
 html[data-theme=light]{color-scheme:light;--bg:#f3f0e7;--surface:#fcfaf4;--text:#182a21;--muted:#526253;--dim:#5e6b5c;--accent:#235c42;--gold:#805823;--line:rgba(45,71,48,.22);--primary:var(--accent)}
 
 @media screen{
@@ -22,18 +22,27 @@ html[data-theme=light]{color-scheme:light;--bg:#f3f0e7;--surface:#fcfaf4;--text:
   html:not([data-theme=light]) .orbit-band{background:#152017d9}
   html:not([data-theme=light]) .site-footer{background:#0c120fda}
   html:not([data-theme=light]) .hero-role{color:#e0e4d8}
-  html:not([data-theme=light]) :is(.location-label,.scroll-note,.horizon-coordinate small,.tree-coordinate small,.project-eyebrow>span:last-child,.tags span,.archive-icon,.practice-number,.practice-tab-copy small,.practice-tab-arrow,.toolkit-number,.portrait-mark,.experience-date,.experience-location,.education-card>.mono,.publication-publisher,.certificate-provider,.community-grid .mono,.site-footer>.container){color:#a0b197}
-  html:not([data-theme=light]) .practice-tab-copy strong{color:#b8c5b0}
+  html:not([data-theme=light]) :is(.location-label,.scroll-note,.horizon-coordinate small,.tree-coordinate small,.project-eyebrow>span:last-child,.tags span,.archive-icon,.practice-number,.practice-tab-copy small,.practice-tab-arrow,.toolkit-number,.portrait-mark,.experience-date,.experience-location,.education-card>.mono,.publication-publisher,.certificate-provider,.community-grid .mono,.site-footer>.container){color:#b0bea7}
+  html:not([data-theme=light]) .practice-tab-copy strong{color:#c6d0bf}
   html:not([data-theme=light]) .practice-tab.is-active strong{color:var(--accent)}
+  /* Keep secondary reading text opaque; imagery and motion retain their own fades. */
+  html:not([data-theme=light]) :is(.practice-panel>p:not(.practice-kicker),.experience-detail,.education-card p,.project-dialog p,.project-steps,.contact-form label,.cameo-console-text,#cameo-discovery-description,.cameo-discovery-label>span,.cameo-discovery-hint,.cameo-motion-note){color:var(--muted)}
+  html:not([data-theme=light]) .education-description{color:var(--muted)!important}
+  html:not([data-theme=light]) :is(.company,.practice-kicker,.project-eyebrow,.cameo-kicker,.cameo-console-sender,.cameo-discovery-label small,.cameo-discovery-label strong>span){color:#b0bea7}
+  html:not([data-theme=light]) .project-art.has-original .art-corner{color:#c2c9bf}
+  html:not([data-theme=light]) .project-search input::placeholder{color:var(--dim);opacity:1}
   html:not([data-theme=light]) .button-outline{background:#172219a3}
   html:not([data-theme=light]) .contact-form input,
   html:not([data-theme=light]) .contact-form textarea{background:#111c15cc;border-color:#9eaf8d66}
   html:not([data-theme=light]) .contact-form input::placeholder,
-  html:not([data-theme=light]) .contact-form textarea::placeholder{color:#9daa95;opacity:1}
+  html:not([data-theme=light]) .contact-form textarea::placeholder{color:#b0bca7;opacity:1}
   html:not([data-theme=light]) :is(.video-dialog,.project-dialog){background:#172117}
   html:not([data-theme=light]) .cinema-section{background:linear-gradient(180deg,#0c120f91,#101910e8 18%,#101910eb 85%,#0c120f91)}
-  html:not([data-theme=light]) #cinema-root{--cinema-muted:#acb7a5;--cinema-line:#eee9df38}
-  html:not([data-theme=light]) :is(.cinema-contact-label>span:first-child>span,.cinema-contact-label>span:last-child,.cinema-card-arrow,.cinema-filters button span){color:#a0b197}
+  html:not([data-theme=light]) #cinema-root{--cinema-muted:#b9c3b1;--cinema-line:#eee9df38}
+  html:not([data-theme=light]) .cinema-contact-label{color:var(--cinema-muted)}
+  html:not([data-theme=light]) .cinema-spotlight-top{color:#eee9df}
+  html:not([data-theme=light]) .cinema-spotlight-note small{color:#c4cebd}
+  html:not([data-theme=light]) :is(.cinema-contact-label>span:first-child>span,.cinema-contact-label>span:last-child,.cinema-card-arrow,.cinema-filters button span){color:#b0bea7}
   html:not([data-theme=light]) .cinema-filters button[aria-pressed=true] span{color:var(--cinema-green)}
   html:not([data-theme=light]) .cinema-dialog{background:#121b13}
   html:not([data-theme=light]) .cameo-discovery{background:#111a14}
