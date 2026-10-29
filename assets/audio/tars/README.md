@@ -2,7 +2,11 @@
 
 These original lines use a **70% `am_michael` / 30% `am_onyx` blend of Kokoro's stock American English voices**, generated once during development at 0.97 speed. Joke sentence pauses are 0.40 seconds; regular replies use 0.28 seconds, with 0.12-second clause pauses. No film soundtrack, actor sample, voice-cloning reference, hosted speech API, or visitor text was used.
 
-The website loads ordinary MP3 files only when the visitor enables voice. It does not download a speech model or use browser/device speech synthesis. The 60-file catalogue covers all greetings, jokes and Easter eggs, 30 common portfolio answers, and reusable humor asides. Unrecorded replies remain text-only. A reply and its aside reuse one playback element; only the next requested segment is preloaded, and Stop or closing the guide cancels both.
+The website plays ordinary MP3 files and does not download a speech model or use browser/device speech synthesis. The 60-file catalogue covers all greetings, jokes and Easter eggs, 30 common portfolio answers, and reusable humor asides. Unrecorded replies remain text-only. A reply and its aside reuse one playback element.
+
+Opening TARS silently prepares the current greeting (77–90 KB). Once sound is enabled and playback has started, a small set of jokes and suggested replies is fetched serially at low priority. Hovering, focusing, or touching a suggestion also prepares its recording. Nothing autoplays. Data Saver and 2G connections skip speculative downloads.
+
+`tars-audio-cache.js` keeps up to 2 MiB of completed recordings in a session LRU cache. A ready clip plays from a local Blob URL without a new network request. Active playback URLs are pinned until released. Cache misses stream immediately from the normal MP3 URL, preserving the mobile click gesture; playback never waits for cache preparation. Stop, sound off, closing the guide, and hiding the tab cancel pending preparation. Completed clips remain available during the page session. Vercel additionally sends one-day HTTP caching headers; versioned audio URLs invalidate old recordings after an audio update. GitHub Pages uses its own HTTP cache policy and the same session cache.
 
 ## Files and provenance
 

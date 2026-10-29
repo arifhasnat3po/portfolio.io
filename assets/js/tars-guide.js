@@ -1,6 +1,6 @@
 /* A local portfolio companion: explicit voice opt-in, bounded answers, accessible controls. */
 import { answerTars, tarsPrompts, getTarsPersonality, getTarsBanter } from './tars-knowledge.js?v=20261029e';
-import { createTarsVoice } from './tars-voice.js?v=20261029e';
+import { createTarsVoice } from './tars-voice.js?v=20261029f';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const robotIcon = '<svg viewBox="0 0 64 92" fill="none" aria-hidden="true"><path d="M7 7h12v75H7zm15-3h12v82H22zm15 0h12v82H37zm15 3h9v75h-9z" fill="currentColor" opacity=".72"/><path d="M24 23h8v10h-8zm15 0h8v10h-8z" fill="#183b41"/><path d="M25 26h6m9 0h6M25 29h4m11 0h5" stroke="#b9e8e6" stroke-width=".8"/></svg>';
@@ -30,6 +30,7 @@ let mini = null, full = null, miniLoading = false, fullLoading = false;
 let miniEpoch = 0, fullEpoch = 0, rendererModule = null;
 let opener = null, previousOverflow = '', stowed = false, heroVisible = true;
 let humor = 65, voice = false, turn = 0, audioState = 'idle';
+let prepareTimer = 0;
 let disposed = false, sessionActive = false, queuedOpener = null;
 const motionAllowed = () => !reduced.matches && document.documentElement.dataset.motion !== 'off';
 
@@ -50,6 +51,9 @@ const previewButton = dialog.querySelector('.tars-voice-test');
 const previewLabel = 'Preview recorded voice';
 const voicePlayer = createTarsVoice({
   onState(state) {
+    clearTimeout(prepareTimer);
+    // Give the requested recording priority, then prepare a small likely-next set.
+    if (state === 'speaking') prepareTimer = setTimeout(prepareLikelyVoice, 400);
     audioState = state;
     audioStatus.hidden = state === 'idle';
     audioStatus.querySelector('span').textContent = state === 'loading' ? 'Preparing voice…' : 'Speaking…';
@@ -68,6 +72,21 @@ function updatePersonality() {
   personality.dataset.personality = mode.id;
 }
 updatePersonality();
+
+function prepareLikelyVoice() {
+  if (!voice || !dialog.open || document.hidden || disposed) return;
+  voicePlayer.prepare(getTarsBanter('greeting', { humor }));
+  for (let variant = 0; variant < 2; variant++) voicePlayer.prepare(getTarsBanter('joke', { humor, variant }));
+  voicePlayer.prepare(getTarsBanter('easterEgg', { humor }));
+  tarsPrompts.slice(0, 4).forEach(prompt => voicePlayer.prepare(answerTars(prompt.question, { humor, variant: turn })));
+}
+
+function prepareOnIntent(button, reply) {
+  const prepare = () => { if (voice && dialog.open && !document.hidden) voicePlayer.prepare(reply()); };
+  button.addEventListener('pointerenter', prepare);
+  button.addEventListener('focus', prepare);
+  button.addEventListener('pointerdown', prepare, { passive: true });
+}
 
 function loadRenderer() {
   if (!rendererModule) rendererModule = import('./tars-3d.js?v=20261029c').catch(error => { rendererModule = null; throw error; });
@@ -123,6 +142,7 @@ async function mountFull() {
 }
 
 function stopSpeaking() {
+  clearTimeout(prepareTimer);
   voicePlayer.stop();
 }
 
@@ -200,6 +220,8 @@ function openTarsGuide(button = dock.querySelector('.tars-launcher')) {
   sessionActive = true;
   document.body.style.overflow = 'hidden';
   dialog.showModal();
+  // Silent preparation only; opening the guide must never enable sound.
+  voicePlayer.prepare(getTarsBanter('greeting', { humor }));
   feedback.textContent = '';
   dialog.querySelector('.tars-close').focus();
   if (!log.children.length) addMessage('assistant', getTarsBanter('greeting', { humor }).text);
@@ -233,9 +255,9 @@ dialog.addEventListener('close', () => {
   if (queuedOpener) { const pending = queuedOpener; queuedOpener = null; queueMicrotask(() => openTarsGuide(pending)); }
 });
 dialog.querySelector('.tars-form').addEventListener('submit', event => { event.preventDefault(); input.focus({ preventScroll: true }); ask(input.value); input.value = ''; });
-tarsPrompts.slice(0, 4).forEach(prompt => { const button = document.createElement('button'); button.type = 'button'; button.textContent = prompt.label; button.addEventListener('click', () => ask(prompt.question)); dialog.querySelector('.tars-prompts').append(button); });
+tarsPrompts.slice(0, 4).forEach(prompt => { const button = document.createElement('button'); button.type = 'button'; button.textContent = prompt.label; button.addEventListener('click', () => ask(prompt.question)); prepareOnIntent(button, () => answerTars(prompt.question, { humor, variant: turn })); dialog.querySelector('.tars-prompts').append(button); });
 humorInput.addEventListener('input', event => { humor = Number(event.target.value); updatePersonality(); });
-humorInput.addEventListener('change', () => { try { localStorage.setItem('portfolio:tars-humor', String(humor)); } catch {} speak(getTarsBanter('greeting', { humor })); });
+humorInput.addEventListener('change', () => { try { localStorage.setItem('portfolio:tars-humor', String(humor)); } catch {} if (voice) speak(getTarsBanter('greeting', { humor })); else if (dialog.open) voicePlayer.prepare(getTarsBanter('greeting', { humor })); });
 function setVoice(enabled) {
   voice = enabled;
   voiceButton.setAttribute('aria-pressed', String(voice));
@@ -256,6 +278,7 @@ dialog.querySelectorAll('[data-tars-fun]').forEach(button => button.addEventList
   if (motionAllowed()) full?.perform(kind === 'easterEgg' ? 'balance' : humor >= 75 ? 'wave' : 'reset');
   speak(answer);
 }));
+dialog.querySelectorAll('[data-tars-fun]').forEach(button => prepareOnIntent(button, () => getTarsBanter(button.dataset.tarsFun, { humor, variant: turn })));
 dialog.querySelectorAll('[data-tars-action]').forEach(button => button.addEventListener('click', () => { if (!motionAllowed() || !full) return; full.perform(button.dataset.tarsAction); const answer = getTarsBanter(button.dataset.tarsAction, { humor, variant: turn++ }); dialog.querySelector('.tars-model-note').textContent = answer.text; speak(answer); }));
 dialog.querySelector('.tars-resume').addEventListener('click', () => { if (!reduced.matches) document.querySelector('.motion-toggle')?.click(); });
 document.addEventListener('portfolio:motionchange', updateMotion);

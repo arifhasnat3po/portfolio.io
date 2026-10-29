@@ -117,6 +117,7 @@ function checkSyntax(file) {
 for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
 for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'assets/js/caraxes-3d.js', 'assets/js/tars-guide.js', 'assets/js/tars-knowledge.js', 'assets/js/tars-voice.js', 'assets/js/tars-3d.js', 'assets/js/tars-physics.js', 'gym/sw.js']) checkSyntax(file);
+checkSyntax('assets/js/tars-audio-cache.js');
 try {
   const { tarsVoiceLines } = await import(pathToFileURL(path.join(root, 'assets/js/tars-knowledge.js')).href);
   const manifest = JSON.parse(read('assets/audio/tars/manifest.json'));
@@ -134,7 +135,7 @@ try {
   }
   // Sixty individually requested recordings, never a full-library page download.
   if (totalBytes !== manifest.totalBytes || totalBytes > 10 * 1024 * 1024) fail('TARS audio manifest total or library budget is invalid');
-  for (const file of ['assets/js/tars-voice.js', 'assets/js/tars-guide.js']) {
+  for (const file of ['assets/js/tars-voice.js', 'assets/js/tars-guide.js', 'assets/js/tars-audio-cache.js']) {
     if (/speechSynthesis|SpeechSynthesisUtterance/.test(read(file))) fail(`Device speech must not be used: ${file}`);
   }
 } catch (error) { fail(`TARS voice integrity: ${error.message}`); }
@@ -145,7 +146,7 @@ try {
     if(fs.statSync(path.join(root,'assets/models',model.file)).size!==model.bytes)fail(`Model size does not match manifest: ${model.file}`);
     if(!model.author||!model.source||!model.licenseUrl)fail(`Incomplete model attribution: ${model.file}`);
   }
-  const imports=['assets/js/cameo-3d.js','assets/js/tars-guide.js','assets/js/tars-voice.js','assets/js/tars-3d.js',...fs.readdirSync(path.join(root,'assets/vendor/cameo-three')).filter(f=>f.endsWith('.js')).map(f=>`assets/vendor/cameo-three/${f}`)];
+  const imports=['assets/js/cameo-3d.js','assets/js/tars-guide.js','assets/js/tars-voice.js','assets/js/tars-audio-cache.js','assets/js/tars-3d.js',...fs.readdirSync(path.join(root,'assets/vendor/cameo-three')).filter(f=>f.endsWith('.js')).map(f=>`assets/vendor/cameo-three/${f}`)];
   for(const file of imports)for(const match of read(file).matchAll(/(?:from\s+|import\s*\(\s*)['"](\.[^'"]+)['"]/g))localReference(match[1],file);
 }catch(error){fail(`3D asset integrity: ${error.message}`);}
 
