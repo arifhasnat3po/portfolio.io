@@ -118,6 +118,8 @@ for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
 for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'assets/js/caraxes-3d.js', 'assets/js/tars-guide.js', 'assets/js/tars-knowledge.js', 'assets/js/tars-voice.js', 'assets/js/tars-3d.js', 'assets/js/tars-physics.js', 'gym/sw.js']) checkSyntax(file);
 checkSyntax('assets/js/tars-audio-cache.js');
+checkSyntax('assets/js/tars-science.js');
+checkSyntax('assets/js/model-resource.js');
 try {
   const { tarsVoiceLines } = await import(pathToFileURL(path.join(root, 'assets/js/tars-knowledge.js')).href);
   const manifest = JSON.parse(read('assets/audio/tars/manifest.json'));
@@ -133,8 +135,8 @@ try {
     if (!clip || !(clip.durationSeconds > 0) || bytes.length > 600000 || !(clip.peakDbFS < -1)) fail(`TARS audio duration, headroom or size is invalid: ${id}`);
     totalBytes += bytes.length;
   }
-  // Sixty individually requested recordings, never a full-library page download.
-  if (totalBytes !== manifest.totalBytes || totalBytes > 10 * 1024 * 1024) fail('TARS audio manifest total or library budget is invalid');
+  // Individually requested recordings, never a full-library page download.
+  if (totalBytes !== manifest.totalBytes || totalBytes > 12 * 1024 * 1024) fail('TARS audio manifest total or library budget is invalid');
   for (const file of ['assets/js/tars-voice.js', 'assets/js/tars-guide.js', 'assets/js/tars-audio-cache.js']) {
     if (/speechSynthesis|SpeechSynthesisUtterance/.test(read(file))) fail(`Device speech must not be used: ${file}`);
   }

@@ -1,6 +1,7 @@
 /* A local portfolio companion: explicit voice opt-in, bounded answers, accessible controls. */
-import { answerTars, tarsPrompts, getTarsPersonality, getTarsBanter } from './tars-knowledge.js?v=20261029e';
-import { createTarsVoice } from './tars-voice.js?v=20261029f';
+import { answerTars, tarsPrompts, getTarsPersonality, getTarsBanter } from './tars-knowledge.js?v=20261029g';
+import { createTarsVoice } from './tars-voice.js?v=20261029g';
+import { mountTarsScience } from './tars-science.js?v=20261029g';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const robotIcon = '<svg viewBox="0 0 64 92" fill="none" aria-hidden="true"><path d="M7 7h12v75H7zm15-3h12v82H22zm15 0h12v82H37zm15 3h9v75h-9z" fill="currentColor" opacity=".72"/><path d="M24 23h8v10h-8zm15 0h8v10h-8z" fill="#183b41"/><path d="M25 26h6m9 0h6M25 29h4m11 0h5" stroke="#b9e8e6" stroke-width=".8"/></svg>';
@@ -72,17 +73,24 @@ function updatePersonality() {
   personality.dataset.personality = mode.id;
 }
 updatePersonality();
+const scienceHost = document.createElement('div'); scienceHost.className = 'tars-science';
+personality.after(scienceHost);
+const science = mountTarsScience(scienceHost, {
+  motionAllowed,
+  onExplain(kind) { feedback.textContent = ''; speak(getTarsBanter(kind, { humor })); },
+  onReact(action) { if (motionAllowed() && full?.perform(action)) speak(getTarsBanter(action, { humor, variant: turn++ })); }
+});
 
 function prepareLikelyVoice() {
   if (!voice || !dialog.open || document.hidden || disposed) return;
   voicePlayer.prepare(getTarsBanter('greeting', { humor }));
-  for (let variant = 0; variant < 2; variant++) voicePlayer.prepare(getTarsBanter('joke', { humor, variant }));
+  for (const action of ['walk', 'wave', 'balance', 'nudge']) voicePlayer.prepare(getTarsBanter(action, { humor }));
+  for (let variant = turn; variant < turn + 2; variant++) voicePlayer.prepare(getTarsBanter('joke', { humor, variant }));
   voicePlayer.prepare(getTarsBanter('easterEgg', { humor }));
-  tarsPrompts.slice(0, 4).forEach(prompt => voicePlayer.prepare(answerTars(prompt.question, { humor, variant: turn })));
 }
 
 function prepareOnIntent(button, reply) {
-  const prepare = () => { if (voice && dialog.open && !document.hidden) voicePlayer.prepare(reply()); };
+  const prepare = () => { if (voice && dialog.open && !document.hidden) voicePlayer.prepare(reply(), { priority: true }); };
   button.addEventListener('pointerenter', prepare);
   button.addEventListener('focus', prepare);
   button.addEventListener('pointerdown', prepare, { passive: true });
@@ -101,7 +109,7 @@ function updateMotion() {
   dialog.querySelector('.tars-motion-note').hidden = motionAllowed();
   dialog.querySelector('.tars-resume').hidden = motionAllowed() || reduced.matches;
   dock.classList.toggle('is-stowed', stowed || !heroVisible);
-  if (document.hidden) stopSpeaking();
+  if (document.hidden) { stopSpeaking(); science?.cancel(); }
 }
 
 async function mountMini() {
@@ -200,8 +208,13 @@ function ask(question) {
   addMessage('user', text);
   const answer = answerTars(text, { humor, variant: turn++ });
   const reply = addMessage('assistant', answer.text, answer.links || []);
-  showReply(reply);
-  if (answer.action && motionAllowed()) full?.perform(answer.action);
+  if (answer.action?.startsWith('science-')) {
+    science.open(answer.action);
+    scienceHost.scrollIntoView({ behavior: motionAllowed() ? 'smooth' : 'instant', block: 'nearest' });
+  } else {
+    showReply(reply);
+    if (answer.action && motionAllowed()) full?.perform(answer.action);
+  }
   speak(answer);
 }
 
@@ -222,6 +235,7 @@ function openTarsGuide(button = dock.querySelector('.tars-launcher')) {
   dialog.showModal();
   // Silent preparation only; opening the guide must never enable sound.
   voicePlayer.prepare(getTarsBanter('greeting', { humor }));
+  for (const action of ['walk', 'wave', 'balance', 'nudge']) voicePlayer.prepare(getTarsBanter(action, { humor }));
   feedback.textContent = '';
   dialog.querySelector('.tars-close').focus();
   if (!log.children.length) addMessage('assistant', getTarsBanter('greeting', { humor }).text);
@@ -245,6 +259,7 @@ dialog.querySelector('.tars-close').addEventListener('click', () => dialog.close
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
 dialog.addEventListener('close', () => {
   if (!sessionActive) return;
+  science.cancel();
   stopSpeaking(); voice = false; voiceButton.setAttribute('aria-pressed', 'false'); voiceButton.textContent = 'Sound off';
   document.body.style.overflow = previousOverflow;
   ++fullEpoch;
@@ -262,7 +277,7 @@ function setVoice(enabled) {
   voice = enabled;
   voiceButton.setAttribute('aria-pressed', String(voice));
   voiceButton.textContent = voice ? 'Sound on' : 'Sound off';
-  feedback.textContent = voice ? 'Recorded voice enabled for jokes, secrets, and the main portfolio answers.' : 'Sound is off.';
+  feedback.textContent = voice ? 'Voice is on for movement, jokes, science, and common portfolio answers.' : 'Sound is off.';
   if (voice) speak(getTarsBanter('greeting', { humor })); else stopSpeaking();
 }
 voiceButton.addEventListener('click', () => setVoice(!voice));
@@ -279,6 +294,8 @@ dialog.querySelectorAll('[data-tars-fun]').forEach(button => button.addEventList
   speak(answer);
 }));
 dialog.querySelectorAll('[data-tars-fun]').forEach(button => prepareOnIntent(button, () => getTarsBanter(button.dataset.tarsFun, { humor, variant: turn })));
+dialog.querySelectorAll('[data-tars-action]').forEach(button => prepareOnIntent(button, () => getTarsBanter(button.dataset.tarsAction, { humor, variant: turn })));
+scienceHost.querySelectorAll('[data-lab]').forEach(button => prepareOnIntent(button, () => getTarsBanter(`science-${button.dataset.lab}`, { humor })));
 dialog.querySelectorAll('[data-tars-action]').forEach(button => button.addEventListener('click', () => { if (!motionAllowed() || !full) return; full.perform(button.dataset.tarsAction); const answer = getTarsBanter(button.dataset.tarsAction, { humor, variant: turn++ }); dialog.querySelector('.tars-model-note').textContent = answer.text; speak(answer); }));
 dialog.querySelector('.tars-resume').addEventListener('click', () => { if (!reduced.matches) document.querySelector('.motion-toggle')?.click(); });
 document.addEventListener('portfolio:motionchange', updateMotion);
@@ -289,7 +306,7 @@ reduced.addEventListener('change', updateMotion);
 const hero = document.querySelector('.hero');
 if (hero && 'IntersectionObserver' in window) new IntersectionObserver(([entry]) => { heroVisible = entry.isIntersecting; updateMotion(); if (heroVisible) mountMini(); }, { threshold: .05 }).observe(hero);
 new MutationObserver(updateMotion).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
-window.addEventListener('pagehide', () => { disposed = true; ++miniEpoch; ++fullEpoch; mini?.destroy(); full?.destroy(); mini = null; full = null; stopSpeaking(); });
+window.addEventListener('pagehide', () => { disposed = true; science.cancel(); ++miniEpoch; ++fullEpoch; mini?.destroy(); full?.destroy(); mini = null; full = null; stopSpeaking(); });
 window.addEventListener('pageshow', event => { if (event.persisted) { disposed = false; updateMotion(); mountMini(); if (dialog.open) mountFull(); } });
 updateMotion();
 mountMini();

@@ -4,12 +4,16 @@ import { GLTFLoader } from '../vendor/cameo-three/GLTFLoader.js';
 import { MeshoptDecoder } from '../vendor/cameo-three/meshopt_decoder.module.js';
 import { RoomEnvironment } from '../vendor/cameo-three/RoomEnvironment.js';
 import { createCaraxes } from './caraxes-3d.js';
+import { loadModelBytes, rememberModelBytes, forgetModelBytes } from './model-resource.js';
 
 const assets = {
-  ironman: { file: 'ironman-mark85.glb', label: 'Iron Man Mark 85 by 9A Films / Nihar Arora and LLIypuk', source: 'https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2' },
+  ironman: { file: 'ironman-mark85-flight.glb', label: 'Iron Man Mark 85 by 9A Films / Nihar Arora and LLIypuk', source: 'https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2' },
   falcon: { file: 'millennium-falcon.glb', label: 'Millennium Falcon by Johnson Martin', source: 'https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1' },
   dragon: { procedural: true, label: 'Caraxes-inspired red dragon — original stylized 3D reconstruction', source: null }
 };
+
+// Called on Explore intent: warm only JavaScript/decoder initialization, never large model downloads.
+export async function prewarm() { await MeshoptDecoder.ready; }
 
 // Aim the real Mixamo joints in anatomical coordinates, independent of the imported bone axes.
 // The original bind pose and material groups are retained; no vertices are hand-deformed.
@@ -194,12 +198,18 @@ export async function mount(container, kind, options = {}) {
   if (options.signal?.aborted) return () => {};
   const loading = new AbortController();
   delete container.dataset.modelReady;
+  const started = Date.now(); let currentStage = 'initialize', modelURL = null;
+  function progress(info) {
+    currentStage = info.stage; container.dataset.modelStage = currentStage;
+    options.onProgress?.({ kind, elapsedMilliseconds: Date.now() - started, ...info });
+  }
+  progress({ stage: 'initialize' });
   const interactive = options.interactive === true;
   const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.65));
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: kind === 'ironman' ? 'high-performance' : 'low-power' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, kind === 'ironman' ? 1.35 : 1.65));
   renderer.setClearColor(0x000000, 0);
-  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.enabled=kind !== 'ironman';
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -221,15 +231,19 @@ export async function mount(container, kind, options = {}) {
   const hemi = new THREE.HemisphereLight(0xf5f2e7, 0x1b292e, 0.42);
   scene.add(hemi);
   const key = new THREE.DirectionalLight(0xffebd0, 2.4); key.position.set(-3, 4, 6); scene.add(key);
-  key.castShadow=true;key.shadow.mapSize.set(1024,1024);
+  key.castShadow=kind !== 'ironman';key.shadow.mapSize.set(1024,1024);
   Object.assign(key.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.1,far:20});
   key.shadow.bias=-.0001;key.shadow.normalBias=.012;
   const fill = new THREE.DirectionalLight(0xbedce8, 0.65); fill.position.set(5, 1, -2); scene.add(fill);
   const rim = new THREE.DirectionalLight(0xe7ffe4, 1.2); rim.position.set(-4, 2, -4); scene.add(rim);
-  const environment = new RoomEnvironment();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const envTarget = pmrem.fromScene(environment, 0.04);
-  environment.dispose(); pmrem.dispose();
+  let environment, pmrem, envTarget;
+  try {
+    environment = new RoomEnvironment(); pmrem = new THREE.PMREMGenerator(renderer);
+    envTarget = pmrem.fromScene(environment, 0.04);
+  } catch (error) {
+    envTarget?.dispose(); key.shadow.dispose(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove();
+    options.onError?.(error); throw error;
+  } finally { environment?.dispose(); pmrem?.dispose(); }
   scene.environment = envTarget.texture;
   scene.environmentIntensity = kind === 'ironman' ? .95 : 0.6;
 
@@ -378,6 +392,12 @@ export async function mount(container, kind, options = {}) {
   document.addEventListener('visibilitychange', sync);
   document.addEventListener('portfolio:motionchange', sync);
   preference.addEventListener('change', sync);
+  function contextLost(event) {
+    event.preventDefault();
+    const error = new Error('The 3D graphics context was lost. Please try again.'); error.stage = currentStage;
+    cleanup(); options.onError?.(error);
+  }
+  canvas.addEventListener('webglcontextlost', contextLost);
   function disposeObject(object) {
     const geometries = new Set(), materials = new Set(), textures = new Set(), skeletons = new Set();
     object.traverse(child => {
@@ -402,7 +422,9 @@ export async function mount(container, kind, options = {}) {
     document.removeEventListener('portfolio:motionchange', sync);
     preference.removeEventListener('change', sync);
     options.signal?.removeEventListener('abort', cleanup);
+    canvas.removeEventListener('webglcontextlost', contextLost);
     delete container.dataset.modelReady;
+    delete container.dataset.modelStage;
     disposeObject(pivot); envTarget.dispose();key.shadow.dispose(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove();
   }
   cleanup.setFlightState = state => {
@@ -423,15 +445,20 @@ export async function mount(container, kind, options = {}) {
       await MeshoptDecoder.ready;
       if (disposed) return cleanup;
       const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-      const modelURL = new URL(`../models/${assets[kind].file}`, import.meta.url);
-      const response = await fetch(modelURL, { signal: loading.signal });
-      if (!response.ok) throw new Error(`Model request failed (${response.status}).`);
-      const bytes = await response.arrayBuffer();
+      modelURL = new URL(`../models/${assets[kind].file}`, import.meta.url);
+      const bytes = await loadModelBytes(modelURL, { signal: loading.signal, onProgress: progress });
       if (disposed || !container.isConnected) { cleanup(); return cleanup; }
+      progress({ stage: 'decode' });
       gltf = await loader.parseAsync(bytes, new URL('.', modelURL).href);
+      if (!disposed && !loading.signal.aborted) rememberModelBytes(modelURL, bytes);
     }
     if (disposed || !container.isConnected) { disposeObject(gltf.scene); cleanup(); return cleanup; }
-    const bounds = new THREE.Box3().setFromObject(gltf.scene);
+    progress({ stage: 'prepare' });
+    const storedBounds = gltf.asset?.extras?.portfolioBounds;
+    const validBounds = storedBounds && [storedBounds.min, storedBounds.max].every(v => Array.isArray(v) && v.length === 3 && v.every(Number.isFinite));
+    const bounds = validBounds
+      ? new THREE.Box3(new THREE.Vector3(...storedBounds.min), new THREE.Vector3(...storedBounds.max))
+      : new THREE.Box3().setFromObject(gltf.scene);
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
     if (!Number.isFinite(size.length()) || size.length() === 0) throw new Error('Model has no visible geometry.');
     const normalized = new THREE.Group();
@@ -493,24 +520,28 @@ export async function mount(container, kind, options = {}) {
     }
     fitPoints = new Float32Array(samples);
     pose(); resize(false);
-    // compileAsync uses KHR_parallel_shader_compile where available. Resolve only after the
-    // populated scene has actually rendered, so callers can begin entrance effects afterwards.
-    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    // A real first render performs the required shader work. Waiting on compileAsync can strand
+    // a hidden or lost WebGL context indefinitely, and its internal polling cannot be cancelled.
+    progress({ stage: 'render' });
     if (disposed || !container.isConnected) { cleanup(); return cleanup; }
     if (renderer.getContext?.().isContextLost()) throw new Error('The 3D graphics context was lost before the model became visible.');
     ready = true;
     if (!draw(true)) throw new Error('The model could not draw its first frame.');
     container.dataset.modelReady = 'true';
+    progress({ stage: 'ready' });
     sync();
     options.onReady?.({ kind, label: assets[kind].label, source: assets[kind].source,
-      animationClips: gltf.animations.length, bones: rig?.boneCount || 0, firstFrameRendered: true });
+      animationClips: gltf.animations.length, bones: rig?.boneCount || 0, firstFrameRendered: true,
+      elapsedMilliseconds: Date.now() - started });
     return cleanup;
   } catch (error) {
     const cancelled = disposed || loading.signal.aborted;
+    if (modelURL && !cancelled) forgetModelBytes(modelURL);
+    error.stage ||= currentStage;
     cleanup();
     if (cancelled) return cleanup;
     options.onError?.(error); throw error;
   }
 }
 
-window.Portfolio3D = Object.freeze({ mount, assets });
+window.Portfolio3D = Object.freeze({ mount, assets, prewarm });

@@ -2,6 +2,28 @@
   "licenseNotice": "Model artwork is licensed separately from the website. Attribution licenses do not imply endorsement by the creators or franchise owners.",
   "models": [
     {
+      "id": "ironman-flight",
+      "file": "ironman-mark85-flight.glb",
+      "title": "Iron-Man Mark 85 | Rigged",
+      "author": "9A Films / Nihar Arora",
+      "authorUrl": "https://sketchfab.com/Nihar-9Afilms",
+      "source": "https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2",
+      "originalAuthor": "LLIypuk",
+      "originalAuthorUrl": "https://sketchfab.com/LLIypuk",
+      "originalSource": "https://sketchfab.com/3d-models/iron-man-mark-85-8da781aa74024366844b36444c650d69",
+      "downloadSource": "https://github.com/avengers2405/movie-list/tree/ead05e448d189166279db77387d5e77f26e5af02/assets/iron-man_mark_85__rigged",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionEvidence": "https://github.com/avengers2405/movie-list/blob/ead05e448d189166279db77387d5e77f26e5af02/assets/iron-man_mark_85__rigged/license.txt",
+      "changes": "Same original 639,859-triangle topology, 66-joint skeleton, node transforms and material assignments. Meshoptimizer TRIANGLES compression and 16-bit exponential float precision (maximum measured skin-weight sum error 0.00002385). Color and normal maps at 1024 px; metal, roughness and emissive maps at 512 px; WebP. Stored verified bind-pose bounds avoid an initial CPU scan. Portfolio flight pose, lighting and boot effects retained.",
+      "animation": "66-bone Mixamo rig. No bundled animation clips; portfolio flight articulation is procedural.",
+      "bytes": 14430112,
+      "sha256": "d3677ab1fb1bbd75607e61a9a55e0542187f7b4e6a5e8aa8ec40f93178896de7",
+      "triangles": 639859,
+      "bones": 66,
+      "textures": 13
+    },
+    {
       "id": "ironman",
       "file": "ironman-mark85.glb",
       "title": "Iron-Man Mark 85 | Rigged",

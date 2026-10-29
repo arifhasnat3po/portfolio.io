@@ -38,6 +38,13 @@
   let keyTime = 0;
   let konamiPosition = 0;
   let ambientIndex = 0;
+  let modelModulePromise = null;
+  function loadModelModule() {
+    if (!modelModulePromise) modelModulePromise = import('./cameo-3d.js?v=20261029l').catch(error => {
+      modelModulePromise = null; throw error;
+    });
+    return modelModulePromise;
+  }
   let disposed = false;
   const konami = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
   const motionEnabled = () => !reduced.matches && document.documentElement.dataset.motion !== 'off';
@@ -157,6 +164,10 @@
   async function runCameo(kind, source = 'discovery', returnTo = opener) {
     if (!secretIds.includes(kind) || disposed || document.hidden) return;
     const requested = source !== 'ambient';
+    // Repeated clicks keep the current download; cancelling and starting over made a slow suit feel broken.
+    if (requested && flight?.dataset.kind === kind && flight.classList.contains('is-loading') && flight.classList.contains('cameo-requested')) {
+      showTransmission(kind, true, false, 'loading'); return;
+    }
     const isNew = requested ? markDiscovered(kind) : false;
     // A requested sighting gets the stage; the first-arrival timer must not replace it.
     if (requested) {
@@ -178,6 +189,7 @@
     layer.classList.toggle('has-requested-visitor', requested);
     flight = document.createElement('div');
     flight.className = `cameo-flight cameo-flight-${kind}${requested ? ' cameo-requested' : ''}`;
+    flight.dataset.kind = kind;
     flight.setAttribute('aria-hidden', 'true');
     flight.classList.add('is-loading', 'is-physical');
     flight.innerHTML = '<div class="cameo-craft cameo-craft-3d"></div>';
@@ -189,10 +201,29 @@
       if(requested)showTransmission(kind,true,false,'error');
     },90000);
     try{
-      await import('./cameo-3d.js?v=20261029k');
+      const modelModule = await loadModelModule();
       if(currentFlight!==flight)return;
       flightController=new AbortController();
-      const destroy=await window.Portfolio3D.mount(currentFlight.firstElementChild,kind,{interactive:false,signal:flightController.signal});
+      const fail = () => {
+        if(currentFlight!==flight)return;
+        stopFlight(); if(requested)showTransmission(kind,true,false,'error');
+      };
+      const destroy=await modelModule.mount(currentFlight.firstElementChild,kind,{
+        interactive:false,signal:flightController.signal,onError:fail,
+        onProgress:info=>{
+          if(currentFlight!==flight)return;
+          currentFlight.dataset.modelStage=info.stage;
+          if(!requested||consoleEl.dataset.state!=='loading')return;
+          const percent=info.total?Math.min(100,Math.round(info.loaded/info.total*100)):null;
+          const label=info.stage==='download'?(percent===null?'Downloading the 3D model…':`Downloading the 3D model… ${percent}%`)
+            :info.stage==='retry'?'The connection stalled. Retrying the model download…'
+            :info.stage==='cached'?'Reusing the downloaded model…'
+            :info.stage==='decode'?'Opening the 3D model…'
+            :info.stage==='prepare'?'Preparing the model and lighting…'
+            :info.stage==='render'?'Drawing the first frame…':null;
+          if(label)consoleEl.querySelector('.cameo-console-text').textContent=label;
+        }
+      });
       if(currentFlight!==flight){destroy?.();return;}
       if(!motionEnabled()||document.hidden){destroy?.();stopFlight();return;}
       flightCleanup=destroy;currentFlight.classList.remove('is-loading');
@@ -239,6 +270,8 @@
     renderDiscoveryCount();
     dialog.showModal();
     dialog.querySelector('.cameo-dialog-close').focus();
+    // Warm shared code only on explicit Explore intent. Large models still download on selection.
+    loadModelModule().then(module => module.prewarm?.()).catch(() => {});
   }
 
   function onClick(event) {

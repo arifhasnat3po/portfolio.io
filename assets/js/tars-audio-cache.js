@@ -1,5 +1,5 @@
 /* A small session cache: no model, autoplay, or full-library download. */
-import { tarsVoiceLines } from './tars-knowledge.js?v=20261029e';
+import { tarsVoiceLines } from './tars-knowledge.js?v=20261029g';
 
 const audioVersion = '20261029-studio';
 const budget = 2 * 1024 * 1024;
@@ -49,9 +49,20 @@ export function createTarsRecordingCache() {
   }
 
   return {
-    prepare(ids) {
+    prepare(ids, { priority = false } = {}) {
       if (destroyed || conserveData() || !Array.isArray(ids)) return;
-      for (const id of ids) {
+      const wanted = [...new Set(ids.filter(allowed))].filter(id => !ready.has(id));
+      if (priority && wanted.length) {
+        // A touched/focused action takes precedence over speculative preparation.
+        // Keep a request already loading that exact first clip.
+        if (active && !wanted.includes(active.id)) {
+          const previous = active.id;
+          active.controller.abort(); active = null;
+          if (!queue.includes(previous)) queue.push(previous);
+        }
+        queue = [...wanted.filter(id => active?.id !== id), ...queue.filter(id => !wanted.includes(id))].slice(0, 16);
+      }
+      for (const id of priority ? [] : wanted) {
         if (queue.length >= 16) break;
         if (allowed(id) && !ready.has(id) && !queue.includes(id) && active?.id !== id) queue.push(id);
       }

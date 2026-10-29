@@ -82,6 +82,13 @@ def main() -> None:
     checkpoint = args.wav_dir / "recording-checkpoint.json"
     previous = json.loads(checkpoint.read_text(encoding="utf-8")) if args.resume and checkpoint.exists() else {}
     completed = {clip["id"]: clip for clip in previous.get("clips", [])} if previous.get("edition") == edition else {}
+    # An unchanged published clip can be reused even if the scratch checkpoint
+    # was cleared. Verify its recording edition, wording and hash below.
+    manifest_path = args.output_dir / "manifest.json"
+    if args.resume and manifest_path.exists():
+        published = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if all(published.get("engine", {}).get(key) == value for key, value in edition.items()):
+            completed = {**{clip["id"]: clip for clip in published.get("clips", [])}, **completed}
     clips = []
     for key, text in catalogue.items():
         if not key or any(character not in "abcdefghijklmnopqrstuvwxyz0123456789-" for character in key):

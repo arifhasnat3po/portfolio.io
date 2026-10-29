@@ -22,22 +22,35 @@
     const status = document.createElement('p');
     status.className = 'model-loading'; status.setAttribute('role', 'status');
     status.textContent = 'Opening the docking bay…'; stage.append(status);
+    let failed = false;
+    function showFailure() {
+      if (version !== revision) return;
+      failed = true;
+      status.textContent = 'The model could not load. Close the viewer and try again with WebGL enabled.';
+      if (!status.isConnected) stage.append(status);
+      credit.textContent = 'The rest of the portfolio remains available.';
+    }
     try {
-      await import('./cameo-3d.js?v=20261029k');
+      const models = await import('./cameo-3d.js?v=20261029l');
       if (version !== revision) return;
       const canvasHost = document.createElement('div');
       canvasHost.className = 'model-local'; stage.append(canvasHost);
       controller = new AbortController();
-      const destroy = await window.Portfolio3D.mount(canvasHost, 'falcon', {
-        interactive: true, signal: controller.signal, onReady: () => status.remove()
+      const destroy = await models.mount(canvasHost, 'falcon', {
+        interactive: true, signal: controller.signal, onReady: () => status.remove(), onError: showFailure,
+        onProgress: info => {
+          const percent = info.total ? Math.round(info.loaded / info.total * 100) : null;
+          status.textContent = info.stage === 'download' ? `Downloading the Falcon${percent === null ? '…' : `… ${percent}%`}`
+            : info.stage === 'retry' ? 'The connection stalled. Retrying…'
+            : info.stage === 'cached' ? 'Reusing the downloaded Falcon…'
+            : 'Preparing the Falcon and lighting…';
+        }
       });
-      if (version !== revision) { destroy?.(); return; }
+      if (version !== revision || failed) { destroy?.(); return; }
       cleanup = destroy; status.remove();
       credit.innerHTML = 'Millennium Falcon by <a href="https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1" target="_blank" rel="noopener noreferrer">Johnson Martin</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a> · adapted from Flightradar24';
     } catch (_) {
-      if (version !== revision) return;
-      status.textContent = 'The model could not load. Please try again with WebGL enabled.';
-      credit.textContent = 'The rest of the portfolio remains available.';
+      showFailure();
     }
   }
   function open(kind = 'falcon', button) {

@@ -1,6 +1,6 @@
 /* On-demand recordings only. The visitor's speech engine is never used. */
-import { tarsVoiceLines } from './tars-knowledge.js?v=20261029e';
-import { createTarsRecordingCache } from './tars-audio-cache.js?v=20261029f';
+import { tarsVoiceLines } from './tars-knowledge.js?v=20261029g';
+import { createTarsRecordingCache } from './tars-audio-cache.js?v=20261029g';
 
 export function createTarsVoice({ onState = () => {}, onError = () => {} } = {}) {
   let epoch = 0, audio = null, warmup = null, destroyed = false;
@@ -27,16 +27,19 @@ export function createTarsVoice({ onState = () => {}, onError = () => {} } = {})
     element.load();
   }
 
-  function stop() {
+  function stopPlayback(cancelPreparation = true) {
     ++epoch;
     release(audio); release(warmup);
-    releaseLeases(); cache.cancel();
+    releaseLeases(); if (cancelPreparation) cache.cancel();
     audio = warmup = null;
     onState('idle');
   }
+  const stop = () => stopPlayback();
 
   function play(answer) {
-    stop();
+    // Preserve a warmup started by pointer/focus intent. A click should not
+    // cancel and restart its own download; an explicit Stop still cancels it.
+    stopPlayback(false);
     if (destroyed || !answer?.text) return;
     const clips = clipsFor(answer);
     // A recording sequence must say the complete displayed answer, in order.
@@ -96,6 +99,6 @@ export function createTarsVoice({ onState = () => {}, onError = () => {} } = {})
     next();
   }
 
-  return { play, stop, prepare(answer) { if (!destroyed) cache.prepare(clipsFor(answer)); },
+  return { play, stop, prepare(answer, options) { if (!destroyed) cache.prepare(clipsFor(answer), options); },
     destroy() { if (!destroyed) { stop(); cache.destroy(); destroyed = true; } } };
 }

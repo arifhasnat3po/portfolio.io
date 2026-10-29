@@ -111,7 +111,38 @@ export const tarsVoiceLines = Object.freeze({
   'aside-witty-hire': "Clear briefs reduce the need for mind reading. My least reliable module.",
   'aside-witty-favorites': "A respectable range of galaxies, detectives, and questionable office management.",
   'aside-witty-thanks': "No docking fee.",
-  'aside-witty-interstellar': "I recommend docking with the gallery before attempting the singularity."
+  'aside-witty-interstellar': "I recommend docking with the gallery before attempting the singularity.",
+  'joke-professional-3': 'Why do robots check their work? Even a small error can have a big footprint.',
+  'joke-professional-4': 'A robot’s favorite exercise is a logic stretch. It keeps the reasoning flexible.',
+  'joke-professional-5': 'My calendar has plenty of space. That is the advantage of working in an observatory.',
+  'joke-dry-3': 'I packed light for space travel. The photons appreciated the company.',
+  'joke-dry-4': 'The satellite requested a raise. Apparently, the current position has too much overhead.',
+  'joke-dry-5': 'I scheduled a brainstorming session with the vacuum. Attendance was exactly as expected.',
+  'joke-witty-3': 'My telescope and I have an understanding: it finds distant stars, and I pretend I knew where to look.',
+  'joke-witty-4': 'I gave the navigation system a motivational speech. It recalculated my confidence.',
+  'joke-witty-5': 'The comet arrived late to our meeting. It blamed a very long commute.',
+  'joke-mischievous-3': 'I borrowed a planet for a demonstration. Please check that all moons are accounted for.',
+  'joke-mischievous-4': 'I challenged gravity to a staring contest. It won when I leaned forward.',
+  'joke-mischievous-5': 'Mission control asked for a quiet robot. I sent them a photograph.',
+  'movement-walk-professional': 'I’ll demonstrate a short walk. You can watch how the columns move.',
+  'movement-wave-professional': 'Hello. Here is a friendly wave from your local portfolio guide.',
+  'movement-balance-professional': 'I’ll shift my weight and demonstrate a careful balancing motion.',
+  'movement-nudge-professional': 'A gentle nudge, followed by a small movement to regain balance.',
+  'movement-walk-dry': 'A short walk. No meeting invitation or travel expense form required.',
+  'movement-wave-dry': 'A wave. Consider this the entire onboarding ceremony, efficiently completed.',
+  'movement-balance-dry': 'Balance demonstration. Gravity has been informed and has declined to comment.',
+  'movement-nudge-dry': 'A nudge. Feedback received. A written suggestion would also have worked.',
+  'movement-walk-witty': 'Taking the scenic route. An ambitious expedition for a very organized rectangle.',
+  'movement-wave-witty': 'Waving hello. My most convincing evidence of a thriving social life.',
+  'movement-balance-witty': 'Balancing the workload. Literally, for once. My corners deserve a small break.',
+  'movement-nudge-witty': 'You have my attention, and briefly, custody of my center of gravity.',
+  'movement-walk-mischievous': 'Stand back. The filing cabinet has ambitions and a suspiciously confident walking style.',
+  'movement-wave-mischievous': 'Hello, human. A wave from the crew member with the best corners.',
+  'movement-balance-mischievous': 'If I wobble, call it a limited-edition dance move. That’s our agreement.',
+  'movement-nudge-mischievous': 'Poking the navigation officer. Bold choice. My corners are taking very detailed minutes.',
+  'science-gravity': 'Without air resistance, falling objects share the same acceleration in the same gravitational field. This simplified demo compares gravity on different worlds.',
+  'science-time': 'Relative to an inertial observer, a moving clock ticks more slowly. This simplified demo illustrates time dilation as speed approaches light speed.',
+  'science-light': 'In a vacuum, light travels at about three hundred thousand kilometers per second. This simplified demo compares travel times over different distances.'
 });
 
 const voiceIdByText = new Map(Object.entries(tarsVoiceLines).map(([id, text]) => [text, id]));
@@ -141,51 +172,28 @@ function variantIndex(value, count) {
   return typeof value === 'number' && Number.isFinite(value) ? Math.abs(Math.trunc(value)) % count : 0;
 }
 
-const movementLines = {
-  walk: [
-    ['A short walk, coming up.', 'I’ll demonstrate the walking motion.'],
-    ['A short walk. No meeting required.', 'Walking. A surprisingly useful feature for a rectangle.'],
-    ['A very small step for a robot. A rather large commitment from four columns.', 'Taking the scenic route. Both meters of it.'],
-    ['Walking confidently toward absolutely no deadline.', 'Stand back. The filing cabinet has ambitions.']
-  ],
-  wave: [
-    ['Hello. I’ll give you a wave.', 'A wave, coming up.'],
-    ['A wave. Consider this the entire onboarding ceremony.', 'Hello. Efficiently conveyed with one moving column.'],
-    ['Diplomacy without the paperwork. Hello there.', 'Waving. My most convincing evidence of a social life.'],
-    ['Hello, human. Please contain your enthusiasm for the rectangle.', 'A wave from the crew member with the best corners.']
-  ],
-  balance: [
-    ['I’ll demonstrate the balance motion.', 'Balance demonstration requested.'],
-    ['Balance demonstration. Gravity has been informed.', 'One careful balance. This seemed simpler in the manual.'],
-    ['Confidence: adequate. Dignity: under review.', 'Balancing the workload. Literally, for once.'],
-    ['If I wobble, call it a limited-edition dance move.', 'Watch closely. Gravity and I are negotiating.']
-  ],
-  nudge: [
-    ['A gentle nudge, coming up.', 'I’ll respond with a small balancing movement.'],
-    ['A nudge. Feedback received without a form.', 'Noted. A written suggestion would also have worked.'],
-    ['You have my attention. And briefly, my center of gravity.', 'A gentle reminder that my office has no walls.'],
-    ['Poking the navigation officer. A bold career choice.', 'I felt that. My corners are taking minutes.']
-  ]
-};
+const movementKinds = new Set(['walk', 'wave', 'balance', 'nudge']);
+const scienceKinds = new Set(['science-gravity', 'science-time', 'science-light']);
 
 /**
  * Pure banter picker. The UI owns the turn counter and calls movement kinds only
- * after a user request. Greeting/joke/easterEgg never return a movement action.
+ * after a user request. Science kinds open the corresponding simplified demo.
+ * Greeting/joke/easterEgg never return a movement or science action.
  * Unknown kinds return harmless help. No audio is loaded or played here.
  */
 export function getTarsBanter(kind, options = {}) {
   const personality = getTarsPersonality(options?.humor);
-  const band = Math.min(3, Math.floor(personality.humor / 25));
   const variant = options?.variant ?? options?.turn ?? 0;
   let clip;
   if (kind === 'greeting') clip = `greeting-${personality.id}`;
-  if (kind === 'joke') clip = `joke-${personality.id}-${variantIndex(variant, 2) + 1}`;
+  if (kind === 'joke') clip = `joke-${personality.id}-${variantIndex(variant, 5) + 1}`;
   if (kind === 'easterEgg') clip = `easter-egg-${personality.id}`;
-  if (clip) return { text: tarsVoiceLines[clip], clip, clips: [clip] };
-  if (typeof kind === 'string' && Object.hasOwn(movementLines, kind)) {
-    const lines = movementLines[kind][band];
-    return { text: lines[variantIndex(variant, lines.length)], action: kind };
-  }
+  if (movementKinds.has(kind)) clip = `movement-${kind}-${personality.id}`;
+  if (scienceKinds.has(kind)) clip = kind;
+  if (clip) return {
+    text: tarsVoiceLines[clip], clip, clips: [clip],
+    ...((movementKinds.has(kind) || scienceKinds.has(kind)) ? { action: kind } : {})
+  };
   return { text: 'Ask me about Arif’s projects, skills, or contact details.' };
 }
 
@@ -254,6 +262,17 @@ export function answerTars(question, context = {}) {
   }
   if (/\b(easter eggs?|secret transmission|hidden extra|hidden surprise)\b/.test(q)) {
     return banter('easterEgg', ['movies']);
+  }
+  // Full topic requests open a local demonstration, never an arbitrary command.
+  // Anchoring avoids mistaking project text or a joke mentioning gravity for an action.
+  if (!/[<>`{}]/.test(raw)) {
+    const topic = command
+      .replace(/^(show(?: me)?|open|try|start|run|explain|tell me about|teach me about|what is|whats|how does|how do) (?:the )?/, '')
+      .replace(/ (?:work|works)$/, '');
+    if (/^(?:science(?: lab)?|do an experiment|what else can you do)$/.test(topic)) return banter('science-gravity');
+    if (/^(?:gravity|science gravity|free fall|falling objects|moon gravity|earth gravity)(?: (?:demo|experiment|simulation))?$/.test(topic)) return banter('science-gravity');
+    if (/^(?:time dilation|science time|special relativity|relativity|moving clocks)(?: (?:demo|experiment|simulation))?$/.test(topic)) return banter('science-time');
+    if (/^(?:speed of light|light speed|science light|light travel time|photons)(?: (?:demo|experiment|simulation))?$/.test(topic)) return banter('science-light');
   }
   if (/\b(are you (real|ai|an ai|a bot|chatgpt)|who are you|who is tars|what are you|tell me about yourself|how do you work|language model|llm|chatgpt|gpt|chatbot|scripted|prewritten|your capabilities|what can you do|can you browse|live data|real time|realtime|privacy|private chat|store my|save my|send my|store (messages|chat)|send (this|the) chat)\b/.test(q)) {
     return reply(tarsVoiceLines['faq-capabilities'], ['projects', 'skills', 'contact']);

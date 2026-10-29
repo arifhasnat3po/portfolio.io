@@ -105,3 +105,31 @@ html[data-theme=light] .tars-dialog::backdrop{background:#172c24a6}
   .tars-feedback{padding-bottom:16px}
 }
 @media print{.tars-dock,.tars-dialog,.tars-invitation{display:none!important}}
+/* The laboratory stays inside the same touch-scroll surface as the companion. */
+.tars-science{margin-top:18px;border-top:1px solid var(--line);scroll-margin-block:150px 24px}
+.tars-lab summary{min-height:48px;padding:15px 0;cursor:pointer;font:500 13px/1.4 var(--font-body);color:var(--text)}
+.tars-lab summary>span{float:right;color:var(--muted);font-size:11px}
+.tars-lab-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 16px}
+.tars-lab-tabs button,.tars-lab-run{min-height:44px;border:1px solid var(--line);border-radius:5px;padding:9px 8px;background:var(--bg);color:var(--text);font:12px/1.4 var(--font-body);touch-action:manipulation}
+.tars-lab-tabs button[aria-pressed=true],.tars-lab-tabs button:hover{border-color:var(--accent);color:var(--accent)}
+.tars-lab-panel{padding:16px;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.tars-lab-panel h3{font:400 24px/1.2 var(--font-serif);color:var(--text);margin:0 0 10px}
+.tars-lab-panel p{font:12px/1.7 var(--font-body);color:var(--text);margin:0 0 12px}
+.tars-lab-panel small{display:block;color:var(--muted);font:11px/1.6 var(--font-body);margin-top:12px}
+.tars-lab-panel svg{width:100%;display:block;margin:12px 0;overflow:visible}
+.tars-lab-panel svg text{fill:var(--text);font:12px var(--font-body);text-anchor:middle}
+.lab-track{stroke:var(--line);stroke-width:2;stroke-dasharray:4 5;fill:none}
+.lab-probe{fill:var(--accent);stroke:var(--text);stroke-width:1}
+.lab-probe-1,.lab-moon{fill:#a8aeba;stroke:var(--text);stroke-width:1}
+.lab-probe-2{fill:#d69a78}
+.lab-signal{fill:#ffd18b;stroke:var(--bg);stroke-width:2}
+.tars-lab-readouts,.tars-clock-pair{display:flex;justify-content:space-around;gap:10px;margin:16px 0;text-align:center}
+.tars-lab-readouts span,.tars-clock-pair span{font:10px/1.6 var(--font-body);color:var(--muted)}
+.tars-lab-readouts strong,.tars-clock-pair strong{display:block;font:500 20px/1.5 var(--font-mono);color:var(--accent)}
+.tars-lab-run{width:100%;margin-bottom:12px;border-color:var(--accent)}
+.tars-lab-panel label{display:block;font:12px/1.5 var(--font-body);margin:18px 0 8px;color:var(--text)}
+.tars-lab-panel label output{display:block;color:var(--accent);margin-top:4px}
+.tars-lab-panel input[type=range]{width:100%;min-height:44px;accent-color:var(--accent);touch-action:pan-y}
+.tars-time-track{height:5px;background:var(--line);margin:15px 0 20px;border-radius:5px;overflow:hidden}
+.tars-time-track span{display:block;height:100%;background:var(--accent)}
+@media(max-width:380px){.tars-lab-panel{padding:12px}.tars-lab summary>span{font-size:10px}.tars-lab-readouts strong{font-size:17px}}
