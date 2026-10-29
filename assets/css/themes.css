@@ -19,7 +19,7 @@ html[data-theme=light]{color-scheme:light;--bg:#f3f0e7;--surface:#fcfaf4;--text:
   html:not([data-theme=light]) .research-section{background:#0c120fc4}
   html:not([data-theme=light]) .notes-section{background:#141e16c9}
   html:not([data-theme=light]) .contact-section{background:linear-gradient(90deg,#0c120fc9,#0c120f80)}
-  html:not([data-theme=light]) .orbit-band{background:#152017d9}
+  html:not([data-theme=light]) .orbit-band{background:#152017}
   html:not([data-theme=light]) .site-footer{background:#0c120fda}
   html:not([data-theme=light]) .hero-role{color:#e0e4d8}
   html:not([data-theme=light]) :is(.location-label,.scroll-note,.horizon-coordinate small,.tree-coordinate small,.project-eyebrow>span:last-child,.tags span,.archive-icon,.practice-number,.practice-tab-copy small,.practice-tab-arrow,.toolkit-number,.portrait-mark,.experience-date,.experience-location,.education-card>.mono,.publication-publisher,.certificate-provider,.community-grid .mono,.site-footer>.container){color:#b0bea7}
@@ -74,7 +74,7 @@ html[data-theme=light]{color-scheme:light;--bg:#f3f0e7;--surface:#fcfaf4;--text:
   html[data-theme=light] .tree-coordinate{background:#f3f0e7b8}
   html[data-theme=light] .tree-coordinate svg{stroke:#3e7049}
   html[data-theme=light] :is(.tree-coordinate small,.horizon-coordinate small){color:#526653}
-  html[data-theme=light] .orbit-band{background:#e8ecdfc9}
+  html[data-theme=light] .orbit-band{background:#e8ecdf}
   html[data-theme=light] .orbit-band p span{color:#75866c}
 
   /* Translucent paper surfaces retain a glimpse of the observatory beneath. */
