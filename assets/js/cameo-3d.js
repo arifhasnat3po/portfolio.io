@@ -3,10 +3,12 @@ import * as THREE from '../vendor/cameo-three/three.module.js';
 import { GLTFLoader } from '../vendor/cameo-three/GLTFLoader.js';
 import { MeshoptDecoder } from '../vendor/cameo-three/meshopt_decoder.module.js';
 import { RoomEnvironment } from '../vendor/cameo-three/RoomEnvironment.js';
+import { createCaraxes } from './caraxes-3d.js';
 
 const assets = {
   ironman: { file: 'ironman-mark85.glb', label: 'Iron Man Mark 85 by 9A Films / Nihar Arora and LLIypuk', source: 'https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2' },
-  falcon: { file: 'millennium-falcon.glb', label: 'Millennium Falcon by Johnson Martin', source: 'https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1' }
+  falcon: { file: 'millennium-falcon.glb', label: 'Millennium Falcon by Johnson Martin', source: 'https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1' },
+  dragon: { procedural: true, label: 'Caraxes-inspired red dragon — original stylized 3D reconstruction', source: null }
 };
 
 // Aim the real Mixamo joints in anatomical coordinates, independent of the imported bone axes.
@@ -176,10 +178,11 @@ function createFlightEffects(kind, pivot, rig) {
 }
 
 /**
- * await Portfolio3D.mount(element, 'ironman'|'falcon', options) -> cleanup function.
- * options: interactive, signal, onReady({ kind, label, source, animationClips }), onError(error).
+ * await Portfolio3D.mount(element, 'ironman'|'falcon'|'dragon', options) -> cleanup function.
+ * options: interactive, signal, onReady({ kind, label, source, animationClips, firstFrameRendered }), onError(error).
  * Returned cleanup.setFlightState({throttle:0..1, bank, pitch, heading, yaw}) drives engines/attitude.
- * Angles are radians. Heading is clockwise from screen-right for Falcon, from screen-up for Iron Man.
+ * Angles are radians. Heading is clockwise from screen-right for Falcon, screen-up for Iron Man,
+ * and screen-left for the dragon. The dragon has articulated wings, neck and tail, with no jet effects.
  * Bank rolls about the model's long axis.
  * The host needs nonzero width/height. Interactive: drag/arrow keys rotate; +/- zoom; Home resets.
  * Honors reduced motion, portfolio:motionchange, page visibility and viewport intersection.
@@ -187,9 +190,10 @@ function createFlightEffects(kind, pivot, rig) {
  */
 export async function mount(container, kind, options = {}) {
   if (!(container instanceof HTMLElement)) throw new TypeError('A model container element is required.');
-  if (!assets[kind]) throw new Error(`No licensed local model configured for ${kind}.`);
+  if (!assets[kind]) throw new Error(`No local 3D model configured for ${kind}.`);
   if (options.signal?.aborted) return () => {};
   const loading = new AbortController();
+  delete container.dataset.modelReady;
   const interactive = options.interactive === true;
   const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
@@ -199,7 +203,7 @@ export async function mount(container, kind, options = {}) {
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = kind === 'ironman' ? 1 : 0.88;
+  renderer.toneMappingExposure = kind === 'falcon' ? .88 : 1;
   const canvas = renderer.domElement;
   canvas.className = 'cameo-3d-canvas';
   canvas.style.cssText = 'display:block;width:100%;height:100%;outline-offset:-4px;';
@@ -243,10 +247,17 @@ export async function mount(container, kind, options = {}) {
   const headingAxis = new THREE.Vector3(0, 0, 1);
   const base = kind === 'falcon'
     ? new THREE.Euler(0.48, -0.65, -0.10)
+    : kind === 'dragon' ? new THREE.Euler(.30, -.06, -.015, 'ZYX')
     : new THREE.Euler(interactive ? 0 : -0.07, -.30, 0, 'ZYX');
   const motion = () => !preference.matches && document.documentElement.dataset.motion !== 'off';
   const visible = () => !document.hidden && inView && container.isConnected;
-  const draw = () => { if (!disposed && ready && visible()) renderer.render(scene, camera); };
+  // Warm the canvas at its real fitted dimensions even while its entrance position is offscreen.
+  // An intersection-gated "ready" previously let a cue run before any shader or pixel was drawn.
+  function draw(force = false) {
+    if (disposed || !ready || !container.isConnected || (!force && !visible())) return false;
+    renderer.render(scene, camera);
+    return true;
+  }
   function pose() {
     const moving = motion();
     const drift = moving && !flightControlled;
@@ -256,7 +267,9 @@ export async function mount(container, kind, options = {}) {
     pivot.quaternion.setFromEuler(attitude);
     if (moving && flightControlled) {
       // Heading is camera-space, whereas roll and pitch are local to the actual aircraft/body.
-      turnRotation.set(flight.pitch, flight.yaw + (kind === 'ironman' ? flight.bank : 0), kind === 'falcon' ? flight.bank : 0, 'YXZ');
+      turnRotation.set(kind === 'dragon' ? flight.bank : flight.pitch,
+        flight.yaw + (kind === 'ironman' ? flight.bank : 0),
+        kind === 'falcon' ? flight.bank : kind === 'dragon' ? flight.pitch : 0, 'YXZ');
       pivot.quaternion.multiply(turnQuaternion.setFromEuler(turnRotation));
       pivot.quaternion.premultiply(headingQuaternion.setFromAxisAngle(headingAxis, -flight.heading));
     }
@@ -264,7 +277,7 @@ export async function mount(container, kind, options = {}) {
     rig?.update(time, flight, moving);
     effects?.update(time, flight.throttle, moving);
   }
-  function resize() {
+  function resize(render = true) {
     if (disposed) return;
     const rect = container.getBoundingClientRect();
     const w = Math.max(1, Math.round(rect.width)), h = Math.max(1, Math.round(rect.height));
@@ -308,7 +321,7 @@ export async function mount(container, kind, options = {}) {
     camera.position.set(0, 0, distance);
     // Perspective makes the hull's visual centre differ from its 3D origin.
     camera.setViewOffset(width, height, centerX * width / 2, -centerY * height / 2, width, height);
-    camera.lookAt(0, 0, 0); camera.updateProjectionMatrix(); draw();
+    camera.lookAt(0, 0, 0); camera.updateProjectionMatrix(); if (render !== false) draw();
   }
   function tick(now) {
     frame = 0;
@@ -389,6 +402,7 @@ export async function mount(container, kind, options = {}) {
     document.removeEventListener('portfolio:motionchange', sync);
     preference.removeEventListener('change', sync);
     options.signal?.removeEventListener('abort', cleanup);
+    delete container.dataset.modelReady;
     disposeObject(pivot); envTarget.dispose();key.shadow.dispose(); renderer.dispose(); renderer.forceContextLoss(); canvas.remove();
   }
   cleanup.setFlightState = state => {
@@ -403,15 +417,19 @@ export async function mount(container, kind, options = {}) {
   };
   options.signal?.addEventListener('abort', cleanup, { once: true });
   try {
-    await MeshoptDecoder.ready;
-    if (disposed) return cleanup;
-    const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-    const modelURL = new URL(`../models/${assets[kind].file}`, import.meta.url);
-    const response = await fetch(modelURL, { signal: loading.signal });
-    if (!response.ok) throw new Error(`Model request failed (${response.status}).`);
-    const bytes = await response.arrayBuffer();
-    if (disposed || !container.isConnected) { cleanup(); return cleanup; }
-    const gltf = await loader.parseAsync(bytes, new URL('.', modelURL).href);
+    let gltf;
+    if (kind === 'dragon') gltf = createCaraxes();
+    else {
+      await MeshoptDecoder.ready;
+      if (disposed) return cleanup;
+      const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+      const modelURL = new URL(`../models/${assets[kind].file}`, import.meta.url);
+      const response = await fetch(modelURL, { signal: loading.signal });
+      if (!response.ok) throw new Error(`Model request failed (${response.status}).`);
+      const bytes = await response.arrayBuffer();
+      if (disposed || !container.isConnected) { cleanup(); return cleanup; }
+      gltf = await loader.parseAsync(bytes, new URL('.', modelURL).href);
+    }
     if (disposed || !container.isConnected) { disposeObject(gltf.scene); cleanup(); return cleanup; }
     const bounds = new THREE.Box3().setFromObject(gltf.scene);
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
@@ -421,9 +439,9 @@ export async function mount(container, kind, options = {}) {
     normalized.scale.setScalar(3.25 / Math.max(size.x, size.y, size.z));
     pivot.add(normalized);
     pivot.updateMatrixWorld(true);
-    rig = kind === 'ironman' ? createSuitRig(gltf.scene, normalized, interactive) : null;
+    rig = kind === 'ironman' ? createSuitRig(gltf.scene, normalized, interactive) : gltf.rig || null;
     // Build sockets in the bind pose, then move the bones before fitting the camera.
-    effects = createFlightEffects(kind, pivot, rig);
+    effects = kind === 'dragon' ? null : createFlightEffects(kind, pivot, rig);
     rig?.update(0, flight, false);
     const samples = [];
     pivot.updateMatrixWorld(true);
@@ -458,9 +476,33 @@ export async function mount(container, kind, options = {}) {
         samples.push(fitPoint.x, fitPoint.y, fitPoint.z);
       });
     }
+    if (kind === 'dragon') {
+      // Include the changing wingspan in one stable camera fit; never zoom the camera with each flap.
+      for (const sampleTime of [.7, 1.4, 2.1]) {
+        rig.update(sampleTime, { ...flight, throttle: 1 }, true); pivot.updateMatrixWorld(true);
+        gltf.scene.traverse(child => {
+          if (!child.isMesh) return;
+          const positions = child.geometry.getAttribute('position');
+          const step = Math.max(1, Math.floor(positions.count / 200));
+          for (let i = 0; i < positions.count; i += step) {
+            child.getVertexPosition(i, fitPoint).applyMatrix4(child.matrixWorld).applyMatrix4(inversePivot);
+            samples.push(fitPoint.x, fitPoint.y, fitPoint.z);
+          }
+        });
+      }
+    }
     fitPoints = new Float32Array(samples);
-    ready = true; pose(); resize(); sync();
-    options.onReady?.({ kind, label: assets[kind].label, source: assets[kind].source, animationClips: gltf.animations.length, bones: rig?.boneCount || 0 });
+    pose(); resize(false);
+    // compileAsync uses KHR_parallel_shader_compile where available. Resolve only after the
+    // populated scene has actually rendered, so callers can begin entrance effects afterwards.
+    if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+    if (disposed || !container.isConnected) { cleanup(); return cleanup; }
+    ready = true;
+    if (!draw(true)) throw new Error('The model could not draw its first frame.');
+    container.dataset.modelReady = 'true';
+    sync();
+    options.onReady?.({ kind, label: assets[kind].label, source: assets[kind].source,
+      animationClips: gltf.animations.length, bones: rig?.boneCount || 0, firstFrameRendered: true });
     return cleanup;
   } catch (error) {
     const cancelled = disposed || loading.signal.aborted;

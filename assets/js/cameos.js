@@ -78,13 +78,12 @@
     const kind=button.dataset.cameo, preview=button.querySelector('.cameo-preview');
     if (kind === 'tars') return;
     preview.innerHTML=`<img src="assets/img/cameos/${references[kind]}-reference.png" alt="${names[kind]} reference" loading="lazy">`;
-    if(kind==='dragon')button.querySelector('.cameo-discovery-label > span').textContent='See my favorite Caraxes scenes';
   });
   const modelLinks=document.createElement('div');modelLinks.className='cameo-model-links';
   modelLinks.innerHTML='<button type="button" data-model-open="falcon">Enter the Falcon docking bay ↗</button>';
   dialog.querySelector('.cameo-discovery-options').after(modelLinks);
   const credits=document.createElement('p');credits.className='model-credit';
-  credits.innerHTML='Flyby artwork: <a href="https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2" target="_blank" rel="noopener noreferrer">Iron Man retexture &amp; rig by Nihar Arora / 9A Films</a>, original model by <a href="https://sketchfab.com/LLIypuk" target="_blank" rel="noopener noreferrer">LLIypuk</a> · <a href="https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1" target="_blank" rel="noopener noreferrer">Falcon by Johnson Martin</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted for this observatory.';
+  credits.innerHTML='Flyby artwork: <a href="https://sketchfab.com/3d-models/iron-man-mark-85-rigged-dde1085c464d4f8da259fe6669ae4dd2" target="_blank" rel="noopener noreferrer">Iron Man retexture &amp; rig by Nihar Arora / 9A Films</a>, original model by <a href="https://sketchfab.com/LLIypuk" target="_blank" rel="noopener noreferrer">LLIypuk</a> · <a href="https://sketchfab.com/models/bd3e54ac20ff4ade8ddd8043db75c1d1" target="_blank" rel="noopener noreferrer">Falcon by Johnson Martin</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted for this observatory. Caraxes: an original, stylized 3D interpretation.';
   modelLinks.after(credits);
   function afterDiscoveryClose(action) {
     if (!dialog.open) { action(); return; }
@@ -113,21 +112,26 @@
     return isNew;
   }
 
-  function showTransmission(kind, announce, isNew = false) {
-    const message = messages[kind];
+  function showTransmission(kind, announce, isNew = false, phase = 'ready') {
+    const message = phase === 'loading'
+      ? { sender: 'ARRIVAL CONTROL', title: `Preparing ${names[kind]}…`, text: 'Loading the 3D visitor. The arrival will begin as soon as it is ready.' }
+      : phase === 'error'
+        ? { sender: 'ARRIVAL CONTROL', title: 'Arrival interrupted.', text: `${names[kind]} could not load. Open Explore the unknown to retry; WebGL and a working connection are needed.` }
+        : messages[kind];
     clearTimeout(consoleTimer);
     clearTimeout(liveTimer);
     consoleEl.querySelector('.cameo-console-sender').textContent = message.sender;
     consoleEl.querySelector('.cameo-console-title').textContent = message.title;
     consoleEl.querySelector('.cameo-console-text').textContent = message.text;
     consoleEl.dataset.kind = kind;
+    consoleEl.dataset.state = phase;
     consoleEl.classList.add('is-visible');
     // Ambient traffic stays silent for screen readers; only requested discoveries are announced.
     if (announce) {
       liveRegion.textContent = '';
       liveTimer = window.setTimeout(() => { liveRegion.textContent = `${isNew ? 'Discovered: ' : ''}${names[kind]}. ${message.title} ${message.text}`; }, 40);
     }
-    consoleTimer = window.setTimeout(() => consoleEl.classList.remove('is-visible'), announce ? 8500 : 5000);
+    if (phase !== 'loading') consoleTimer = window.setTimeout(() => consoleEl.classList.remove('is-visible'), announce ? 8500 : 5000);
   }
 
   function stopFlight() {
@@ -138,6 +142,11 @@
     flightCleanup?.(); flightCleanup=null;
     flight?.remove();
     flight = null;
+    layer.classList.remove('has-requested-visitor');
+    if (consoleEl.dataset.state === 'loading') {
+      clearTimeout(liveTimer);
+      consoleEl.classList.remove('is-visible');
+    }
   }
 
   function dispatchScene(kind, source) {
@@ -160,13 +169,13 @@
       else window.pendingTarsOpener = returnTo || document.activeElement;
       return;
     }
-    if (requested || kind === 'ironman') showTransmission(kind, requested, isNew);
-    dispatchScene(kind, source);
-    if(kind==='dragon'){
-      if(requested&&source!=='cinema')requestAnimationFrame(()=>document.dispatchEvent(new CustomEvent('portfolio:cinema-open',{detail:{title:'House of the Dragon',opener:returnTo}})));
+    if (!motionEnabled() || kind === 'tree' || kind === 'jump') {
+      if (requested) showTransmission(kind, true, isNew);
+      dispatchScene(kind, source);
       return;
     }
-    if (!motionEnabled() || kind === 'tree' || kind === 'jump') return;
+    if (requested) showTransmission(kind, true, false, 'loading');
+    layer.classList.toggle('has-requested-visitor', requested);
     flight = document.createElement('div');
     flight.className = `cameo-flight cameo-flight-${kind}${requested ? ' cameo-requested' : ''}`;
     flight.setAttribute('aria-hidden', 'true');
@@ -174,22 +183,35 @@
     flight.innerHTML = '<div class="cameo-craft cameo-craft-3d"></div>';
     layer.appendChild(flight);
     const currentFlight=flight;
+    flightTimer=window.setTimeout(()=>{
+      if(currentFlight!==flight)return;
+      stopFlight();
+      if(requested)showTransmission(kind,true,false,'error');
+    },90000);
     try{
-      await import('./cameo-3d.js?v=20261029h');
+      await import('./cameo-3d.js?v=20261029j');
       if(currentFlight!==flight)return;
       flightController=new AbortController();
       const destroy=await window.Portfolio3D.mount(currentFlight.firstElementChild,kind,{interactive:false,signal:flightController.signal});
       if(currentFlight!==flight){destroy?.();return;}
+      if(!motionEnabled()||document.hidden){destroy?.();stopFlight();return;}
       flightCleanup=destroy;currentFlight.classList.remove('is-loading');
       flightMotion=window.PortfolioFlight.start(currentFlight,kind,{
         setFlightState:destroy.setFlightState,
+        onVisible:()=>{
+          if(currentFlight!==flight)return;
+          currentFlight.dataset.arrived='true';
+          if(requested||kind==='ironman')showTransmission(kind,requested,isNew);
+          dispatchScene(kind,source);
+        },
         onComplete:()=>{if(currentFlight===flight)stopFlight();}
       });
       // Dispose even if a future renderer fails before the flight's natural exit.
-      flightTimer=window.setTimeout(()=>{if(currentFlight===flight)stopFlight();},kind==='falcon'?26000:20000);
+      clearTimeout(flightTimer);
+      flightTimer=window.setTimeout(()=>{if(currentFlight===flight)stopFlight();},kind==='ironman'?20000:26000);
     }catch(_){
       if(currentFlight!==flight)return;stopFlight();
-      if(requested){consoleEl.querySelector('.cameo-console-text').textContent='The 3D visitor could not load. Please try again; its reference and artwork credits are in Explore the unknown.';}
+      if(requested)showTransmission(kind,true,false,'error');
     }
   }
 

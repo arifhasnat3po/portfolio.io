@@ -11,13 +11,14 @@
   const approach = (current, target, response, dt) => current + (target - current) * (1 - Math.exp(-response * dt));
   const ascentLane = (viewportWidth, width) => viewportWidth * (viewportWidth < 700 ? .66 : .74) - width / 2;
 
-  function createState(kind, viewportWidth, viewportHeight, width, height) {
+  function createState(kind, viewportWidth, viewportHeight, width, height, requested = false) {
     const duration = kind === 'ironman' ? 14 : 20;
     if (kind === 'ironman') {
-      const speed = (viewportHeight + height * 2 + 130) / (duration * 1.08);
+      const startY = requested ? Math.min(viewportHeight * .62, viewportHeight - height * .5) : viewportHeight + height * .6 + 40;
+      const speed = (startY + height * 1.4 + 90) / (duration * 1.08);
       return {
         kind, duration, width, height, viewportWidth, viewportHeight,
-        age: 0, x: ascentLane(viewportWidth, width), y: viewportHeight + height * .6 + 40,
+        age: 0, x: ascentLane(viewportWidth, width), y: startY,
         vx: 0, vy: -speed * .55, ax: 0, ay: 0, speed,
         bank: 0, pitch: 0, heading: 0, yaw: 0, throttle: .56, scale: .83,
         maxForwardAcceleration: speed * 1.2,
@@ -25,10 +26,11 @@
         maxLateralSpeed: clamp(viewportWidth * .08, 30, 100)
       };
     }
-    const speed = (viewportWidth + width * 2 + 130) / (duration * 1.08);
+    const startX = requested ? viewportWidth * .15 : -width - 70;
+    const speed = (viewportWidth - startX + width + 60) / (duration * 1.08);
     return {
       kind, duration, width, height, viewportWidth, viewportHeight,
-      age: 0, x: -width - 70, y: viewportHeight * .43,
+      age: 0, x: startX, y: viewportHeight * .43,
       vx: speed * .68, vy: -viewportHeight * .012,
       ax: 0, ay: 0, speed,
       altitudeTarget: viewportHeight * .34,
@@ -136,12 +138,12 @@
   }
 
   /**
-   * start(element, 'falcon'|'ironman', { setFlightState, onComplete }) -> stop()
-   * The element remains in its existing fixed backdrop; its width/canvas are untouched.
+   * start(element, 'falcon'|'ironman'|'dragon', { setFlightState, onVisible, onComplete }) -> stop()
+   * Requested visitors arrive inside the viewport; ambient traffic enters from outside.
    * stop() is idempotent and does not invoke onComplete. Natural or visibility/motion exits do.
    */
   function start(element, kind, options = {}) {
-    if (!element?.style || !['falcon', 'ironman'].includes(kind)) return () => {};
+    if (!element?.style || !['falcon', 'ironman', 'dragon'].includes(kind)) return () => {};
     const viewport = () => ({
       width: Math.max(1, document.documentElement.clientWidth || window.innerWidth),
       height: Math.max(1, window.innerHeight || document.documentElement.clientHeight)
@@ -149,11 +151,12 @@
     const size = viewport();
     const width = element.offsetWidth || Math.min(370, Math.max(190, size.width * .22));
     const height = element.offsetHeight || width;
-    const state = createState(kind, size.width, size.height, width, height);
+    const requested = element.classList.contains('cameo-requested');
+    const state = createState(kind, size.width, size.height, width, height, requested);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const moving = () => !document.hidden && !reduced.matches && document.documentElement.dataset.motion !== 'off';
-    const opacity = element.classList.contains('cameo-requested') ? .96 : kind === 'falcon' ? .78 : .83;
-    let frame = 0, last = null, accumulator = 0, stopped = false;
+    const opacity = requested ? 1 : kind === 'falcon' ? .78 : .83;
+    let frame = 0, last = null, accumulator = 0, stopped = false, arrived = false;
 
     element.style.animation = 'none';
     element.style.left = '0';
@@ -194,15 +197,23 @@
     }
 
     function paint() {
-      element.style.transform = `translate3d(${state.x.toFixed(2)}px,${(state.y - state.height / 2).toFixed(2)}px,0) scale(${state.scale.toFixed(4)})`;
+      const screenX = kind === 'dragon' ? state.viewportWidth - state.width - state.x : state.x;
+      element.style.transform = `translate3d(${screenX.toFixed(2)}px,${(state.y - state.height / 2).toFixed(2)}px,0) scale(${state.scale.toFixed(4)})`;
       const entry = kind === 'ironman'
         ? 1 - smooth(state.viewportHeight - state.height * .1, state.viewportHeight + state.height * .5, state.y)
         : smooth(-state.width * .95, -state.width * .1, state.x);
       const exit = kind === 'ironman'
         ? smooth(-state.height * .6, 0, state.y)
         : 1 - smooth(state.viewportWidth, state.viewportWidth + state.width * .45, state.x);
-      element.style.opacity = (opacity * entry * exit).toFixed(3);
-      options.setFlightState?.({ throttle: state.throttle, bank: state.bank, pitch: state.pitch, heading: state.heading, yaw: state.yaw });
+      const visibility = opacity * entry * exit * (requested ? smooth(0, .18, state.age) : 1);
+      element.style.opacity = visibility.toFixed(3);
+      options.setFlightState?.({ throttle: state.throttle, bank: state.bank, pitch: state.pitch, heading: kind === 'dragon' ? -state.heading : state.heading, yaw: state.yaw });
+      // Synchronize the arrival effect to the first visible model, not its download.
+      const centerX = screenX + state.width / 2;
+      if (!arrived && !stopped && moving() && element.isConnected && visibility > .2 && centerX > 0 && centerX < state.viewportWidth && state.y > 0 && state.y < state.viewportHeight) {
+        arrived = true;
+        options.onVisible?.();
+      }
     }
 
     function tick(now) {

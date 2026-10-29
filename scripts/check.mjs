@@ -116,7 +116,7 @@ function checkSyntax(file) {
 
 for (const file of ['index.html', 'gym/index.html']) checkHtml(file);
 checkWatchlist();
-for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'assets/js/tars-guide.js', 'assets/js/tars-knowledge.js', 'assets/js/tars-voice.js', 'assets/js/tars-3d.js', 'assets/js/tars-physics.js', 'gym/sw.js']) checkSyntax(file);
+for (const file of ['assets/js/main.js', 'assets/js/cinema.js', 'assets/js/entangled.js', 'assets/js/flight-physics.js', 'assets/js/cameos.js', 'assets/js/contact.js', 'assets/js/routine.js', 'assets/js/theme.js', 'assets/js/model-gallery.js', 'assets/js/cameo-3d.js', 'assets/js/caraxes-3d.js', 'assets/js/tars-guide.js', 'assets/js/tars-knowledge.js', 'assets/js/tars-voice.js', 'assets/js/tars-3d.js', 'assets/js/tars-physics.js', 'gym/sw.js']) checkSyntax(file);
 try {
   const { tarsVoiceLines } = await import(pathToFileURL(path.join(root, 'assets/js/tars-knowledge.js')).href);
   const manifest = JSON.parse(read('assets/audio/tars/manifest.json'));
