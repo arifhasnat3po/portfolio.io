@@ -45,8 +45,8 @@
   root.innerHTML = `
     <div class="cinema-heading">
       <div><p class="cinema-eyebrow"><span aria-hidden="true">✳</span> THE OBSERVATORY / AFTER HOURS</p>
-      <h2>Stories worth<br><em>escaping into.</em></h2></div>
-      <div class="cinema-intro"><span class="cinema-index">PERSONAL FILM ARCHIVE <i aria-hidden="true"></i> VOL. 01</span><p>Some worlds stay with you long after the credits. These are a few of mine.</p><span class="cinema-tally">16 titles <span aria-hidden="true">/</span> 20 favorite frames</span></div>
+      <h2>Some of<br><em>my favorites.</em></h2></div>
+      <div class="cinema-intro"><span class="cinema-index">PERSONAL FAVORITES <i aria-hidden="true"></i> VOL. 01</span><p>Some worlds stay with you long after the credits. These are a few of mine.</p><span class="cinema-tally">Movies, shows &amp; scenes that stayed with me</span></div>
     </div>
     <div class="cinema-spotlight">
       <img class="cinema-spotlight-image" src="${spotlightFrame.src}" width="${spotlightFrame.width}" height="${spotlightFrame.height}" alt="${escapeHTML(spotlightFrame.alt)}" loading="lazy" decoding="async">
@@ -55,17 +55,17 @@
       <div class="cinema-spotlight-copy"><p class="cinema-spotlight-kicker">FROM THE WORLD OF WESTEROS</p><h3>House of<br>the Dragon<span>.</span></h3><p>Fire, ambition, and a world<br>that refuses to let go.</p><button class="cinema-spotlight-open" type="button">Enter the scene ${arrow}</button></div>
       <div class="cinema-spotlight-note"><span class="cinema-spotlight-coordinate" aria-hidden="true">+ 03 / 16</span><span>CARAXES &amp; DAEMON<br><small>A FAVORITE FRAME</small></span></div>
     </div>
-    <div class="cinema-spotlight-caption"><span>FIELD NOTES <span aria-hidden="true">—</span> MOVIES &amp; SHOWS I WATCHED</span><span>SCROLL TO THE CONTACT SHEET <span aria-hidden="true">↓</span></span></div>
+    <div class="cinema-spotlight-caption"><span>FIELD NOTES <span aria-hidden="true">—</span> SOME OF MY FAVORITE MOVIES &amp; SHOWS</span><span>SCROLL TO THE CONTACT SHEET <span aria-hidden="true">↓</span></span></div>
     <div class="cinema-toolbar">
       <div class="cinema-filters" role="group" aria-label="Filter watchlist">
-        <button type="button" data-cinema-filter="all" aria-pressed="true">All titles <span>16</span></button>
-        <button type="button" data-cinema-filter="film" aria-pressed="false">Films <span>5</span></button>
-        <button type="button" data-cinema-filter="series" aria-pressed="false">Series <span>11</span></button>
+        <button type="button" data-cinema-filter="all" aria-pressed="true">All favorites</button>
+        <button type="button" data-cinema-filter="film" aria-pressed="false">Films</button>
+        <button type="button" data-cinema-filter="series" aria-pressed="false">Series</button>
       </div>
       <span class="cinema-hint">THE CONTACT SHEET <span aria-hidden="true">↗</span> OPEN A FRAME</span>
     </div>
     <div class="cinema-grid" id="cinema-grid"></div>
-    <div class="cinema-gallery-footer"><p id="cinema-status" role="status" aria-live="polite"></p><button class="cinema-more" type="button" aria-controls="cinema-grid" aria-expanded="false">Unfold the archive ${arrow}</button></div>
+    <div class="cinema-gallery-footer"><p id="cinema-status" role="status" aria-live="polite"></p><button class="cinema-more" type="button" aria-controls="cinema-grid" aria-expanded="false">Show more favorites ${arrow}</button></div>
     <dialog class="cinema-dialog" aria-labelledby="cinema-viewer-title" aria-describedby="cinema-viewer-description">
       <div class="cinema-viewer">
         <div class="cinema-viewer-top"><span class="cinema-eyebrow">THE OBSERVATORY / SCENE VIEWER</span><button type="button" class="cinema-close" aria-label="Close scene viewer" autofocus>×</button></div>
@@ -101,10 +101,10 @@
           <span class="cinema-card-copy"><span><span class="cinema-title">${escapeHTML(title.title)}</span><span class="cinema-genre">${escapeHTML(title.genre)}</span></span><span class="cinema-card-arrow" aria-hidden="true">${arrow}</span></span>
         </button></div>`;
     }).join('');
-    status.textContent = `Showing ${displayed.length} of ${matching.length} titles`;
+    status.textContent = filter === 'film' ? 'Some of my favorite films.' : filter === 'series' ? 'Some of my favorite shows.' : 'Some of my favorite movies and shows.';
     moreButton.hidden = matching.length <= initialCount;
     moreButton.setAttribute('aria-expanded', String(expanded));
-    moreButton.innerHTML = `${expanded ? 'Fold the archive' : `Unfold ${matching.length - displayed.length} more titles`} ${arrow}`;
+    moreButton.innerHTML = `${expanded ? 'Show fewer favorites' : 'Show more favorites'} ${arrow}`;
     grid.querySelectorAll('.cinema-card').forEach(card => {
       card.addEventListener('click', () => openViewer(Number(card.dataset.cinemaTitle), card));
       installTilt(card);
